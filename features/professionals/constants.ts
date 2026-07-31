@@ -1,21 +1,42 @@
-export const TABLA_PROFESIONALES = "profesionales";
+export const PROFESSION_OPTIONS = [
+  { value: "psicologo", label: "Psicólogo/a" },
+  { value: "psiquiatra", label: "Psiquiatra" },
+] as const;
 
-export const CAMPOS = {
-  nombre: "Nombre_y_apellido",
-  profesion: "Profesion",
-  matricula: "Matricula",
-  genero: "Genero",
-  cobertura: "Obra_social",
-  modalidad: "Modalidad",
-  ubicacion: "Ubicacion",
-  motivo: "Motivo_de_consulta",
-  foto_url: "photo",
-  whatsapp: "Whatsapp",
-  destacado: "Destacado",
-  descripcion: "Descripcion",
-} as const;
+export const MODALITY_OPTIONS = [
+  { value: "virtual", label: "Virtual" },
+  { value: "presencial", label: "Presencial" },
+] as const;
 
-export type Profesional = Record<string, string | number | boolean | null>;
+export const COVERAGE_OPTIONS = [
+  { value: "particular", label: "Particular" },
+  { value: "obra_social", label: "Obra social" },
+] as const;
+
+export const GENDER_OPTIONS = [
+  { value: "mujer", label: "Prefiero profesional mujer" },
+  { value: "hombre", label: "Prefiero profesional hombre" },
+] as const;
+
+export const CONSULTATION_REASONS = [
+  "Adolescentes",
+  "Psicología infantil",
+  "Adultos general",
+  "Orientación vocacional",
+  "Trastornos de la conducta alimentaria",
+  "Consumo problemático",
+  "Sexualidad y género",
+  "Violencia de género",
+  "Neurodivergencias",
+];
+
+export const PROFESSION_LABELS: Record<string, string> = Object.fromEntries(
+  PROFESSION_OPTIONS.map((o) => [o.value, o.label]),
+);
+
+export const MODALITY_LABELS: Record<string, string> = Object.fromEntries(
+  MODALITY_OPTIONS.map((o) => [o.value, o.label]),
+);
 
 export const PROVINCIAS = [
   "Buenos Aires",

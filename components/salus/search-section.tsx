@@ -1,91 +1,57 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import {
-  CAMPOS,
   CIUDADES_POR_PROVINCIA,
+  COVERAGE_OPTIONS,
+  CONSULTATION_REASONS,
+  GENDER_OPTIONS,
+  MODALITY_OPTIONS,
+  PROFESSION_OPTIONS,
   PROVINCIAS,
-  Profesional,
-  TABLA_PROFESIONALES,
-} from "@/lib/salus/constants";
+} from "@/features/professionals/constants";
+import { useProfessionalSearch } from "@/features/professionals/hooks/useProfessionalSearch";
+import type {
+  Coverage,
+  Modality,
+  Profession,
+} from "@/features/professionals/types";
 import { ProfessionalCard } from "@/components/salus/professional-card";
 import { EmergencyBanner } from "@/components/salus/emergency-banner";
 
-const MOTIVOS = [
-  "Adolescentes",
-  "Psicología infantil",
-  "Adultos general",
-  "Orientación vocacional",
-  "Trastornos de la conducta alimentaria",
-  "Consumo problemático",
-  "Sexualidad y género",
-  "Violencia de género",
-  "Neurodivergencias",
-];
-
 export function SearchSection() {
-  const [profesion, setProfesion] = useState("");
+  const [profesion, setProfesion] = useState<Profession | "">("");
   const [motivo, setMotivo] = useState("");
   const [genero, setGenero] = useState("");
-  const [cobertura, setCobertura] = useState("");
-  const [modalidad, setModalidad] = useState("");
+  const [cobertura, setCobertura] = useState<Coverage | "">("");
+  const [modalidad, setModalidad] = useState<Modality | "">("");
   const [provincia, setProvincia] = useState("");
   const [ciudad, setCiudad] = useState("");
 
   const [searched, setSearched] = useState(false);
-  const [status, setStatus] = useState<"loading" | "empty" | "error" | "ready">("loading");
-  const [resultados, setResultados] = useState<Profesional[]>([]);
-  const [searching, setSearching] = useState(false);
+  const { status, results, search } = useProfessionalSearch();
 
   const ciudadesDisponibles = provincia ? CIUDADES_POR_PROVINCIA[provincia] : undefined;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setSearched(true);
-    setStatus("loading");
-    setSearching(true);
 
-    try {
-      const supabase = createClient();
-      let query = supabase.from(TABLA_PROFESIONALES).select("*");
+    const location = modalidad === "presencial" ? ciudad || provincia || undefined : undefined;
 
-      if (profesion) query = query.ilike(CAMPOS.profesion, `%${profesion}%`);
-      if (motivo) query = query.ilike(CAMPOS.motivo, `%${motivo}%`);
-      if (genero) query = query.eq(CAMPOS.genero, genero);
-      if (cobertura) query = query.ilike(CAMPOS.cobertura, `%${cobertura}%`);
-      if (modalidad) query = query.ilike(CAMPOS.modalidad, `%${modalidad}%`);
-
-      if (modalidad === "Presencial") {
-        if (ciudad) {
-          query = query.ilike(CAMPOS.ubicacion, `%${ciudad}%`);
-        } else if (provincia) {
-          query = query.ilike(CAMPOS.ubicacion, `%${provincia}%`);
-        }
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-
-      if (!data || data.length === 0) {
-        setStatus("empty");
-        setResultados([]);
-        return;
-      }
-
-      setResultados(data);
-      setStatus("ready");
-    } catch (err) {
-      console.error("Error consultando Supabase:", err);
-      setStatus("error");
-    } finally {
-      setSearching(false);
-    }
+    await search({
+      profession: profesion || undefined,
+      consultationReason: motivo || undefined,
+      gender: genero || undefined,
+      coverage: cobertura || undefined,
+      modality: modalidad || undefined,
+      location,
+    });
   }
 
-  function handleModalidadChange(value: string) {
+  function handleModalidadChange(value: Modality | "") {
     setModalidad(value);
-    if (value !== "Presencial") {
+    if (value !== "presencial") {
       setProvincia("");
       setCiudad("");
     }
@@ -108,11 +74,14 @@ export function SearchSection() {
               <select
                 id="profesion"
                 value={profesion}
-                onChange={(e) => setProfesion(e.target.value)}
+                onChange={(e) => setProfesion(e.target.value as Profession | "")}
               >
                 <option value="">Todas (Psicología y Psiquiatría)</option>
-                <option value="Psicólogo/a">Psicólogo/a</option>
-                <option value="Psiquiatra">Psiquiatra</option>
+                {PROFESSION_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -120,7 +89,7 @@ export function SearchSection() {
               <label htmlFor="motivo">Motivo de consulta</label>
               <select id="motivo" value={motivo} onChange={(e) => setMotivo(e.target.value)}>
                 <option value="">Todos los motivos</option>
-                {MOTIVOS.map((m) => (
+                {CONSULTATION_REASONS.map((m) => (
                   <option key={m} value={m}>
                     {m}
                   </option>
@@ -132,8 +101,11 @@ export function SearchSection() {
               <label htmlFor="genero">Género del profesional</label>
               <select id="genero" value={genero} onChange={(e) => setGenero(e.target.value)}>
                 <option value="">Prefiero no especificar</option>
-                <option value="Prefiero profesional mujer">Prefiero profesional mujer</option>
-                <option value="Prefiero profesional hombre">Prefiero profesional hombre</option>
+                {GENDER_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -142,11 +114,14 @@ export function SearchSection() {
               <select
                 id="cobertura"
                 value={cobertura}
-                onChange={(e) => setCobertura(e.target.value)}
+                onChange={(e) => setCobertura(e.target.value as Coverage | "")}
               >
                 <option value="">Todas las coberturas</option>
-                <option value="particular">Particular</option>
-                <option value="obra-social">Obra social</option>
+                {COVERAGE_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -155,17 +130,20 @@ export function SearchSection() {
               <select
                 id="modalidad"
                 value={modalidad}
-                onChange={(e) => handleModalidadChange(e.target.value)}
+                onChange={(e) => handleModalidadChange(e.target.value as Modality | "")}
               >
                 <option value="">Todas las modalidades</option>
-                <option value="Virtual">Virtual</option>
-                <option value="Presencial">Presencial</option>
+                {MODALITY_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
               </select>
             </div>
 
             <div
               id="locationGroup"
-              className={`full-width-group ${modalidad === "Presencial" ? "active" : ""}`}
+              className={`full-width-group ${modalidad === "presencial" ? "active" : ""}`}
             >
               <div className="location-flex">
                 <div className="filter-group">
@@ -207,8 +185,8 @@ export function SearchSection() {
           </div>
 
           <div className="btn-search-container">
-            <button type="submit" className="btn-search" disabled={searching}>
-              {searching ? "Buscando..." : "Buscar Profesionales"}
+            <button type="submit" className="btn-search" disabled={status === "loading"}>
+              {status === "loading" ? "Buscando..." : "Buscar Profesionales"}
             </button>
           </div>
         </form>
@@ -232,7 +210,7 @@ export function SearchSection() {
                 </div>
               )}
               {status === "ready" &&
-                resultados.map((prof, i) => <ProfessionalCard key={i} prof={prof} />)}
+                results.map((prof) => <ProfessionalCard key={prof.id} prof={prof} />)}
             </div>
           </div>
         )}

@@ -1,17 +1,20 @@
-import { CAMPOS, Profesional } from "@/lib/salus/constants";
+import { MODALITY_LABELS, PROFESSION_LABELS } from "@/features/professionals/constants";
+import type { Professional } from "@/features/professionals/types";
 
-export function ProfessionalCard({ prof }: { prof: Profesional }) {
-  const foto = (prof[CAMPOS.foto_url] as string) || "https://via.placeholder.com/150";
-  const nombre = (prof[CAMPOS.nombre] as string) || "Profesional SALUS";
-  const profesionRaw = prof[CAMPOS.profesion] as string | undefined;
-  const matricula = prof[CAMPOS.matricula] as string | undefined;
-  const profesion = profesionRaw
-    ? `${profesionRaw} ${matricula ? "(M.N. " + matricula + ")" : ""}`
+export function ProfessionalCard({ prof }: { prof: Professional }) {
+  const foto = prof.photo_url || "https://via.placeholder.com/150";
+  const nombre = prof.full_name || "Profesional SALUS";
+  const profesionLabel = PROFESSION_LABELS[prof.profession] ?? prof.profession;
+  const profesion = prof.profession
+    ? `${profesionLabel} ${prof.license_number ? "(M.N. " + prof.license_number + ")" : ""}`
     : "Especialista en Salud Mental";
-  const modalidadRaw = prof[CAMPOS.modalidad] as string | undefined;
-  const modalidad = modalidadRaw ? `Atención ${modalidadRaw}` : "Atención Virtual / Presencial";
-  const descripcion = (prof[CAMPOS.descripcion] as string) || "";
-  const whatsapp = prof[CAMPOS.whatsapp] as string | undefined;
+  const modalidadLabels = prof.modality.map((m) => MODALITY_LABELS[m] ?? m);
+  const modalidad =
+    modalidadLabels.length > 0
+      ? `Atención ${modalidadLabels.join(" y ")}`
+      : "Atención Virtual / Presencial";
+  const descripcion = prof.description || "";
+  const whatsapp = prof.whatsapp;
 
   const linkWa = whatsapp
     ? `https://wa.me/${whatsapp}?text=Hola%20${encodeURIComponent(nombre)},%20te%20contacto%20desde%20SALUS`

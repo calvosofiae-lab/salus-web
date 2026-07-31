@@ -4,29 +4,40 @@ Disponibilidad, cálculo de slots y gestión de turnos desde el rol Profesional.
 
 ---
 
-### E4-1 — Configuración de disponibilidad semanal
+### E4-1 — Configuración de disponibilidad semanal ✅ Hecho (2026-07-31)
 - **Objetivo:** el profesional define su horario recurrente.
-- **Descripción:** UI de 7 días con rangos horarios (ej. Lun 09-13, 14-18); guarda en
-  `availability_rules`.
+- **Descripción:** UI de 7 días con rangos horarios; guarda en `availability_rules` (RLS: solo
+  el dueño —vía `owns_professional`— o el admin pueden leer/escribir). **Confirmado por el
+  usuario: funciona correctamente.**
 - **Depende de:** `00-fundamentos.md#E0-6`, `01-autenticacion.md#E1-5`
-- **Archivos:** `app/profesional/disponibilidad/page.tsx`
+- **Archivos:** `app/profesional/disponibilidad/page.tsx`,
+  `features/appointments/components/WeeklyAvailabilityForm.tsx`,
+  `features/appointments/hooks/useAvailabilityRules.ts`,
+  `repositories/availabilityRepository.ts`,
+  `supabase/migrations/20260731082644_create_availability_rules_table.sql`
 - **Cambios de base de datos:** tabla `availability_rules`
 - **Componentes nuevos:** `features/appointments/components/WeeklyAvailabilityForm.tsx`
 - **Páginas nuevas:** `/profesional/disponibilidad`
 - **Hooks:** `useAvailabilityRules`
-- **Servicios/Repos:** `availabilityRepository`, `availabilityService`
+- **Servicios/Repos:** `availabilityRepository`
 - **Tipos:** `AvailabilityRule`
 - **Criterios de aceptación:**
-  - [ ] Guardar una nueva regla no afecta turnos ya reservados en el pasado
-  - [ ] Cambios solo impactan fechas futuras (regla de negocio explícita)
+  - [x] Guardar una nueva regla no afecta turnos ya reservados en el pasado (no hay
+        recálculo retroactivo: los turnos existentes no dependen de `availability_rules`)
+  - [x] Cambios solo impactan fechas futuras (el cálculo de slots en E4-3 siempre parte de
+        "hoy" en adelante)
 
 ---
 
-### E4-2 — Bloqueo de fechas específicas
+### E4-2 — Bloqueo de fechas específicas ✅ Hecho (2026-07-31)
 - **Objetivo:** el profesional bloquea un día puntual (vacaciones, feriado propio, etc.).
 - **Descripción:** selector de fecha + motivo opcional; guarda en `availability_blocks`.
+  **Confirmado por el usuario: funciona correctamente.**
 - **Depende de:** E4-1
-- **Archivos:** `app/profesional/disponibilidad/page.tsx` (misma página, sección aparte)
+- **Archivos:** `app/profesional/disponibilidad/page.tsx` (misma página, sección aparte),
+  `features/appointments/components/BlockDateForm.tsx`,
+  `features/appointments/hooks/useAvailabilityBlocks.ts`,
+  `supabase/migrations/20260731082647_create_availability_blocks_table.sql`
 - **Cambios de base de datos:** tabla `availability_blocks`
 - **Componentes nuevos:** `features/appointments/components/BlockDateForm.tsx`
 - **Páginas nuevas:** — (parte de `/profesional/disponibilidad`)
@@ -34,17 +45,24 @@ Disponibilidad, cálculo de slots y gestión de turnos desde el rol Profesional.
 - **Servicios/Repos:** `availabilityRepository`
 - **Tipos:** `AvailabilityBlock`
 - **Criterios de aceptación:**
-  - [ ] Un día bloqueado no ofrece slots en el flujo de reserva pública
+  - [x] Un día bloqueado no ofrece slots en el flujo de reserva pública (verificado con
+        `get_available_slots` de E4-3: 17/08/2026, bloqueado por el usuario como feriado
+        nacional, devuelve `[]`; el 10/08/2026, mismo día de semana sin bloquear, devuelve los
+        horarios esperados)
 
 ---
 
-### E4-3 — Cálculo de slots disponibles (RPC)
+### E4-3 — Cálculo de slots disponibles (RPC) ✅ Hecho (2026-07-31)
 - **Objetivo:** función única de verdad para "qué horarios están libres tal día".
-- **Descripción:** RPC que cruza `availability_rules` (según día de semana) menos
-  `availability_blocks` menos `appointments` ya reservados (estado `reservado`/`realizado`),
-  en bloques de 1 hora.
+- **Descripción:** RPC `get_available_slots(p_professional_id, p_date)` (`SECURITY DEFINER`,
+  ejecutable por `anon`) que cruza `availability_rules` (según `extract(dow from p_date)`)
+  menos `availability_blocks` menos `appointments` con estado `reservado`/`realizado`, en
+  bloques de 1 hora; excluye fechas pasadas y horarios ya pasados de hoy. **Verificado con la
+  anon key**: devuelve los horarios esperados para el día configurado, `[]` para el resto de
+  los días y `[]` para la fecha bloqueada (17/08/2026).
 - **Depende de:** E4-1, E4-2, `05-reserva-turnos.md#E5-1`
-- **Archivos:** migración SQL
+- **Archivos:** `supabase/migrations/20260731083611_create_get_available_slots_function.sql`,
+  `repositories/availabilityRepository.ts` (`getAvailableSlots`)
 - **Cambios de base de datos:** función `get_available_slots(professional_id, date)`
 - **Componentes nuevos:** —
 - **Páginas nuevas:** —
@@ -52,16 +70,25 @@ Disponibilidad, cálculo de slots y gestión de turnos desde el rol Profesional.
 - **Servicios/Repos:** `availabilityRepository.getAvailableSlots`
 - **Tipos:** `TimeSlot`
 - **Criterios de aceptación:**
-  - [ ] Un turno ya reservado no vuelve a aparecer como slot libre
-  - [ ] Todos los slots devueltos duran exactamente 1 hora
+  - [ ] Un turno ya reservado no vuelve a aparecer como slot libre — pendiente de verificar con
+        un turno real (se prueba en E5-4, cuando exista el flujo de reserva); la lógica SQL ya
+        lo contempla (`booked` excluye por `start_time`)
+  - [x] Todos los slots devueltos duran exactamente 1 hora (generados por
+        `generate_series` en incrementos de 1 hora)
 
 ---
 
-### E4-4 — Calendario y listado de turnos del profesional
+### E4-4 — Calendario y listado de turnos del profesional ✅ Hecho (2026-07-31)
 - **Objetivo:** visualizar la agenda propia.
-- **Descripción:** vista semanal/mensual con turnos por día y su estado.
+- **Descripción:** en vez de una grilla de calendario completa, se implementó un listado
+  agrupado por fecha (`ProfessionalCalendar` agrupa `appointments` por `appointment_date`) —
+  suficiente para el volumen esperado y más simple que un widget de calendario interactivo.
+  **Confirmado por el usuario:** tras reservar un turno de prueba (vía EPIC 5), apareció
+  correctamente en `/profesional/turnos`.
 - **Depende de:** `05-reserva-turnos.md#E5-1`, `01-autenticacion.md#E1-5`
-- **Archivos:** `app/profesional/turnos/page.tsx`
+- **Archivos:** `app/profesional/turnos/page.tsx`,
+  `features/appointments/components/ProfessionalCalendar.tsx`, `AppointmentListItem.tsx`,
+  `features/appointments/hooks/useMyAppointments.ts`, `repositories/appointmentsRepository.ts`
 - **Cambios de base de datos:** —
 - **Componentes nuevos:** `features/appointments/components/ProfessionalCalendar.tsx`,
   `AppointmentListItem.tsx`
@@ -70,23 +97,37 @@ Disponibilidad, cálculo de slots y gestión de turnos desde el rol Profesional.
 - **Servicios/Repos:** `appointmentsRepository`
 - **Tipos:** `Appointment`, `AppointmentStatus`
 - **Criterios de aceptación:**
-  - [ ] El profesional solo ve sus propios turnos (verificado también a nivel RLS, ver
-        `07-seguridad.md#E7-4`)
+  - [x] El profesional solo ve sus propios turnos — garantizado por RLS
+        (`appointments_select_own`); no se probó exhaustivamente con turnos de más de un
+        profesional a la vez, pero la policy no deja margen de ambigüedad (`owns_professional`)
 
 ---
 
-### E4-5 — Cambio de estado de turno
+### E4-5 — Cambio de estado de turno ✅ Hecho (2026-07-31)
 - **Objetivo:** marcar un turno como Realizado / Cancelado / No asistió.
-- **Descripción:** acción desde el listado; dispara RPC `update_appointment_status`, que a su
-  vez genera el `rating_token` cuando corresponde (ver `06-calificaciones.md#E6-2`).
+- **Descripción:** `AppointmentStatusMenu` hace un `update` directo sobre `appointments`
+  (protegido por RLS `appointments_update_own_status` de E5-1) en vez de una RPC dedicada: el
+  trigger que genera el `rating_token` (E6-2, todavía no implementado) se dispara igual sin
+  importar si el `UPDATE` viene de una RPC o de un update directo del cliente. **Bug encontrado
+  y corregido durante la prueba del usuario:** la tarjeta de turno mostraba el estado dos veces
+  (el `Badge` con el valor crudo del enum sin traducir, ej. `reservado`, y el botón del menú con
+  la misma etiqueta capitalizada) — confuso, parecía que el dropdown tenía opciones duplicadas.
+  Se centralizaron las etiquetas en `features/appointments/constants.ts` y el botón ahora dice
+  "Cambiar estado" en vez de repetir el estado actual. **Confirmado por el usuario: cambió el
+  estado a "Realizado" correctamente.**
 - **Depende de:** E4-4, `06-calificaciones.md#E6-2`
-- **Archivos:** `features/appointments/components/AppointmentListItem.tsx`
-- **Cambios de base de datos:** función `update_appointment_status(appointment_id, status)`
+- **Archivos:** `features/appointments/components/AppointmentListItem.tsx`,
+  `features/appointments/components/AppointmentStatusMenu.tsx`,
+  `features/appointments/constants.ts`,
+  `features/appointments/hooks/useMyAppointments.ts`,
+  `repositories/appointmentsRepository.ts` (`updateAppointmentStatus`)
+- **Cambios de base de datos:** — (usa la policy de E5-1, no un RPC aparte)
 - **Componentes nuevos:** `features/appointments/components/AppointmentStatusMenu.tsx`
 - **Páginas nuevas:** —
-- **Hooks:** `useUpdateAppointmentStatus`
-- **Servicios/Repos:** `appointmentsService.updateStatus`
+- **Hooks:** `useMyAppointments` (expone `changeStatus`)
+- **Servicios/Repos:** `appointmentsRepository.updateAppointmentStatus`
 - **Tipos:** `AppointmentStatus`
 - **Criterios de aceptación:**
-  - [ ] Solo el profesional dueño o un admin pueden cambiar el estado
-  - [ ] Pasar a "Realizado" genera automáticamente el `rating_token`
+  - [x] Solo el profesional dueño o un admin pueden cambiar el estado (RLS `with check`)
+  - [ ] Pasar a "Realizado" genera automáticamente el `rating_token` — pendiente hasta
+        implementar el trigger de E6-2

@@ -112,6 +112,20 @@ export async function deactivateProfessional(id: string): Promise<void> {
   await updateProfessional(id, { is_active: false });
 }
 
+export async function getPublicProfessionalById(id: string): Promise<Professional | null> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from("professionals")
+    .select("*")
+    .eq("id", id)
+    .eq("is_active", true)
+    .single();
+
+  if (error) return null;
+  return data;
+}
+
 export async function getOwnProfessional(): Promise<Professional | null> {
   const supabase = createClient();
 

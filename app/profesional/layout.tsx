@@ -8,6 +8,8 @@ export default function ProfessionalLayout({ children }: { children: React.React
         <div className="max-w-5xl mx-auto flex items-center justify-between p-4">
           <nav className="flex items-center gap-4 text-sm font-medium">
             <Link href="/profesional">SALUS Profesional</Link>
+            <Link href="/profesional/disponibilidad">Disponibilidad</Link>
+            <Link href="/profesional/turnos">Mis turnos</Link>
             <Link href="/profesional/perfil">Mi perfil</Link>
           </nav>
           <LogoutButton />

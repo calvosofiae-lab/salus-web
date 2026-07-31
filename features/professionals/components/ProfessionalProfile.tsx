@@ -7,6 +7,7 @@ import { SlotPicker } from "@/features/appointments/components/SlotPicker";
 import { BookingForm } from "@/features/appointments/components/BookingForm";
 import { BookingConfirmation } from "@/features/appointments/components/BookingConfirmation";
 import { useBookAppointment } from "@/features/appointments/hooks/useBookAppointment";
+import { RatingSummary } from "@/features/reviews/components/RatingSummary";
 
 export function ProfessionalProfile({ professional }: { professional: Professional }) {
   const [selected, setSelected] = useState<{ date: string; time: string } | null>(null);
@@ -31,6 +32,7 @@ export function ProfessionalProfile({ professional }: { professional: Profession
             {professional.license_number ? ` (M.N. ${professional.license_number})` : ""}
           </p>
           {modalidad && <p className="text-sm text-muted-foreground">Atención {modalidad}</p>}
+          <RatingSummary averageRating={professional.average_rating} />
         </div>
       </div>
 

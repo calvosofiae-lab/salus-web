@@ -196,6 +196,33 @@ export interface Database {
         };
         Relationships: [];
       };
+      reviews: {
+        Row: {
+          id: string;
+          appointment_id: string;
+          professional_id: string;
+          rating: number;
+          comment: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          appointment_id: string;
+          professional_id: string;
+          rating: number;
+          comment?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          appointment_id?: string;
+          professional_id?: string;
+          rating?: number;
+          comment?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -213,6 +240,14 @@ export interface Database {
           p_whatsapp: string;
         };
         Returns: string;
+      };
+      submit_review: {
+        Args: { p_token: string; p_rating: number; p_comment: string | null };
+        Returns: void;
+      };
+      get_featured_professional_of_month: {
+        Args: Record<string, never>;
+        Returns: string | null;
       };
     };
     Enums: {

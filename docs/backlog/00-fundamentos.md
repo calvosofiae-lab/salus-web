@@ -202,13 +202,17 @@ convención de carpetas.
 
 ---
 
-### E0-9 — Baja de la tabla legacy `profesionales` (al final del proyecto)
+### E0-9 — Baja de la tabla legacy `profesionales` (al final del proyecto) ✅ Hecho (2026-07-31)
 - **Objetivo:** limpiar la base una vez que todo el sistema nuevo esté validado en producción.
-- **Descripción:** confirmar que ningún código (front, RPCs, reportes) referencia ya
-  `profesionales`, y recién ahí ejecutar `drop table profesionales`. Es la única tarea de este
-  backlog que se hace literalmente al final, después de EPIC 7.
+- **Descripción:** se confirmó por grep que ningún código de la app referencia ya
+  `profesionales` (el único match fue un `id="profesionales"` de ancla de navegación, sin
+  relación con la tabla), se exportó un backup completo de las 4 filas a
+  `docs/backups/profesionales_backup_20260731.json`, y recién ahí se ejecutó
+  `drop table profesionales`. **Verificado**: la tabla ya no existe (`PGRST205`, PostgREST
+  incluso sugiere `professionals` como alternativa).
 - **Depende de:** `07-seguridad.md#E7-6` y de todas las demás epics completas
-- **Archivos:** migración SQL final
+- **Archivos:** `supabase/migrations/20260731093037_drop_legacy_profesionales_table.sql`,
+  `docs/backups/profesionales_backup_20260731.json`
 - **Cambios de base de datos:** `drop table profesionales`
 - **Componentes nuevos:** —
 - **Páginas nuevas:** —
@@ -216,6 +220,6 @@ convención de carpetas.
 - **Servicios/Repos:** —
 - **Tipos:** —
 - **Criterios de aceptación:**
-  - [ ] Búsqueda de "profesionales" (la tabla) en todo el repo no arroja resultados antes de
+  - [x] Búsqueda de "profesionales" (la tabla) en todo el repo no arroja resultados antes de
         borrarla
-  - [ ] Backup/export de la tabla tomado antes del `drop`, por las dudas
+  - [x] Backup/export de la tabla tomado antes del `drop`, por las dudas

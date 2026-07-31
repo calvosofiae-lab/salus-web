@@ -12,13 +12,13 @@ Documentos de referencia (leer antes de las tareas):
 
 ## Estado (2026-07-31)
 
-**EPIC 0 a 7 implementadas y probadas.** Todo el sistema (auth, roles, admin de
-profesionales, agenda, reserva pública de turnos, calificaciones, RLS) está corriendo sobre
-Supabase real y fue probado de punta a punta (reserva de turno de prueba, cambio de estado,
-calificación con estrellas, auditoría de RLS con la anon key). Único pendiente:
-**`00-fundamentos.md#E0-9`** (borrar la tabla legacy `profesionales`) — deliberadamente no
-ejecutado todavía porque es destructivo e irreversible; queda a criterio del usuario cuándo
-correrlo.
+**Backlog completo: EPIC 0 a 7 implementadas y probadas, incluyendo `E0-9`.** Todo el sistema
+(auth, roles, admin de profesionales, agenda, reserva pública de turnos, calificaciones, RLS)
+corre sobre Supabase real y fue probado de punta a punta (reserva de turno de prueba, cambio de
+estado, calificación con estrellas, auditoría de RLS con la anon key). La tabla legacy
+`profesionales` fue respaldada (`docs/backups/profesionales_backup_20260731.json`) y borrada.
+No queda ninguna tarea abierta de este backlog inicial; el desarrollo a partir de acá son
+mejoras/features nuevas sobre esta base.
 
 ## Índice de EPICs
 

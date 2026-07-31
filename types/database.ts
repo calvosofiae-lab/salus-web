@@ -31,6 +31,7 @@ export interface Database {
           full_name?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       professionals: {
         Row: {
@@ -96,10 +97,14 @@ export interface Database {
           consultation_fee?: number | null;
           created_at?: string;
         };
+        Relationships: [];
       };
     };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
     Enums: {
       user_role: UserRole;
     };
+    CompositeTypes: Record<string, never>;
   };
 }

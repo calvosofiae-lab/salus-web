@@ -15,3 +15,23 @@ export interface ProfessionalFilters {
   modality?: Modality;
   location?: string;
 }
+
+export interface ProfessionalFormValues {
+  full_name: string;
+  profession: string;
+  license_number: string;
+  gender: string;
+  description: string;
+  photo_url: string;
+  whatsapp: string;
+  location: string;
+  coverage: string[];
+  modality: string[];
+  consultation_reasons: string[];
+  is_featured: boolean;
+}
+
+export interface ProfessionalCreateInput extends ProfessionalFormValues {
+  email: string;
+  password: string;
+}

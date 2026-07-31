@@ -10,6 +10,16 @@ Documentos de referencia (leer antes de las tareas):
   `features/`, `repositories/`, `services/`, `hooks/`, `types/`, `lib/`)
 - [`docs/data-model.md`](../data-model.md) — esquema de base de datos objetivo, RPCs y triggers
 
+## Estado (2026-07-31)
+
+**EPIC 0 a 7 implementadas y probadas.** Todo el sistema (auth, roles, admin de
+profesionales, agenda, reserva pública de turnos, calificaciones, RLS) está corriendo sobre
+Supabase real y fue probado de punta a punta (reserva de turno de prueba, cambio de estado,
+calificación con estrellas, auditoría de RLS con la anon key). Único pendiente:
+**`00-fundamentos.md#E0-9`** (borrar la tabla legacy `profesionales`) — deliberadamente no
+ejecutado todavía porque es destructivo e irreversible; queda a criterio del usuario cuándo
+correrlo.
+
 ## Índice de EPICs
 
 | Epic | Archivo | Contenido |

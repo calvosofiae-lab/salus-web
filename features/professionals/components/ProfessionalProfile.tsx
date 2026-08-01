@@ -15,6 +15,11 @@ export function ProfessionalProfile({ professional }: { professional: Profession
 
   const profesion = PROFESSION_LABELS[professional.profession] ?? professional.profession;
   const modalidad = professional.modality.map((m) => MODALITY_LABELS[m] ?? m).join(" y ");
+  const ubicacion = professional.modality.includes("presencial")
+    ? [professional.city && professional.city !== "General" ? professional.city : null, professional.province]
+        .filter(Boolean)
+        .join(", ")
+    : "";
 
   return (
     <div className="flex flex-col gap-8 max-w-2xl">
@@ -32,6 +37,7 @@ export function ProfessionalProfile({ professional }: { professional: Profession
             {professional.license_number ? ` (M.N. ${professional.license_number})` : ""}
           </p>
           {modalidad && <p className="text-sm text-muted-foreground">Atención {modalidad}</p>}
+          {ubicacion && <p className="text-sm text-muted-foreground">📍 {ubicacion}</p>}
           <RatingSummary averageRating={professional.average_rating} />
         </div>
       </div>

@@ -48,7 +48,8 @@ export interface Database {
           coverage: string[];
           modality: string[];
           consultation_reasons: string[];
-          location: string | null;
+          province: string | null;
+          city: string | null;
           is_active: boolean;
           is_featured: boolean;
           average_rating: number | null;
@@ -69,7 +70,8 @@ export interface Database {
           coverage?: string[];
           modality?: string[];
           consultation_reasons?: string[];
-          location?: string | null;
+          province?: string | null;
+          city?: string | null;
           is_active?: boolean;
           is_featured?: boolean;
           average_rating?: number | null;
@@ -90,7 +92,8 @@ export interface Database {
           coverage?: string[];
           modality?: string[];
           consultation_reasons?: string[];
-          location?: string | null;
+          province?: string | null;
+          city?: string | null;
           is_active?: boolean;
           is_featured?: boolean;
           average_rating?: number | null;

@@ -51,8 +51,11 @@ export async function searchProfessionals(
   if (filters.modality) {
     query = query.contains("modality", [filters.modality]);
   }
-  if (filters.location) {
-    query = query.ilike("location", `%${filters.location}%`);
+  if (filters.province) {
+    query = query.eq("province", filters.province);
+  }
+  if (filters.city && filters.city !== "General") {
+    query = query.eq("city", filters.city);
   }
 
   const { data, error } = await query;

@@ -34,7 +34,8 @@ export async function adminCreateProfessional(input: ProfessionalCreateInput) {
     coverage: input.coverage,
     modality: input.modality,
     consultation_reasons: input.consultation_reasons,
-    location: input.location || null,
+    province: input.province || null,
+    city: input.city || null,
     is_featured: input.is_featured,
   });
 

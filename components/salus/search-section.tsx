@@ -37,15 +37,14 @@ export function SearchSection() {
     e.preventDefault();
     setSearched(true);
 
-    const location = modalidad === "presencial" ? ciudad || provincia || undefined : undefined;
-
     await search({
       profession: profesion || undefined,
       consultationReason: motivo || undefined,
       gender: genero || undefined,
       coverage: cobertura || undefined,
       modality: modalidad || undefined,
-      location,
+      province: modalidad === "presencial" ? provincia || undefined : undefined,
+      city: modalidad === "presencial" ? ciudad || undefined : undefined,
     });
   }
 

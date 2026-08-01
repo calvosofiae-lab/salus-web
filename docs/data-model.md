@@ -41,7 +41,8 @@ proyecto (tarea E0-9), una vez validado que nada la referencia.
 | coverage | text[] | `particular`, `obra_social` |
 | modality | text[] | `virtual`, `presencial` |
 | consultation_reasons | text[] | motivos de consulta |
-| location | text, nullable | solo relevante si `presencial` está en `modality` |
+| province | text, nullable | valor canónico de `PROVINCIAS` (mismo dropdown que usa el buscador público) |
+| city | text, nullable | valor canónico de `CIUDADES_POR_PROVINCIA[province]`, o `"General"` = toda la provincia; solo relevante si `presencial` está en `modality` |
 | is_active | boolean | default true |
 | is_featured | boolean | default false |
 | average_rating | numeric | cacheado, recalculado desde `reviews` |

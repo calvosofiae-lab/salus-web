@@ -7,11 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import {
+  CIUDADES_POR_PROVINCIA,
   CONSULTATION_REASONS,
   COVERAGE_OPTIONS,
   GENDER_OPTIONS,
   MODALITY_OPTIONS,
   PROFESSION_OPTIONS,
+  PROVINCIAS,
 } from "@/features/professionals/constants";
 import type { ProfessionalFormValues } from "@/features/professionals/types";
 
@@ -23,7 +25,8 @@ const EMPTY_VALUES: ProfessionalFormValues = {
   description: "",
   photo_url: "",
   whatsapp: "",
-  location: "",
+  province: "",
+  city: "",
   coverage: [],
   modality: [],
   consultation_reasons: [],
@@ -113,6 +116,14 @@ export function ProfessionalForm({
     });
   }
 
+  function handleProvinceChange(province: string) {
+    setValues((v) => ({ ...v, province, city: "" }));
+  }
+
+  const ciudadesDisponibles = values.province
+    ? CIUDADES_POR_PROVINCIA[values.province]
+    : undefined;
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     await onSubmit(mode === "create" ? { ...values, email, password } : values);
@@ -193,13 +204,44 @@ export function ProfessionalForm({
             />
           </div>
 
-          <div className="grid gap-1.5 md:col-span-2">
-            <Label htmlFor="location">Ubicación</Label>
-            <Input
-              id="location"
-              value={values.location}
-              onChange={(e) => setValues((v) => ({ ...v, location: e.target.value }))}
-            />
+          <div className="grid gap-1.5">
+            <Label htmlFor="province">Provincia</Label>
+            <select
+              id="province"
+              className={selectClassName}
+              value={values.province}
+              onChange={(e) => handleProvinceChange(e.target.value)}
+            >
+              <option value="">Sin especificar</option>
+              {PROVINCIAS.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label htmlFor="city">Ciudad / Localidad</Label>
+            <select
+              id="city"
+              className={selectClassName}
+              value={values.city}
+              onChange={(e) => setValues((v) => ({ ...v, city: e.target.value }))}
+              disabled={!values.province}
+            >
+              <option value="">
+                {ciudadesDisponibles ? "Sin especificar" : "Elegí primero una provincia"}
+              </option>
+              {ciudadesDisponibles?.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+              {values.province && !ciudadesDisponibles && (
+                <option value="General">Toda la provincia</option>
+              )}
+            </select>
           </div>
         </div>
 

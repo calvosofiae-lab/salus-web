@@ -13,7 +13,10 @@ export interface ProfessionalFilters {
   gender?: string;
   coverage?: Coverage;
   modality?: Modality;
-  location?: string;
+  /** Provincia exacta (mismo valor canónico que PROVINCIAS). */
+  province?: string;
+  /** Ciudad exacta (mismo valor canónico que CIUDADES_POR_PROVINCIA); "General" = toda la provincia. */
+  city?: string;
 }
 
 export interface ProfessionalFormValues {
@@ -24,7 +27,8 @@ export interface ProfessionalFormValues {
   description: string;
   photo_url: string;
   whatsapp: string;
-  location: string;
+  province: string;
+  city: string;
   coverage: string[];
   modality: string[];
   consultation_reasons: string[];

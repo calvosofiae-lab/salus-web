@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { MODALITY_LABELS, PROFESSION_LABELS } from "@/features/professionals/constants";
 import type { Professional } from "@/features/professionals/types";
-import { SlotPicker } from "@/features/appointments/components/SlotPicker";
+import { SlotPicker, type SlotPickerHandle } from "@/features/appointments/components/SlotPicker";
 import { BookingForm } from "@/features/appointments/components/BookingForm";
 import { BookingConfirmation } from "@/features/appointments/components/BookingConfirmation";
 import { useBookAppointment } from "@/features/appointments/hooks/useBookAppointment";
@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 export function ProfessionalProfile({ professional }: { professional: Professional }) {
   const [selected, setSelected] = useState<{ date: string; time: string } | null>(null);
   const { book, error, isLoading, confirmedId } = useBookAppointment();
+  const slotPickerRef = useRef<SlotPickerHandle>(null);
 
   const profesion = PROFESSION_LABELS[professional.profession] ?? professional.profession;
   const modalidad = professional.modality.map((m) => MODALITY_LABELS[m] ?? m).join(" y ");
@@ -56,16 +57,18 @@ export function ProfessionalProfile({ professional }: { professional: Profession
         <div className="flex flex-col gap-6">
           <h2 className="text-lg font-medium">Reservar un turno</h2>
           <SlotPicker
+            ref={slotPickerRef}
             professionalId={professional.id}
             selectedSlot={selected}
             onSelectSlot={(date, time) => setSelected({ date, time })}
           />
+          {error && !selected && <p className="text-sm text-red-500">{error}</p>}
           {selected && (
             <BookingForm
               isLoading={isLoading}
               error={error}
               onSubmit={async (values) => {
-                await book({
+                const id = await book({
                   professionalId: professional.id,
                   date: selected.date,
                   startTime: selected.time,
@@ -73,6 +76,12 @@ export function ProfessionalProfile({ professional }: { professional: Profession
                   lastName: values.lastName,
                   whatsapp: values.whatsapp,
                 });
+                if (!id) {
+                  // El turno pudo haberse ocupado entre que se cargó la lista y que se
+                  // confirmó -- refresca los horarios y obliga a elegir de nuevo.
+                  slotPickerRef.current?.reload();
+                  setSelected(null);
+                }
               }}
             />
           )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { forwardRef, useImperativeHandle, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,18 +11,25 @@ function isWeekend(dateStr: string) {
   return day === 0 || day === 6;
 }
 
-export function SlotPicker({
-  professionalId,
-  selectedSlot,
-  onSelectSlot,
-}: {
-  professionalId: string;
-  selectedSlot: { date: string; time: string } | null;
-  onSelectSlot: (date: string, startTime: string) => void;
-}) {
+export interface SlotPickerHandle {
+  /** Re-consulta los horarios disponibles del día elegido (ej. después de que una reserva
+   * falla porque otra persona se adelantó con el mismo horario). */
+  reload: () => void;
+}
+
+export const SlotPicker = forwardRef<
+  SlotPickerHandle,
+  {
+    professionalId: string;
+    selectedSlot: { date: string; time: string } | null;
+    onSelectSlot: (date: string, startTime: string) => void;
+  }
+>(function SlotPicker({ professionalId, selectedSlot, onSelectSlot }, ref) {
   const [date, setDate] = useState("");
   const [dateError, setDateError] = useState<string | null>(null);
-  const { slots, status } = useAvailableSlots(professionalId, date || null);
+  const { slots, status, reload } = useAvailableSlots(professionalId, date || null);
+
+  useImperativeHandle(ref, () => ({ reload }), [reload]);
 
   function handleDateChange(value: string) {
     if (value && isWeekend(value)) {
@@ -73,4 +80,4 @@ export function SlotPicker({
       )}
     </div>
   );
-}
+});

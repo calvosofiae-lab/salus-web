@@ -90,7 +90,9 @@ Flujo público de reserva, sin necesidad de que el paciente se registre.
   - [ ] Dos reservas simultáneas para el mismo slot: solo una tiene éxito, la otra recibe error
         controlado — la lógica lo contempla (constraint único + captura de
         `unique_violation`), pero no se hizo una prueba de concurrencia real (dos requests en
-        paralelo)
+        paralelo). Sí se probó el caso secuencial equivalente (reservar por curl un instante
+        antes de confirmar desde la UI real) al verificar E5-6 — ahí el rechazo funcionó
+        correctamente, pero sigue faltando la prueba de dos requests estrictamente en paralelo
 
 ---
 
@@ -108,3 +110,33 @@ Flujo público de reserva, sin necesidad de que el paciente se registre.
 - **Tipos:** —
 - **Criterios de aceptación:**
   - [x] Tras reservar, se muestra confirmación con los datos correctos del turno
+
+---
+
+### E5-6 — Refresca los horarios cuando falla la reserva ✅ Hecho (2026-08-01)
+- **Objetivo:** que un error de "horario ya no disponible" no deje al paciente reintentando a
+  ciegas el mismo turno ya ocupado.
+- **Descripción:** hasta ahora, si `book_appointment` rechazaba la reserva (otra persona se
+  adelantó con el mismo horario), `useBookAppointment` solo seteaba el mensaje de error —
+  `SlotPicker` seguía mostrando la lista vieja de horarios, con el que ya no está disponible
+  todavía como opción. `SlotPicker` ahora expone un handle imperativo (`forwardRef` +
+  `useImperativeHandle`, `SlotPickerHandle.reload()`) que dispara el `reload` de
+  `useAvailableSlots`. `ProfessionalProfile` lo llama cuando `book()` devuelve `null` (falló) y
+  además limpia el turno seleccionado, forzando a elegir de nuevo entre los horarios frescos.
+  El mensaje de error se movió fuera del bloque condicionado a `selected` (antes vivía solo
+  dentro de `BookingForm`, que se desmonta al limpiar la selección) para que siga visible
+  después de que el formulario desaparece — si no, el usuario nunca llegaba a leer por qué se
+  refrescó la lista.
+- **Depende de:** E5-4, `04-agenda-profesional.md#E4-3`
+- **Archivos:** `features/appointments/components/SlotPicker.tsx`,
+  `features/professionals/components/ProfessionalProfile.tsx`
+- **Cambios de base de datos:** —
+- **Componentes nuevos:** — (extiende `SlotPicker` y `ProfessionalProfile`)
+- **Páginas nuevas:** —
+- **Hooks:** —
+- **Servicios/Repos:** —
+- **Tipos:** `SlotPickerHandle`
+- **Criterios de aceptación:**
+  - [x] Forzando una colisión real (reservar por curl el mismo horario justo antes de
+        confirmar desde la UI): el horario desaparece de la lista, el formulario se oculta y
+        el mensaje "El horario seleccionado ya no está disponible." queda visible

@@ -30,6 +30,14 @@ export function LoginForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
+      <Link href="/" className="mx-auto">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/logo-salus.png"
+          alt="SALUS - Red de Profesionales"
+          className="h-28 w-28 rounded-full border-2 border-brand-teal object-cover"
+        />
+      </Link>
       <Card className="border-t-4 border-t-brand-teal">
         <CardHeader>
           <CardTitle className="text-2xl text-brand-navy">Iniciar sesión</CardTitle>

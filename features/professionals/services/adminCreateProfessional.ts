@@ -43,8 +43,17 @@ export async function adminCreateProfessional(input: ProfessionalCreateInput) {
     .single();
 
   if (insertError) {
-    // Evita dejar un usuario de auth huérfano si falla el insert del profesional.
-    await admin.auth.admin.deleteUser(userId);
+    // Evita dejar un usuario de auth huérfano si falla el insert del profesional. Si la
+    // limpieza en sí falla, no lo tragamos en silencio: al menos queda logueado para poder
+    // borrar el usuario a mano después.
+    try {
+      await admin.auth.admin.deleteUser(userId);
+    } catch (cleanupError) {
+      console.error(
+        `No se pudo limpiar el usuario de auth huérfano ${userId} tras un insert fallido:`,
+        cleanupError,
+      );
+    }
     throw insertError;
   }
 

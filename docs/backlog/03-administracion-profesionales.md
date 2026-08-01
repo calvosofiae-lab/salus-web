@@ -203,3 +203,56 @@ CRUD completo de profesionales para el rol Administrador, sobre la tabla nueva `
         en `""`
   - [ ] Si falla la subida de foto en el alta admin, redirige a editar en vez de mostrar
         error — pendiente de verificar (requiere forzar el fallo)
+
+---
+
+### E3-8 — Revisión técnica del panel de admin: errores, confirmación y paginación ✅ Hecho (2026-08-01)
+- **Objetivo:** tres gaps encontrados en una revisión técnica de `ProfessionalsTable` y
+  `adminCreateProfessional`.
+- **Descripción:**
+  1. **Dar de baja/Reactivar sin manejo de errores:** `useAdminProfessionalsList` llamaba a
+     `deactivateProfessional`/`activateProfessional` sin `try/catch` — mismo patrón silencioso
+     que ya se corrigió en disponibilidad (E4-6). Ahora expone `error`/`savingId`;
+     `ProfessionalsTable` muestra el error y deshabilita los botones de la fila en curso
+     (`savingId === prof.id`, no toda la tabla, para no bloquear acciones en otras filas).
+  2. **"Dar de baja" sin confirmación:** un solo clic en un botón `destructive` sacaba al
+     profesional de la búsqueda pública sin preguntar nada. Como todavía no hay ningún
+     componente de diálogo en `components/ui/`, se usó un `window.confirm()` liviano antes de
+     llamar a `deactivate` — no hace falta sumar una dependencia nueva para esto.
+  3. **Rollback de `adminCreateProfessional` no defensivo:** si fallaba el insert en
+     `professionals` después de crear el usuario de auth, se llamaba a
+     `admin.auth.admin.deleteUser(userId)` sin `try/catch` — si esa limpieza en sí fallaba, se
+     perdía sin loguear nada, dejando un usuario de auth huérfano sin rastro. Ahora se loguea
+     con `console.error` si la limpieza falla.
+  4. **Sin paginación (pedido explícito del usuario, no parte de los 3 gaps originales):**
+     `getAllProfessionalsAdmin()` traía todos los profesionales de una sola query, sin límite.
+     Se cambió a paginación real del lado del servidor con `.range()` + `count: "exact"` de
+     Supabase (no solo recortar en el cliente después de traer todo), 20 por página
+     (`ADMIN_PROFESSIONALS_PAGE_SIZE`). `ProfessionalsTable` suma controles
+     "Anterior"/"Siguiente" que solo aparecen si hay más de una página.
+- **Depende de:** E3-1, E3-2, E3-4
+- **Archivos:** `repositories/professionalsRepository.ts` (`getAllProfessionalsAdmin` ahora
+  paginada), `features/professionals/hooks/useAdminProfessionalsList.ts`,
+  `features/admin/components/ProfessionalsTable.tsx`,
+  `features/professionals/services/adminCreateProfessional.ts`
+- **Cambios de base de datos:** —
+- **Componentes nuevos:** —
+- **Páginas nuevas:** —
+- **Hooks:** — (extiende `useAdminProfessionalsList` con `error`/`savingId`/`page`/`pageCount`)
+- **Servicios/Repos:** `professionalsRepository.getAllProfessionalsAdmin` (firma nueva:
+  `(page, pageSize)`, devuelve `{ data, count }`)
+- **Tipos:** `PaginatedProfessionals`
+- **Criterios de aceptación:**
+  - [x] Reactivar/dar de baja funciona de punta a punta y refleja el cambio en la tabla —
+        verificado en el navegador (Sol Nogueira desactivada por API, reactivada desde la UI
+        real: pasó de "Inactivo"/"Reactivar" a "Activo"/"Dar de baja")
+  - [ ] Un error al dar de baja/reactivar muestra el mensaje en vez de fallar en silencio —
+        pendiente de verificar (no se forzó un fallo)
+  - [ ] Dar de baja pide confirmación antes de ejecutar — implementado
+        (`window.confirm`), no se hizo clic real en el navegador para no bloquear la sesión
+        de automatización con el diálogo nativo
+  - [x] La query trae página por página, no todo de una — verificado: el request real de
+        `getAllProfessionalsAdmin` pide `offset=0&limit=20` (no `select=*` sin límite), y un
+        `Content-Range: 0-1/5` de prueba contra la misma tabla confirmó que Supabase respeta
+        el `.range()`. No se llegó a ver una página 2 real en el navegador porque la red de
+        prueba tiene menos de 20 profesionales

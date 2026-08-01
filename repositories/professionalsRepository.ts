@@ -52,16 +52,28 @@ export async function searchProfessionals(
   return data ?? [];
 }
 
-export async function getAllProfessionalsAdmin(): Promise<Professional[]> {
+export interface PaginatedProfessionals {
+  data: Professional[];
+  count: number;
+}
+
+export async function getAllProfessionalsAdmin(
+  page: number,
+  pageSize: number,
+): Promise<PaginatedProfessionals> {
   const supabase = createClient();
 
-  const { data, error } = await supabase
+  const from = page * pageSize;
+  const to = from + pageSize - 1;
+
+  const { data, error, count } = await supabase
     .from("professionals")
-    .select("*")
-    .order("full_name");
+    .select("*", { count: "exact" })
+    .order("full_name")
+    .range(from, to);
 
   if (error) throw error;
-  return data ?? [];
+  return { data: data ?? [], count: count ?? 0 };
 }
 
 export async function getProfessionalByIdAdmin(id: string): Promise<Professional | null> {

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { MODALITY_LABELS, PROFESSION_LABELS } from "@/features/professionals/constants";
 import type { Professional } from "@/features/professionals/types";
 
@@ -31,6 +32,9 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
         {descripcion && <p className="prof-description">{descripcion}</p>}
       </div>
       <div>
+        <Link href={`/profesionales/${prof.id}`} className="prof-book-btn">
+          Reservar turno
+        </Link>
         {linkWa && (
           <a href={linkWa} target="_blank" rel="noreferrer" className="prof-contact-btn">
             Contactar por WhatsApp

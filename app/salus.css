@@ -656,8 +656,27 @@
   line-height: 1.4;
 }
 
+.salus .prof-book-btn {
+  display: block;
+  text-align: center;
+  background-color: var(--navy);
+  color: var(--salus-white);
+  text-decoration: none;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  margin-bottom: 0.6rem;
+  transition: background-color 0.3s ease;
+}
+
+.salus .prof-book-btn:hover {
+  background-color: var(--teal-dark);
+}
+
 .salus .prof-contact-btn {
-  display: inline-block;
+  display: block;
+  text-align: center;
   background-color: #25D366;
   color: var(--salus-white);
   text-decoration: none;

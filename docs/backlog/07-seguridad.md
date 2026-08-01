@@ -170,3 +170,39 @@ la confirmación puntual de cada criterio.
   - [x] La sección "Profesionales Destacados" de la home sigue funcionando igual para un
         usuario anónimo (RLS de invoker alcanza para leer `is_active = true`) — verificado
         con curl sin sesión (misma respuesta que antes) y visualmente en la home
+
+---
+
+### E7-9 — Segunda pasada de revisión: WhatsApp del profesional y matching de rutas públicas ✅ Hecho (2026-08-01)
+- **Objetivo:** dos gaps encontrados en una segunda revisión técnica, después de cerrar E7-7/E7-8.
+- **Descripción:**
+  1. **`professionals.whatsapp` sin validar (mismo hueco que E7-7 tapó en `appointments.patient_whatsapp`):**
+     arma el botón "Contactar por WhatsApp" en `professional-card.tsx`, y no tenía ninguna
+     validación server-side. Se resolvió con un **trigger** (no un `check` constraint): hay
+     datos legacy migrados con formatos viejos (con el 0/15 adelante), y un `check` los
+     hubiera bloqueado en cualquier UPDATE futuro aunque no se tocara `whatsapp`. El trigger
+     `validate_professional_whatsapp` solo exige el formato de 10 dígitos cuando el valor
+     realmente cambia (`new.whatsapp is distinct from old.whatsapp`) o se inserta desde cero
+     — las filas viejas quedan en paz mientras nadie les toque ese campo puntual.
+  2. **`proxy.ts` (middleware) — matching inconsistente de rutas públicas:** `isPublicPath()`
+     usaba `startsWith()` sin chequear el segmento completo para `/auth`, `/profesionales` y
+     `/valoracion` — el mismo anti-patrón que el commit `df07287` ya había corregido para
+     `/admin`/`/profesional`, pero no se aplicó ahí. De paso se sacó `/reservar` de la lista:
+     no corresponde a ninguna ruta real del proyecto (código muerto).
+- **Depende de:** E7-2, E7-7
+- **Archivos:** `supabase/migrations/20260801110000_validate_professional_whatsapp_format.sql`,
+  `lib/supabase/proxy.ts`
+- **Cambios de base de datos:** función y trigger `validate_professional_whatsapp`
+  (`before insert or update on professionals`)
+- **Componentes nuevos:** —
+- **Páginas nuevas:** —
+- **Hooks:** —
+- **Servicios/Repos:** —
+- **Tipos:** —
+- **Criterios de aceptación:**
+  - [ ] Un `update` directo con `whatsapp` que no sean 10 dígitos es rechazado por el trigger
+        — pendiente de verificar
+  - [ ] Editar cualquier otro campo de una fila con `whatsapp` legacy (formato viejo, sin
+        tocarlo) sigue funcionando — pendiente de verificar
+  - [ ] El WhatsApp del profesional se sigue guardando y mostrando normal desde
+        `ProfessionalForm` con un número válido — pendiente de verificar

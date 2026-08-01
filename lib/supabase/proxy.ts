@@ -11,10 +11,12 @@ const ROLE_HOME: Record<UserRole, string> = {
 function isPublicPath(pathname: string) {
   return (
     pathname === "/" ||
-    pathname.startsWith("/auth") ||
-    pathname.startsWith("/profesionales") ||
-    pathname.startsWith("/reservar") ||
-    pathname.startsWith("/valoracion")
+    pathname === "/auth" ||
+    pathname.startsWith("/auth/") ||
+    pathname === "/profesionales" ||
+    pathname.startsWith("/profesionales/") ||
+    pathname === "/valoracion" ||
+    pathname.startsWith("/valoracion/")
   );
 }
 

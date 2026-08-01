@@ -190,9 +190,11 @@ Disponibilidad, cálculo de slots y gestión de turnos desde el rol Profesional.
   - [x] Cargar un horario que se superpone con uno existente muestra el mensaje de error del
         trigger en vez de guardarse — verificado en el navegador: "Ese horario se superpone
         con uno que ya tenés cargado para ese día."
-  - [x] Cargar dos veces la misma fecha bloqueada muestra un error en vez de fallar en
-        silencio — verificado en el navegador (mensaje crudo del `unique` constraint, sin
-        traducir — funcional pero no lindo, ver nota abajo)
+  - [x] Cargar dos veces la misma fecha bloqueada muestra un error legible ("Ya bloqueaste
+        esa fecha antes.") en vez de fallar en silencio o mostrar el mensaje crudo de
+        Postgres — verificado en el navegador. Se agregó `isPostgresErrorCode`/
+        `POSTGRES_UNIQUE_VIOLATION` a `lib/errors.ts` para traducir el código SQLSTATE
+        `23505` sin depender del nombre de la constraint
   - [x] Los botones de agregar/quitar quedan deshabilitados mientras se guarda — confirmado
         por lectura de código (`disabled={isSaving}` en ambos formularios); no observable de
         forma confiable en un ida-y-vuelta tan rápido contra un entorno local

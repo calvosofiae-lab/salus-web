@@ -109,6 +109,12 @@ profesional). Los pacientes nunca se autentican (ver `03-administracion-profesio
   rol específico, como antes. Tuve que agregar `Views`/`Functions`/`Relationships`/
   `CompositeTypes` vacíos a `types/database.ts` porque sin esas claves el generic de
   `@supabase/supabase-js` resolvía los tipos de fila como `never`.
+  **Actualización (2026-08-01, `07-seguridad.md#E7-9`):** `/reservar/*` se sacó de la lista de
+  públicas — nunca se construyó esa ruta, había quedado como código muerto — y el matching de
+  las demás pasó a comparar el segmento completo en vez de `startsWith` suelto (mismo fix que
+  ya se había aplicado a `/admin`/`/profesional`). **Actualización (2026-08-01, `#E1-7`):** el
+  `select role from profiles` ahora se cachea en una cookie corta para no repetirlo en cada
+  navegación dentro de `/admin`/`/profesional`.
 - **Verificado en el navegador:** `/admin` sin sesión → redirige a `/auth/login`;
   `/profesionales/1` (pública, página inexistente) → 404 normal, sin redirect. Pendiente probar
   el caso "profesional autenticado entra a `/admin/**`" con credenciales reales de ambos roles.
@@ -146,3 +152,34 @@ profesional). Los pacientes nunca se autentican (ver `03-administracion-profesio
 - **Criterios de aceptación:**
   - [ ] No existe ningún flujo público de auto-registro accesible desde la UI — pendiente cerrar
         en E3-2 (la ruta `/auth/sign-up` sigue accesible tipeándola directamente)
+
+---
+
+### E1-7 — Cachea el rol en el proxy para no consultar `profiles` en cada navegación ✅ Hecho (2026-08-01)
+- **Objetivo:** el proxy (E1-5) corre en cada transición del App Router dentro de
+  `/admin/**`/`/profesional/**`, no solo en el primer load — cada clic entre páginas del panel
+  disparaba un `select role from profiles` nuevo, aunque el rol no cambia durante la sesión.
+- **Descripción:** el rol se cachea en una cookie `httpOnly` (`salus_role_cache`, formato
+  `{userId}:{role}`) con `maxAge` de 5 minutos. Antes de consultar `profiles`, el proxy revisa
+  si hay una cookie vigente cuyo `userId` coincida con el usuario actual; si matchea, usa ese
+  rol sin ir a la base. El TTL corto acota cuánto puede tardar en reflejarse un cambio de rol
+  (ej. si un admin cambia el rol de alguien mientras esa persona tiene una sesión activa). Se
+  limpia explícitamente al detectar que no hay usuario (por si quedó una cookie de una sesión
+  anterior), y se propaga tanto en la respuesta normal como en las de redirect (antes solo se
+  seteaban cookies sobre `supabaseResponse`; los redirects son objetos `NextResponse` nuevos y
+  necesitan que se les copie la cookie aparte).
+- **Depende de:** E1-5
+- **Archivos:** `lib/supabase/proxy.ts`
+- **Cambios de base de datos:** —
+- **Componentes nuevos:** —
+- **Páginas nuevas:** —
+- **Hooks:** —
+- **Servicios/Repos:** —
+- **Tipos:** —
+- **Criterios de aceptación:**
+  - [ ] Navegar entre varias páginas de `/profesional/**` (o `/admin/**`) en la misma sesión no
+        dispara una query de `profiles` en cada click — pendiente de verificar
+  - [ ] Cerrar sesión y volver a entrar con otro rol no arrastra el rol cacheado del usuario
+        anterior — pendiente de verificar
+  - [ ] Sigue bloqueando correctamente el acceso cruzado (`professional` a `/admin`, admin
+        anónimo a rutas protegidas) — pendiente de verificar

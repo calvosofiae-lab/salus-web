@@ -8,6 +8,34 @@ const ROLE_HOME: Record<UserRole, string> = {
   professional: "/profesional",
 };
 
+// Cachea el rol para no consultar `profiles` en cada navegación dentro de /admin o
+// /profesional (el proxy corre en cada transición client-side del App Router, no solo en el
+// primer load). TTL corto para acotar cuánto puede tardar en notarse un cambio de rol; si
+// cambia el usuario logueado, el userId adentro de la cookie no matchea y se recalcula.
+const ROLE_CACHE_COOKIE = "salus_role_cache";
+const ROLE_CACHE_MAX_AGE_SECONDS = 5 * 60;
+
+function readCachedRole(request: NextRequest, userId: string): UserRole | null {
+  const raw = request.cookies.get(ROLE_CACHE_COOKIE)?.value;
+  if (!raw) return null;
+
+  const [cachedUserId, cachedRole] = raw.split(":");
+  if (cachedUserId !== userId) return null;
+  if (cachedRole !== "admin" && cachedRole !== "professional") return null;
+
+  return cachedRole;
+}
+
+function setRoleCacheCookie(response: NextResponse, userId: string, role: UserRole) {
+  response.cookies.set(ROLE_CACHE_COOKIE, `${userId}:${role}`, {
+    maxAge: ROLE_CACHE_MAX_AGE_SECONDS,
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+  });
+}
+
 function isPublicPath(pathname: string) {
   return (
     pathname === "/" ||
@@ -67,10 +95,16 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   if (!user) {
+    // Sin usuario no debería haber cookie de rol vigente (ver logout), pero se limpia acá
+    // también por las dudas de que haya quedado una de una sesión anterior sin cerrar bien.
+    supabaseResponse.cookies.delete(ROLE_CACHE_COOKIE);
+
     if (!isPublicPath(pathname)) {
       const url = request.nextUrl.clone();
       url.pathname = "/auth/login";
-      return NextResponse.redirect(url);
+      const redirectResponse = NextResponse.redirect(url);
+      redirectResponse.cookies.delete(ROLE_CACHE_COOKIE);
+      return redirectResponse;
     }
     return supabaseResponse;
   }
@@ -80,18 +114,29 @@ export async function updateSession(request: NextRequest) {
     pathname === "/profesional" || pathname.startsWith("/profesional/");
 
   if (requiresAdmin || requiresProfessional) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.sub)
-      .single();
+    let role = readCachedRole(request, user.sub);
 
-    const role = profile?.role;
+    if (!role) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.sub)
+        .single();
+
+      role = profile?.role ?? null;
+      if (role) {
+        setRoleCacheCookie(supabaseResponse, user.sub, role);
+      }
+    }
 
     if (!role || (requiresAdmin && role !== "admin") || (requiresProfessional && role !== "professional")) {
       const url = request.nextUrl.clone();
       url.pathname = role ? ROLE_HOME[role] : "/auth/login";
-      return NextResponse.redirect(url);
+      const redirectResponse = NextResponse.redirect(url);
+      if (role) {
+        setRoleCacheCookie(redirectResponse, user.sub, role);
+      }
+      return redirectResponse;
     }
   }
 

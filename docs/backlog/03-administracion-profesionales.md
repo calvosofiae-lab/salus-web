@@ -195,9 +195,11 @@ CRUD completo de profesionales para el rol Administrador, sobre la tabla nueva `
 - **Servicios/Repos:** `professionalsRepository.removeProfessionalPhoto`
 - **Tipos:** `ProfessionalFormSubmitValues` (gana `photoRemoved?: boolean`)
 - **Criterios de aceptación:**
-  - [ ] Reemplazar una foto `.jpg` por una `.png` deja un solo archivo en el bucket, no dos —
-        pendiente de verificar
-  - [ ] "Quitar foto" borra el objeto de Storage, no solo el campo `photo_url` — pendiente de
-        verificar
+  - [x] Reemplazar una foto `.jpg` por una `.png` deja un solo archivo en el bucket, no dos —
+        verificado con curl (`storage/object/list`): tras subir un `.png` sobre un
+        `.jpg` existente, solo queda `photo.png` en la carpeta del profesional
+  - [x] "Quitar foto" borra el objeto de Storage, no solo el campo `photo_url` — verificado:
+        tras "Quitar foto" + Guardar, `storage/object/list` devuelve `[]` y `photo_url` queda
+        en `""`
   - [ ] Si falla la subida de foto en el alta admin, redirige a editar en vez de mostrar
         error — pendiente de verificar (requiere forzar el fallo)

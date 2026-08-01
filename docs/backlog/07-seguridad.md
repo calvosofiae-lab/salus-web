@@ -167,6 +167,6 @@ la confirmación puntual de cada criterio.
 - **Servicios/Repos:** —
 - **Tipos:** —
 - **Criterios de aceptación:**
-  - [ ] La sección "Profesionales Destacados" de la home sigue funcionando igual para un
-        usuario anónimo (RLS de invoker alcanza para leer `is_active = true`) — pendiente de
-        verificar
+  - [x] La sección "Profesionales Destacados" de la home sigue funcionando igual para un
+        usuario anónimo (RLS de invoker alcanza para leer `is_active = true`) — verificado
+        con curl sin sesión (misma respuesta que antes) y visualmente en la home

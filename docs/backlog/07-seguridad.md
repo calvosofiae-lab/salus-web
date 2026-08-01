@@ -134,10 +134,39 @@ la confirmación puntual de cada criterio.
 - **Servicios/Repos:** —
 - **Tipos:** —
 - **Criterios de aceptación:**
-  - [ ] Un `update` directo de un profesional sobre su propia fila con
-        `average_rating`/`consultation_fee`/`gender_trained` no cambia el valor (RLS lo deja
-        pasar pero el trigger lo revierte) — pendiente de verificar en el navegador/API
-  - [ ] Subir un archivo que no sea jpeg/png/webp o que supere 5MB al bucket
-        `professional-photos` es rechazado por Storage — pendiente de verificar
-  - [ ] `book_appointment` con un `p_whatsapp` que no sean 10 dígitos devuelve el mensaje de
-        error nuevo en vez de guardar el turno — pendiente de verificar
+  - [x] Un `update` directo de un profesional sobre su propia fila con `average_rating` no
+        cambia el valor — verificado con curl + token real de profesional: `PATCH` a
+        `average_rating: 999` devuelve `average_rating: 4.67` (el valor real, sin tocar) en
+        la misma respuesta y en una lectura posterior aparte
+  - [x] Subir un archivo que no sea jpeg/png/webp o que supere 5MB al bucket
+        `professional-photos` es rechazado por Storage — verificado con curl: un `.txt` da
+        `415 invalid_mime_type`, un `.jpg` de 6MB da `413 EntityTooLarge`; un `.jpg` real de
+        ~100KB se sube sin problema (control de que no haya falso positivo)
+  - [x] `book_appointment` con un `p_whatsapp` que no sean 10 dígitos devuelve el mensaje de
+        error nuevo en vez de guardar el turno — verificado con curl (sin sesión, como llega
+        el paciente real): `"abc123"` y `"12345678"` devuelven el mensaje nuevo; con un
+        WhatsApp válido de 10 dígitos el error pasa a ser "horario no disponible" (o sea,
+        superó la validación de formato y llegó a la siguiente etapa)
+
+---
+
+### E7-8 — Saca SECURITY DEFINER innecesario de RPCs de solo lectura pública ✅ Hecho (2026-08-01)
+- **Objetivo:** principio de menor privilegio — dos funciones corrían con privilegios
+  elevados sin necesitarlo.
+- **Descripción:** `get_top_rated_professionals` (E6-7) y `get_featured_professional_of_month`
+  (E6-5) solo leen filas que ya son públicas vía RLS (`professionals` con `is_active = true`,
+  `reviews` completa). Ninguna de las dos necesita `SECURITY DEFINER`; se redefinieron para
+  correr con los permisos de quien llama (`SECURITY INVOKER`, el default).
+- **Depende de:** E6-5, E6-7
+- **Archivos:** `supabase/migrations/20260801100000_remove_unnecessary_security_definer.sql`
+- **Cambios de base de datos:** `get_top_rated_professionals` y
+  `get_featured_professional_of_month` redefinidas sin `security definer`
+- **Componentes nuevos:** —
+- **Páginas nuevas:** —
+- **Hooks:** —
+- **Servicios/Repos:** —
+- **Tipos:** —
+- **Criterios de aceptación:**
+  - [ ] La sección "Profesionales Destacados" de la home sigue funcionando igual para un
+        usuario anónimo (RLS de invoker alcanza para leer `is_active = true`) — pendiente de
+        verificar

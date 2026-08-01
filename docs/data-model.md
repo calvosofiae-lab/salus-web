@@ -54,7 +54,7 @@ proyecto (tarea E0-9), una vez validado que nada la referencia.
 |---|---|---|
 | id | uuid PK | |
 | professional_id | uuid | FK a `professionals.id` |
-| day_of_week | smallint | 0–6 |
+| day_of_week | smallint | 1–5 (lunes a viernes; SALUS no atiende fines de semana, `check` a nivel DB) |
 | start_time | time | |
 | end_time | time | |
 

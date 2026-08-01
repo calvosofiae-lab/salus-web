@@ -5,14 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAvailabilityRules } from "@/features/appointments/hooks/useAvailabilityRules";
 
+// Solo de lunes a viernes: SALUS no opera fines de semana.
 const DAYS = [
   { value: 1, label: "Lunes" },
   { value: 2, label: "Martes" },
   { value: 3, label: "Miércoles" },
   { value: 4, label: "Jueves" },
   { value: 5, label: "Viernes" },
-  { value: 6, label: "Sábado" },
-  { value: 0, label: "Domingo" },
 ];
 
 export function WeeklyAvailabilityForm({ professionalId }: { professionalId: string }) {
@@ -37,7 +36,8 @@ export function WeeklyAvailabilityForm({ professionalId }: { professionalId: str
           Horario semanal
         </h2>
         <p className="text-xs text-muted-foreground">
-          Los cambios solo afectan turnos futuros, no modifican los ya reservados.
+          Solo se atiende de lunes a viernes. Los cambios solo afectan turnos futuros, no
+          modifican los ya reservados.
         </p>
       </div>
       {status === "loading" && <p className="text-sm text-muted-foreground">Cargando...</p>}

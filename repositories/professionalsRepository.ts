@@ -133,6 +133,30 @@ export async function getPublicProfessionalById(id: string): Promise<Professiona
   return data;
 }
 
+const PHOTOS_BUCKET = "professional-photos";
+
+export async function uploadProfessionalPhoto(
+  professionalId: string,
+  file: File,
+): Promise<string> {
+  const supabase = createClient();
+
+  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+  const path = `${professionalId}/photo.${ext}`;
+
+  const { error } = await supabase.storage.from(PHOTOS_BUCKET).upload(path, file, {
+    upsert: true,
+    contentType: file.type,
+  });
+  if (error) throw error;
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from(PHOTOS_BUCKET).getPublicUrl(path);
+
+  return `${publicUrl}?v=${Date.now()}`;
+}
+
 export async function getOwnProfessional(): Promise<Professional | null> {
   const supabase = createClient();
 

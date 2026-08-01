@@ -127,3 +127,37 @@ CRUD completo de profesionales para el rol Administrador, sobre la tabla nueva `
 - **Criterios de aceptación:**
   - [x] Un profesional no puede marcarse a sí mismo como destacado ni reactivarse si fue
         desactivado (aplicado a nivel de base de datos, no solo ocultando el campo en la UI)
+
+---
+
+### E3-6 — Subida de foto como archivo ✅ Hecho (2026-08-01)
+- **Objetivo:** que admin y profesional puedan subir la foto de perfil como archivo desde
+  `ProfessionalForm`, en vez de pegar a mano una URL externa en el campo de texto.
+- **Descripción:** bucket público `professional-photos` en Supabase Storage, con path
+  `{professional_id}/photo.{ext}` (un archivo por profesional, se pisa con `upsert` al
+  reemplazar; se agrega `?v=timestamp` a la URL guardada para evitar caché stale). Las
+  policies de `storage.objects` reutilizan las mismas funciones helper que ya protegen la
+  tabla `professionals` (`owns_professional`/`is_admin`), así que la regla de "quién puede
+  editar la foto" es la misma que "quién puede editar la fila". En alta admin, como el
+  `id` del profesional no existe hasta después del insert, la Server Action
+  `adminCreateProfessional` ahora devuelve el `id` creado y la subida de foto se hace en
+  un segundo paso desde el cliente (`uploadProfessionalPhoto` + `updateProfessional`).
+- **Depende de:** E3-2, E3-3, E3-5
+- **Archivos:** `supabase/migrations/20260801060000_create_professional_photos_bucket.sql`,
+  `repositories/professionalsRepository.ts` (`uploadProfessionalPhoto`),
+  `features/professionals/components/ProfessionalForm.tsx`,
+  `features/professionals/hooks/useUpdateOwnProfile.ts`,
+  `features/professionals/hooks/useUpdateProfessional.ts`,
+  `features/professionals/hooks/useCreateProfessional.ts`,
+  `features/professionals/services/adminCreateProfessional.ts`
+- **Cambios de base de datos:** bucket `professional-photos` (público) + policies
+  `professional_photos_public_read`/`professional_photos_owner_insert`/`_update`/`_delete`
+- **Componentes nuevos:** — (extiende `ProfessionalForm`)
+- **Páginas nuevas:** —
+- **Hooks:** — (extiende `useUpdateOwnProfile`, `useUpdateProfessional`, `useCreateProfessional`)
+- **Servicios/Repos:** `professionalsRepository.uploadProfessionalPhoto`
+- **Tipos:** `ProfessionalFormSubmitValues` (gana `photoFile?: File | null`)
+- **Criterios de aceptación:**
+  - [x] Se puede elegir un archivo de imagen (JPG/PNG/WEBP, máx. 5MB) y se sube al guardar
+  - [x] La foto subida se ve en la landing pública y en el perfil del profesional
+  - [x] Se puede quitar la foto actual sin subir una nueva

@@ -22,26 +22,32 @@ export async function adminCreateProfessional(input: ProfessionalCreateInput) {
   const userId = created.user?.id;
   if (!userId) throw new Error("No se pudo crear el usuario del profesional.");
 
-  const { error: insertError } = await admin.from("professionals").insert({
-    profile_id: userId,
-    full_name: input.full_name,
-    profession: input.profession,
-    license_number: input.license_number || null,
-    gender: input.gender || null,
-    description: input.description || null,
-    photo_url: input.photo_url || null,
-    whatsapp: input.whatsapp || null,
-    coverage: input.coverage,
-    modality: input.modality,
-    consultation_reasons: input.consultation_reasons,
-    province: input.province || null,
-    city: input.city || null,
-    is_featured: input.is_featured,
-  });
+  const { data: inserted, error: insertError } = await admin
+    .from("professionals")
+    .insert({
+      profile_id: userId,
+      full_name: input.full_name,
+      profession: input.profession,
+      license_number: input.license_number || null,
+      gender: input.gender || null,
+      description: input.description || null,
+      photo_url: input.photo_url || null,
+      whatsapp: input.whatsapp || null,
+      coverage: input.coverage,
+      modality: input.modality,
+      consultation_reasons: input.consultation_reasons,
+      province: input.province || null,
+      city: input.city || null,
+      is_featured: input.is_featured,
+    })
+    .select("id")
+    .single();
 
   if (insertError) {
     // Evita dejar un usuario de auth huérfano si falla el insert del profesional.
     await admin.auth.admin.deleteUser(userId);
     throw insertError;
   }
+
+  return { id: inserted.id };
 }

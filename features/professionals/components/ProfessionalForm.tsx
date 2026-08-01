@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,9 +34,13 @@ const EMPTY_VALUES: ProfessionalFormValues = {
 };
 
 export interface ProfessionalFormSubmitValues extends ProfessionalFormValues {
+  photoFile?: File | null;
   email?: string;
   password?: string;
 }
+
+const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_PHOTO_SIZE = 5 * 1024 * 1024;
 
 interface ProfessionalFormProps {
   mode: "create" | "edit";
@@ -102,6 +106,43 @@ export function ProfessionalForm({
   });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!photoFile) {
+      setPhotoPreview(null);
+      return;
+    }
+    const url = URL.createObjectURL(photoFile);
+    setPhotoPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [photoFile]);
+
+  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    if (!ALLOWED_PHOTO_TYPES.includes(file.type)) {
+      setPhotoError("Formato no admitido. Usá JPG, PNG o WEBP.");
+      return;
+    }
+    if (file.size > MAX_PHOTO_SIZE) {
+      setPhotoError("La imagen no puede pesar más de 5MB.");
+      return;
+    }
+    setPhotoError(null);
+    setPhotoFile(file);
+  }
+
+  function handleRemovePhoto() {
+    setPhotoFile(null);
+    setPhotoError(null);
+    setValues((v) => ({ ...v, photo_url: "" }));
+  }
 
   function toggleArrayValue(
     field: "coverage" | "modality" | "consultation_reasons",
@@ -127,7 +168,8 @@ export function ProfessionalForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    await onSubmit(mode === "create" ? { ...values, email, password } : values);
+    const base = { ...values, photoFile };
+    await onSubmit(mode === "create" ? { ...base, email, password } : base);
   }
 
   return (
@@ -187,13 +229,48 @@ export function ProfessionalForm({
             </select>
           </div>
 
-          <div className="grid gap-1.5">
-            <Label htmlFor="photo_url">URL de foto</Label>
-            <Input
-              id="photo_url"
-              value={values.photo_url}
-              onChange={(e) => setValues((v) => ({ ...v, photo_url: e.target.value }))}
-            />
+          <div className="grid gap-1.5 md:col-span-2">
+            <Label>Foto de perfil</Label>
+            <div className="flex items-center gap-4">
+              {photoPreview || values.photo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={photoPreview || values.photo_url}
+                  alt="Foto de perfil"
+                  className="w-20 h-20 rounded-full object-cover border"
+                />
+              ) : (
+                <div className="w-20 h-20 shrink-0 rounded-full border bg-muted flex items-center justify-center text-xs text-muted-foreground text-center px-1">
+                  Sin foto
+                </div>
+              )}
+              <div className="flex flex-col gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={handlePhotoChange}
+                />
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {photoPreview || values.photo_url ? "Cambiar foto" : "Subir foto"}
+                  </Button>
+                  {(photoPreview || values.photo_url) && (
+                    <Button type="button" variant="ghost" size="sm" onClick={handleRemovePhoto}>
+                      Quitar foto
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">JPG, PNG o WEBP. Máximo 5MB.</p>
+                {photoError && <p className="text-xs text-red-500">{photoError}</p>}
+              </div>
+            </div>
           </div>
 
           <div className="grid gap-1.5">

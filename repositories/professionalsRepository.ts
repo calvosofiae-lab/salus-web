@@ -124,6 +124,22 @@ export async function getPublicProfessionalById(id: string): Promise<Professiona
 
 const PHOTOS_BUCKET = "professional-photos";
 
+async function removeStalePhotos(
+  professionalId: string,
+  keepFileName?: string,
+): Promise<void> {
+  const supabase = createClient();
+
+  const { data: existing } = await supabase.storage.from(PHOTOS_BUCKET).list(professionalId);
+  const stale = (existing ?? [])
+    .filter((f) => f.name !== keepFileName)
+    .map((f) => `${professionalId}/${f.name}`);
+
+  if (stale.length > 0) {
+    await supabase.storage.from(PHOTOS_BUCKET).remove(stale);
+  }
+}
+
 export async function uploadProfessionalPhoto(
   professionalId: string,
   file: File,
@@ -131,7 +147,11 @@ export async function uploadProfessionalPhoto(
   const supabase = createClient();
 
   const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-  const path = `${professionalId}/photo.${ext}`;
+  const fileName = `photo.${ext}`;
+  const path = `${professionalId}/${fileName}`;
+
+  // Si la foto anterior tenía otra extensión, upsert no la pisa: queda huérfana.
+  await removeStalePhotos(professionalId, fileName);
 
   const { error } = await supabase.storage.from(PHOTOS_BUCKET).upload(path, file, {
     upsert: true,
@@ -144,6 +164,10 @@ export async function uploadProfessionalPhoto(
   } = supabase.storage.from(PHOTOS_BUCKET).getPublicUrl(path);
 
   return `${publicUrl}?v=${Date.now()}`;
+}
+
+export async function removeProfessionalPhoto(professionalId: string): Promise<void> {
+  await removeStalePhotos(professionalId);
 }
 
 export async function getOwnProfessional(): Promise<Professional | null> {

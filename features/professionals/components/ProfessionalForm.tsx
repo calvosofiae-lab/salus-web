@@ -38,6 +38,7 @@ const EMPTY_VALUES: ProfessionalFormValues = {
 
 export interface ProfessionalFormSubmitValues extends ProfessionalFormValues {
   photoFile?: File | null;
+  photoRemoved?: boolean;
   email?: string;
   password?: string;
 }
@@ -107,6 +108,7 @@ export function ProfessionalForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoRemoved, setPhotoRemoved] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -135,12 +137,14 @@ export function ProfessionalForm({
       return;
     }
     setPhotoError(null);
+    setPhotoRemoved(false);
     setPhotoFile(file);
   }
 
   function handleRemovePhoto() {
     setPhotoFile(null);
     setPhotoError(null);
+    setPhotoRemoved(true);
     setValues((v) => ({ ...v, photo_url: "" }));
   }
 
@@ -168,7 +172,7 @@ export function ProfessionalForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const base = { ...values, photoFile };
+    const base = { ...values, photoFile, photoRemoved };
     await onSubmit(mode === "create" ? { ...base, email, password } : base);
   }
 

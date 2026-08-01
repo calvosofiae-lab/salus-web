@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import {
+  removeProfessionalPhoto,
   updateProfessional,
   uploadProfessionalPhoto,
 } from "@/repositories/professionalsRepository";
@@ -12,13 +13,18 @@ export function useUpdateOwnProfile(id: string) {
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  async function update({ photoFile, ...values }: ProfessionalFormSubmitValues) {
+  async function update({ photoFile, photoRemoved, ...values }: ProfessionalFormSubmitValues) {
     setIsLoading(true);
     setError(null);
     setSuccess(false);
 
     try {
-      const photo_url = photoFile ? await uploadProfessionalPhoto(id, photoFile) : values.photo_url;
+      let photo_url = values.photo_url;
+      if (photoFile) {
+        photo_url = await uploadProfessionalPhoto(id, photoFile);
+      } else if (photoRemoved) {
+        await removeProfessionalPhoto(id);
+      }
       await updateProfessional(id, { ...values, photo_url });
       setSuccess(true);
     } catch (err) {

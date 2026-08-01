@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  removeProfessionalPhoto,
   updateProfessional,
   uploadProfessionalPhoto,
 } from "@/repositories/professionalsRepository";
@@ -13,12 +14,17 @@ export function useUpdateProfessional(id: string) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  async function update({ photoFile, ...values }: ProfessionalFormSubmitValues) {
+  async function update({ photoFile, photoRemoved, ...values }: ProfessionalFormSubmitValues) {
     setIsLoading(true);
     setError(null);
 
     try {
-      const photo_url = photoFile ? await uploadProfessionalPhoto(id, photoFile) : values.photo_url;
+      let photo_url = values.photo_url;
+      if (photoFile) {
+        photo_url = await uploadProfessionalPhoto(id, photoFile);
+      } else if (photoRemoved) {
+        await removeProfessionalPhoto(id);
+      }
       await updateProfessional(id, { ...values, photo_url });
       router.push("/admin/profesionales");
     } catch (err) {

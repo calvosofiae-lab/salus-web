@@ -161,3 +161,43 @@ CRUD completo de profesionales para el rol Administrador, sobre la tabla nueva `
   - [x] Se puede elegir un archivo de imagen (JPG/PNG/WEBP, máx. 5MB) y se sube al guardar
   - [x] La foto subida se ve en la landing pública y en el perfil del profesional
   - [x] Se puede quitar la foto actual sin subir una nueva
+
+---
+
+### E3-7 — Limpieza de fotos huérfanas y fix de alta con foto fallida ✅ Hecho (2026-08-01)
+- **Objetivo:** dos gaps encontrados en una revisión técnica de E3-6.
+- **Descripción:**
+  1. **Fotos huérfanas en Storage:** "Quitar foto" solo limpiaba `photo_url` en la fila, sin
+     borrar el objeto real en `professional-photos`; y reemplazar una foto por otra de
+     distinta extensión no borraba la vieja (`upsert` solo pisa si el path es idéntico,
+     `photo.jpg` y `photo.png` conviven). Se agregó `removeProfessionalPhoto` a
+     `professionalsRepository.ts`, y `uploadProfessionalPhoto` ahora borra cualquier archivo
+     del profesional que no sea el que está por subir antes de subirlo. `ProfessionalForm`
+     gana un estado `photoRemoved` (separado de vaciar `photo_url`) para que los hooks sepan
+     cuándo hay que borrar el objeto de Storage y cuándo no tocar nada.
+  2. **Alta con foto fallida podía derivar en alta duplicada:** si `adminCreateProfessional`
+     tenía éxito pero fallaba el paso de subir la foto, `useCreateProfessional` mostraba un
+     error genérico y se quedaba en el formulario de alta — el admin podía interpretar que
+     falló todo y reintentar el alta completa, disparando un segundo `adminCreateProfessional`
+     con el mismo email. Ahora, si falla solo la foto, se redirige a
+     `/admin/profesionales/[id]/editar` (el profesional ya existe) en vez de mostrar error.
+- **Depende de:** E3-6
+- **Archivos:** `repositories/professionalsRepository.ts` (`removeProfessionalPhoto`, fix en
+  `uploadProfessionalPhoto`), `features/professionals/components/ProfessionalForm.tsx`,
+  `features/professionals/hooks/useUpdateOwnProfile.ts`,
+  `features/professionals/hooks/useUpdateProfessional.ts`,
+  `features/professionals/hooks/useCreateProfessional.ts`
+- **Cambios de base de datos:** — (reutiliza la policy `professional_photos_owner_delete`
+  de E3-6)
+- **Componentes nuevos:** —
+- **Páginas nuevas:** —
+- **Hooks:** — (extiende los tres de E3-6)
+- **Servicios/Repos:** `professionalsRepository.removeProfessionalPhoto`
+- **Tipos:** `ProfessionalFormSubmitValues` (gana `photoRemoved?: boolean`)
+- **Criterios de aceptación:**
+  - [ ] Reemplazar una foto `.jpg` por una `.png` deja un solo archivo en el bucket, no dos —
+        pendiente de verificar
+  - [ ] "Quitar foto" borra el objeto de Storage, no solo el campo `photo_url` — pendiente de
+        verificar
+  - [ ] Si falla la subida de foto en el alta admin, redirige a editar en vez de mostrar
+        error — pendiente de verificar (requiere forzar el fallo)

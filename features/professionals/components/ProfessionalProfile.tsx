@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { MODALITY_LABELS, PROFESSION_LABELS } from "@/features/professionals/constants";
 import type { Professional } from "@/features/professionals/types";
 import { SlotPicker } from "@/features/appointments/components/SlotPicker";
@@ -8,6 +9,7 @@ import { BookingForm } from "@/features/appointments/components/BookingForm";
 import { BookingConfirmation } from "@/features/appointments/components/BookingConfirmation";
 import { useBookAppointment } from "@/features/appointments/hooks/useBookAppointment";
 import { RatingSummary } from "@/features/reviews/components/RatingSummary";
+import { Button } from "@/components/ui/button";
 
 export function ProfessionalProfile({ professional }: { professional: Professional }) {
   const [selected, setSelected] = useState<{ date: string; time: string } | null>(null);
@@ -74,6 +76,9 @@ export function ProfessionalProfile({ professional }: { professional: Profession
               }}
             />
           )}
+          <Button variant="outline" asChild className="self-start">
+            <Link href="/">Volver a inicio</Link>
+          </Button>
         </div>
       )}
     </div>

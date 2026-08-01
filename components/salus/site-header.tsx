@@ -1,3 +1,6 @@
+import Link from "next/link";
+import { Lock } from "lucide-react";
+
 const NAV_LINKS = [
   { href: "#buscador", label: "Buscador" },
   { href: "#destacados", label: "Destacados" },
@@ -21,6 +24,12 @@ export function SiteHeader() {
               <a href={link.href}>{link.label}</a>
             </li>
           ))}
+          <li className="nav-login-item">
+            <Link href="/auth/login" className="nav-login-link" title="Acceso para administradores y profesionales">
+              <Lock size={13} strokeWidth={2} />
+              <span>Ingresar</span>
+            </Link>
+          </li>
         </ul>
       </nav>
     </header>

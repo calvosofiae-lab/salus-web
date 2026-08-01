@@ -262,6 +262,29 @@
   background-color: var(--teal);
 }
 
+/* Acceso interno (admin/profesionales): separado visualmente del resto del
+   nav para que se lea como "acceso", no como una sección más del sitio. */
+.salus .nav-login-item {
+  margin-left: 0.4rem;
+  padding-left: 1rem;
+  border-left: 1px solid var(--gray-border);
+}
+
+.salus .nav-login-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 0.82rem;
+  padding: 0.4rem 0.7rem;
+}
+
+.salus .nav-login-link:hover {
+  color: var(--navy);
+  background-color: var(--soft-shape-color);
+}
+
 /* Hero */
 .salus .hero {
   background: transparent;

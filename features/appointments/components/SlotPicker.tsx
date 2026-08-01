@@ -13,9 +13,11 @@ function isWeekend(dateStr: string) {
 
 export function SlotPicker({
   professionalId,
+  selectedSlot,
   onSelectSlot,
 }: {
   professionalId: string;
+  selectedSlot: { date: string; time: string } | null;
   onSelectSlot: (date: string, startTime: string) => void;
 }) {
   const [date, setDate] = useState("");
@@ -58,7 +60,9 @@ export function SlotPicker({
             <Button
               key={slot}
               type="button"
-              variant="outline"
+              variant={
+                selectedSlot?.date === date && selectedSlot?.time === slot ? "default" : "outline"
+              }
               size="sm"
               onClick={() => onSelectSlot(date, slot)}
             >

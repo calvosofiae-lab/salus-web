@@ -55,6 +55,7 @@ export function ProfessionalProfile({ professional }: { professional: Profession
           <h2 className="text-lg font-medium">Reservar un turno</h2>
           <SlotPicker
             professionalId={professional.id}
+            selectedSlot={selected}
             onSelectSlot={(date, time) => setSelected({ date, time })}
           />
           {selected && (

@@ -288,6 +288,18 @@ export interface Database {
         Args: Record<string, never>;
         Returns: string | null;
       };
+      get_review_context: {
+        Args: { p_token: string };
+        Returns: {
+          patient_first_name: string;
+          appointment_date: string;
+          start_time: string;
+          professional_full_name: string;
+          professional_photo_url: string | null;
+          professional_profession: string;
+          professional_license_number: string | null;
+        }[];
+      };
     };
     Enums: {
       user_role: UserRole;

@@ -1,10 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useSubmitReview } from "@/features/reviews/hooks/useSubmitReview";
+
+const REDIRECT_SECONDS = 10;
+
+function ReviewSuccess() {
+  const router = useRouter();
+  const [secondsLeft, setSecondsLeft] = useState(REDIRECT_SECONDS);
+
+  useEffect(() => {
+    if (secondsLeft <= 0) {
+      router.push("/");
+      return;
+    }
+    const timer = setTimeout(() => setSecondsLeft((s) => s - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [secondsLeft, router]);
+
+  return (
+    <div className="rounded-md border border-green-600 bg-green-50 p-4 text-sm text-green-800">
+      <p className="font-medium">¡Gracias por tu calificación!</p>
+      <p>Nos ayuda a mejorar la red de profesionales.</p>
+      <p className="mt-2 text-green-700">Te vamos a redirigir al inicio en {secondsLeft}s.</p>
+      <Button className="mt-3" size="sm" onClick={() => router.push("/")}>
+        Volver al inicio
+      </Button>
+    </div>
+  );
+}
 
 export function ReviewForm({ token }: { token: string }) {
   const [rating, setRating] = useState(0);
@@ -12,11 +40,7 @@ export function ReviewForm({ token }: { token: string }) {
   const { submit, error, success, isLoading } = useSubmitReview();
 
   if (success) {
-    return (
-      <p className="text-sm text-green-700">
-        ¡Gracias por tu calificación! Nos ayuda a mejorar la red de profesionales.
-      </p>
-    );
+    return <ReviewSuccess />;
   }
 
   async function handleSubmit(e: React.FormEvent) {

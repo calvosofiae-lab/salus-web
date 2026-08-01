@@ -120,3 +120,37 @@ Valoraciones vía link único, generado cuando un turno pasa a estado "Realizado
 - **Criterios de aceptación:**
   - [x] Con menos de un mínimo definido de reviews (3), un profesional no puede ser destacado
         automáticamente (verificado: con 1 review, la RPC devuelve `null`)
+
+---
+
+### E6-6 — Contexto del turno en la página de valoración ✅ Hecho (2026-08-01)
+- **Objetivo:** que el paciente vea a quién y qué turno está calificando (foto, nombre,
+  profesión, matrícula y fecha/hora), no solo el formulario en blanco.
+- **Descripción:** nueva RPC `get_review_context(p_token)`, `SECURITY DEFINER` igual que
+  `submit_review` (E6-3) porque el paciente tampoco tiene sesión para leer `appointments`
+  directamente. Repite las mismas validaciones que `submit_review` (token inválido, turno no
+  `realizado`, ya calificado) para que el paciente vea el mismo mensaje de error al entrar a
+  la página, no recién al enviar el formulario. `review-page-content.tsx` (Server Component)
+  llama la RPC con `lib/supabase/server.ts` — mismo patrón que
+  `professional-profile-server.tsx` (E3-3/E7-2) — y renderiza los datos arriba del
+  `ReviewForm`. Al enviar la calificación con éxito, se muestra el mismo patrón de
+  "Volver al inicio" + cuenta regresiva de 10s con redirect automático que ya usa
+  `BookingConfirmation` (`05-reserva-turnos.md`) tras reservar un turno — extraído inline
+  como `ReviewSuccess` dentro de `ReviewForm.tsx` en vez de reutilizar `BookingConfirmation`
+  directamente porque el copy y las props son distintos (no hay profesional/fecha que mostrar
+  en el éxito, solo el agradecimiento).
+- **Depende de:** E6-3
+- **Archivos:** `supabase/migrations/20260801063000_create_get_review_context_function.sql`,
+  `app/valoracion/[token]/review-page-content.tsx`, `features/reviews/types.ts`,
+  `features/reviews/components/ReviewForm.tsx`
+- **Cambios de base de datos:** función `get_review_context(p_token)`
+- **Componentes nuevos:** — (extiende `review-page-content.tsx` y `ReviewForm.tsx`)
+- **Páginas nuevas:** —
+- **Hooks:** —
+- **Servicios/Repos:** —
+- **Tipos:** `ReviewContext`
+- **Criterios de aceptación:**
+  - [x] Se ve la foto, nombre, profesión/matrícula del profesional y la fecha/hora del turno
+  - [x] Un token inválido o ya calificado muestra el mensaje de error antes del formulario,
+        sin llegar a mostrar el formulario de calificación
+  - [x] Tras calificar, aparece "Volver al inicio" y un contador de 10s que redirige solo

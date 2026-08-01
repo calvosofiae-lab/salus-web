@@ -14,8 +14,8 @@ export const COVERAGE_OPTIONS = [
 ] as const;
 
 export const GENDER_OPTIONS = [
-  { value: "mujer", label: "Prefiero profesional mujer" },
-  { value: "hombre", label: "Prefiero profesional hombre" },
+  { value: "mujer", label: "Mujer" },
+  { value: "hombre", label: "Hombre" },
 ] as const;
 
 export const CONSULTATION_REASONS = [
@@ -36,6 +36,10 @@ export const PROFESSION_LABELS: Record<string, string> = Object.fromEntries(
 
 export const MODALITY_LABELS: Record<string, string> = Object.fromEntries(
   MODALITY_OPTIONS.map((o) => [o.value, o.label]),
+);
+
+export const GENDER_LABELS: Record<string, string> = Object.fromEntries(
+  GENDER_OPTIONS.map((o) => [o.value, o.label]),
 );
 
 export const PROVINCIAS = [

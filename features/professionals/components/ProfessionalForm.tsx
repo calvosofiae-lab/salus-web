@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import {
   CONSULTATION_REASONS,
   COVERAGE_OPTIONS,
+  GENDER_OPTIONS,
   MODALITY_OPTIONS,
   PROFESSION_OPTIONS,
 } from "@/features/professionals/constants";
@@ -159,11 +160,19 @@ export function ProfessionalForm({
 
           <div className="grid gap-1.5">
             <Label htmlFor="gender">Género</Label>
-            <Input
+            <select
               id="gender"
+              className={selectClassName}
               value={values.gender}
               onChange={(e) => setValues((v) => ({ ...v, gender: e.target.value }))}
-            />
+            >
+              <option value="">Sin especificar</option>
+              {GENDER_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="grid gap-1.5">

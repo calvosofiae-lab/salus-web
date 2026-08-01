@@ -103,7 +103,7 @@ export function SearchSection() {
                 <option value="">Prefiero no especificar</option>
                 {GENDER_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>
-                    {o.label}
+                    Prefiero profesional {o.label.toLowerCase()}
                   </option>
                 ))}
               </select>

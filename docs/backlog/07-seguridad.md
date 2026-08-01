@@ -200,9 +200,17 @@ la confirmación puntual de cada criterio.
 - **Servicios/Repos:** —
 - **Tipos:** —
 - **Criterios de aceptación:**
-  - [ ] Un `update` directo con `whatsapp` que no sean 10 dígitos es rechazado por el trigger
-        — pendiente de verificar
-  - [ ] Editar cualquier otro campo de una fila con `whatsapp` legacy (formato viejo, sin
-        tocarlo) sigue funcionando — pendiente de verificar
-  - [ ] El WhatsApp del profesional se sigue guardando y mostrando normal desde
-        `ProfessionalForm` con un número válido — pendiente de verificar
+  - [x] Un `update` directo con `whatsapp` que no sean 10 dígitos es rechazado por el trigger
+        — verificado con curl + token de profesional: `PATCH` con `whatsapp: "abc123"` sobre
+        la propia fila devuelve el mensaje de error nuevo y el valor no cambia
+  - [x] Editar cualquier otro campo de una fila con `whatsapp` legacy (formato viejo, sin
+        tocarlo) sigue funcionando — verificado con curl + token de admin: `PATCH` de
+        `description` sobre la fila de Anabella Sgubin (`whatsapp: "01162115965"`, inválido)
+        funciona sin tocar el WhatsApp
+  - [x] El WhatsApp del profesional se sigue guardando y mostrando normal desde
+        `ProfessionalForm` con un número válido — verificado en el navegador: cambio a
+        `3426123457` desde "Mi perfil", guarda con "Perfil actualizado correctamente."
+  - [x] Las rutas públicas (`/`, `/auth/login`, `/profesionales/[id]`, `/valoracion/[token]`)
+        siguen respondiendo 200 y las protegidas (`/admin`, `/profesional`) siguen
+        redirigiendo a `/auth/login` sin sesión — verificado con curl anónimo tras el fix de
+        `isPublicPath`

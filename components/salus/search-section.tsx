@@ -2,15 +2,15 @@
 
 import { FormEvent, useState } from "react";
 import {
-  CIUDADES_POR_PROVINCIA,
   COVERAGE_OPTIONS,
   CONSULTATION_REASONS,
   GENDER_OPTIONS,
   MODALITY_OPTIONS,
   PROFESSION_OPTIONS,
-  PROVINCIAS,
 } from "@/features/professionals/constants";
 import { useProfessionalSearch } from "@/features/professionals/hooks/useProfessionalSearch";
+import { useProvinces } from "@/features/professionals/hooks/useProvinces";
+import { useCitiesByProvince } from "@/features/professionals/hooks/useCitiesByProvince";
 import type {
   Coverage,
   Modality,
@@ -30,8 +30,8 @@ export function SearchSection() {
 
   const [searched, setSearched] = useState(false);
   const { status, results, search } = useProfessionalSearch();
-
-  const ciudadesDisponibles = provincia ? CIUDADES_POR_PROVINCIA[provincia] : undefined;
+  const { provinces } = useProvinces();
+  const { cities: ciudadesDisponibles, status: citiesStatus } = useCitiesByProvince(provincia);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -153,7 +153,7 @@ export function SearchSection() {
                     onChange={(e) => handleProvinciaChange(e.target.value)}
                   >
                     <option value="">Todas las provincias</option>
-                    {PROVINCIAS.map((p) => (
+                    {provinces.map((p) => (
                       <option key={p} value={p}>
                         {p}
                       </option>
@@ -165,16 +165,18 @@ export function SearchSection() {
                   <label htmlFor="ciudad">Ciudad / Localidad</label>
                   <select id="ciudad" value={ciudad} onChange={(e) => setCiudad(e.target.value)}>
                     <option value="">
-                      {ciudadesDisponibles
-                        ? "Todas las ciudades/localidades"
-                        : "Seleccioná primero una provincia"}
+                      {!provincia
+                        ? "Seleccioná primero una provincia"
+                        : citiesStatus === "loading"
+                          ? "Cargando ciudades..."
+                          : "Todas las ciudades/localidades"}
                     </option>
-                    {ciudadesDisponibles?.map((c) => (
+                    {ciudadesDisponibles.map((c) => (
                       <option key={c} value={c}>
                         {c}
                       </option>
                     ))}
-                    {provincia && !ciudadesDisponibles && (
+                    {provincia && citiesStatus === "ready" && ciudadesDisponibles.length === 0 && (
                       <option value="General">Toda la provincia</option>
                     )}
                   </select>

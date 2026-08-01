@@ -13,9 +13,9 @@ export interface ProfessionalFilters {
   gender?: string;
   coverage?: Coverage;
   modality?: Modality;
-  /** Provincia exacta (mismo valor canónico que PROVINCIAS). */
+  /** Provincia exacta (id de la tabla provinces). */
   province?: string;
-  /** Ciudad exacta (mismo valor canónico que CIUDADES_POR_PROVINCIA); "General" = toda la provincia. */
+  /** Ciudad exacta (name de la tabla cities); "General" = toda la provincia. */
   city?: string;
 }
 

@@ -226,6 +226,42 @@ export interface Database {
         };
         Relationships: [];
       };
+      provinces: {
+        Row: {
+          id: string;
+          created_at: string;
+        };
+        Insert: {
+          id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      cities: {
+        Row: {
+          id: string;
+          province_id: string;
+          name: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          province_id: string;
+          name: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          province_id?: string;
+          name?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {

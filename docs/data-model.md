@@ -41,8 +41,8 @@ proyecto (tarea E0-9), una vez validado que nada la referencia.
 | coverage | text[] | `particular`, `obra_social` |
 | modality | text[] | `virtual`, `presencial` |
 | consultation_reasons | text[] | motivos de consulta |
-| province | text, nullable | valor canónico de `PROVINCIAS` (mismo dropdown que usa el buscador público) |
-| city | text, nullable | valor canónico de `CIUDADES_POR_PROVINCIA[province]`, o `"General"` = toda la provincia; solo relevante si `presencial` está en `modality` |
+| province | text, nullable | FK a `provinces.id` (mismo dropdown que usa el buscador público) |
+| city | text, nullable | valor de `cities.name` para la provincia elegida, o `"General"` = toda la provincia; solo relevante si `presencial` está en `modality` |
 | is_active | boolean | default true |
 | is_featured | boolean | default false |
 | average_rating | numeric | cacheado, recalculado desde `reviews` |
@@ -85,6 +85,28 @@ proyecto (tarea E0-9), una vez validado que nada la referencia.
 
 Constraint único: `(professional_id, appointment_date, start_time)` — primera barrera
 anti doble-reserva a nivel base de datos.
+
+### `provinces`
+| Columna | Tipo | Notas |
+|---|---|---|
+| id | text PK | nombre de la provincia (ej. `"CABA"`, `"Santa Fe"`), coincide con `professionals.province` |
+| created_at | timestamptz | |
+
+Datos oficiales (24 provincias), cargados por migración desde la API Georef (`datos.gob.ar`).
+
+### `cities`
+| Columna | Tipo | Notas |
+|---|---|---|
+| id | uuid PK | |
+| province_id | text | FK a `provinces.id` |
+| name | text | nombre del municipio/localidad oficial |
+| created_at | timestamptz | |
+
+Único `(province_id, name)`. 2256 filas cargadas por migración desde Georef (municipios oficiales;
+localidades como fallback en Santa Cruz y Santiago del Estero, que no tienen municipios formales).
+Reemplaza las constantes hardcodeadas `PROVINCIAS` / `CIUDADES_POR_PROVINCIA` — los selects de
+provincia/ciudad (buscador público y formulario de alta/edición de profesional) ahora se alimentan
+de estas tablas.
 
 ### `reviews`
 | Columna | Tipo | Notas |

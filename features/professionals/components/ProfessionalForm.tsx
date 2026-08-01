@@ -7,14 +7,14 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import {
-  CIUDADES_POR_PROVINCIA,
   CONSULTATION_REASONS,
   COVERAGE_OPTIONS,
   GENDER_OPTIONS,
   MODALITY_OPTIONS,
   PROFESSION_OPTIONS,
-  PROVINCIAS,
 } from "@/features/professionals/constants";
+import { useProvinces } from "@/features/professionals/hooks/useProvinces";
+import { useCitiesByProvince } from "@/features/professionals/hooks/useCitiesByProvince";
 import type { ProfessionalFormValues } from "@/features/professionals/types";
 
 const EMPTY_VALUES: ProfessionalFormValues = {
@@ -120,9 +120,10 @@ export function ProfessionalForm({
     setValues((v) => ({ ...v, province, city: "" }));
   }
 
-  const ciudadesDisponibles = values.province
-    ? CIUDADES_POR_PROVINCIA[values.province]
-    : undefined;
+  const { provinces } = useProvinces();
+  const { cities: ciudadesDisponibles, status: citiesStatus } = useCitiesByProvince(
+    values.province,
+  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -213,7 +214,7 @@ export function ProfessionalForm({
               onChange={(e) => handleProvinceChange(e.target.value)}
             >
               <option value="">Sin especificar</option>
-              {PROVINCIAS.map((p) => (
+              {provinces.map((p) => (
                 <option key={p} value={p}>
                   {p}
                 </option>
@@ -231,14 +232,18 @@ export function ProfessionalForm({
               disabled={!values.province}
             >
               <option value="">
-                {ciudadesDisponibles ? "Sin especificar" : "Elegí primero una provincia"}
+                {!values.province
+                  ? "Elegí primero una provincia"
+                  : citiesStatus === "loading"
+                    ? "Cargando ciudades..."
+                    : "Sin especificar"}
               </option>
-              {ciudadesDisponibles?.map((c) => (
+              {ciudadesDisponibles.map((c) => (
                 <option key={c} value={c}>
                   {c}
                 </option>
               ))}
-              {values.province && !ciudadesDisponibles && (
+              {values.province && citiesStatus === "ready" && ciudadesDisponibles.length === 0 && (
                 <option value="General">Toda la provincia</option>
               )}
             </select>

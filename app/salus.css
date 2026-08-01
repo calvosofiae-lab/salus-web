@@ -637,6 +637,21 @@
   margin-bottom: 0.8rem;
 }
 
+.salus .prof-rating {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 0.6rem;
+}
+
+.salus .prof-rating-star {
+  color: var(--yellow);
+}
+
 .salus .prof-badge {
   display: inline-block;
   padding: 0.3rem 0.8rem;

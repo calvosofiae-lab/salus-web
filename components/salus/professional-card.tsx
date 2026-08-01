@@ -28,6 +28,12 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
         <img src={foto} alt={nombre} className="prof-img" />
         <h3 className="prof-name">{nombre}</h3>
         <p className="prof-profession">{profesion}</p>
+        {prof.average_rating !== null && (
+          <p className="prof-rating">
+            <span className="prof-rating-star">★</span>
+            {prof.average_rating.toFixed(1)}/5
+          </p>
+        )}
         <span className="prof-badge">{modalidad}</span>
         {descripcion && <p className="prof-description">{descripcion}</p>}
       </div>

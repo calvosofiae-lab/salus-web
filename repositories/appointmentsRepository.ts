@@ -10,13 +10,19 @@ export interface BookAppointmentInput {
   whatsapp: string;
 }
 
-export async function getOwnAppointments(professionalId: string): Promise<Appointment[]> {
+export async function getOwnAppointments(
+  professionalId: string,
+  from: string,
+  to: string,
+): Promise<Appointment[]> {
   const supabase = createClient();
 
   const { data, error } = await supabase
     .from("appointments")
     .select("*")
     .eq("professional_id", professionalId)
+    .gte("appointment_date", from)
+    .lte("appointment_date", to)
     .order("appointment_date")
     .order("start_time");
 

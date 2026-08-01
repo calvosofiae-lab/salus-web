@@ -73,8 +73,9 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
-  const requiresAdmin = pathname.startsWith("/admin");
-  const requiresProfessional = pathname.startsWith("/profesional");
+  const requiresAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
+  const requiresProfessional =
+    pathname === "/profesional" || pathname.startsWith("/profesional/");
 
   if (requiresAdmin || requiresProfessional) {
     const { data: profile } = await supabase

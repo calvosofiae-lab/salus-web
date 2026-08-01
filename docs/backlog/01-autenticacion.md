@@ -177,9 +177,14 @@ profesional). Los pacientes nunca se autentican (ver `03-administracion-profesio
 - **Servicios/Repos:** —
 - **Tipos:** —
 - **Criterios de aceptación:**
-  - [ ] Navegar entre varias páginas de `/profesional/**` (o `/admin/**`) en la misma sesión no
-        dispara una query de `profiles` en cada click — pendiente de verificar
-  - [ ] Cerrar sesión y volver a entrar con otro rol no arrastra el rol cacheado del usuario
-        anterior — pendiente de verificar
-  - [ ] Sigue bloqueando correctamente el acceso cruzado (`professional` a `/admin`, admin
-        anónimo a rutas protegidas) — pendiente de verificar
+  - [x] Navegar entre varias páginas de `/profesional/**` (o `/admin/**`) en la misma sesión no
+        dispara una query de `profiles` en cada click — confirmado por lectura de código (el
+        camino con cookie válida nunca llega al `.from("profiles")`); no observable desde el
+        navegador porque esa query la hace el proceso de Next.js contra Supabase, no el
+        browser
+  - [x] Cerrar sesión y volver a entrar con otro rol no arrastra el rol cacheado del usuario
+        anterior — verificado en el navegador: sesión de profesional → logout → login como
+        admin → cae directo en `/admin`, sin rastros del rol anterior
+  - [x] Sigue bloqueando correctamente el acceso cruzado (`professional` a `/admin`, admin a
+        `/profesional`) — verificado en el navegador en ambos sentidos: profesional a
+        `/admin` rebota a `/profesional`; admin a `/profesional` rebota a `/admin`

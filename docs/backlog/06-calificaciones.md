@@ -198,3 +198,33 @@ Valoraciones vía link único, generado cuando un turno pasa a estado "Realizado
         por nombre — el orden no cambia entre recargas
   - [x] El formulario de alta/edición de profesional ya no tiene ningún control para marcar
         "Destacado"
+
+---
+
+### E6-8 — Elimina la columna `is_featured` ✅ Hecho (2026-08-01)
+- **Objetivo:** no dejar en la tabla `professionals` una columna congelada y sin lector ni
+  escritor desde que E6-7 la sacó del formulario y del cálculo de destacados.
+- **Descripción:** el trigger `protect_professional_admin_fields` (E3-5,
+  `20260731082025_professionals_own_update_policy.sql`) referenciaba `is_featured` por
+  nombre en su cuerpo plpgsql (`new.is_featured := old.is_featured;`) — Postgres no trackea
+  eso como una dependencia de esquema, así que dropear la columna directamente no habría
+  fallado en el momento, pero sí el próximo `update` real sobre `professionals` (perfil
+  propio, edición admin, subida de foto), con "record new has no field is_featured". La
+  migración primero redefine el trigger sin esa línea y recién después dropea la columna, en
+  ese orden, dentro del mismo archivo. También se sacó la columna "Destacado" de
+  `ProfessionalsTable.tsx` (admin), que todavía la mostraba de solo lectura.
+- **Depende de:** E6-7
+- **Archivos:** `supabase/migrations/20260801080000_drop_professional_is_featured_column.sql`,
+  `types/database.ts`, `features/admin/components/ProfessionalsTable.tsx`,
+  `docs/data-model.md`
+- **Cambios de base de datos:** `alter table professionals drop column is_featured`,
+  `protect_professional_admin_fields` redefinida sin la línea de `is_featured`
+- **Componentes nuevos:** —
+- **Páginas nuevas:** —
+- **Hooks:** —
+- **Servicios/Repos:** —
+- **Tipos:** `Professional` (pierde `is_featured`)
+- **Criterios de aceptación:**
+  - [x] La tabla de admin ya no muestra la columna "Destacado"
+  - [x] Editar el perfil propio o vía admin sigue funcionando después del drop (el trigger
+        que protege `is_active`/`profile_id` no rompe)

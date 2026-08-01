@@ -27,7 +27,6 @@ export function ProfessionalsTable() {
             <th className="py-2 pr-4">Nombre</th>
             <th className="py-2 pr-4">Profesión</th>
             <th className="py-2 pr-4">Estado</th>
-            <th className="py-2 pr-4">Destacado</th>
             <th className="py-2 pr-4" />
           </tr>
         </thead>
@@ -43,7 +42,6 @@ export function ProfessionalsTable() {
                   {prof.is_active ? "Activo" : "Inactivo"}
                 </Badge>
               </td>
-              <td className="py-2 pr-4">{prof.is_featured ? "Sí" : "No"}</td>
               <td className="py-2 pr-4">
                 <div className="flex justify-end gap-2">
                   <Button asChild size="sm" variant="outline">

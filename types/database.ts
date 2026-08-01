@@ -51,7 +51,6 @@ export interface Database {
           province: string | null;
           city: string | null;
           is_active: boolean;
-          is_featured: boolean;
           average_rating: number | null;
           gender_trained: boolean | null;
           consultation_fee: number | null;
@@ -73,7 +72,6 @@ export interface Database {
           province?: string | null;
           city?: string | null;
           is_active?: boolean;
-          is_featured?: boolean;
           average_rating?: number | null;
           gender_trained?: boolean | null;
           consultation_fee?: number | null;
@@ -95,7 +93,6 @@ export interface Database {
           province?: string | null;
           city?: string | null;
           is_active?: boolean;
-          is_featured?: boolean;
           average_rating?: number | null;
           gender_trained?: boolean | null;
           consultation_fee?: number | null;

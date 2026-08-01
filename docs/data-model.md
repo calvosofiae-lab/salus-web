@@ -44,7 +44,6 @@ proyecto (tarea E0-9), una vez validado que nada la referencia.
 | province | text, nullable | FK a `provinces.id` (mismo dropdown que usa el buscador público) |
 | city | text, nullable | valor de `cities.name` para la provincia elegida, o `"General"` = toda la provincia; solo relevante si `presencial` está en `modality` |
 | is_active | boolean | default true |
-| is_featured | boolean | default false |
 | average_rating | numeric | cacheado, recalculado desde `reviews` |
 | gender_trained | boolean, nullable | migrado de `profesionales.Capacitacion_en_genero`; no estaba en el diseño original, se agregó al migrar datos reales (E0-5) |
 | consultation_fee | numeric, nullable | migrado de `profesionales.Valor_de_consulta`; no estaba en el diseño original, se agregó al migrar datos reales (E0-5) |

@@ -29,7 +29,7 @@ export function EditProfessionalClient() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold">Editar profesional</h1>
+      <h1 className="text-2xl font-semibold text-brand-navy">Editar profesional</h1>
       <ProfessionalForm
         mode="edit"
         initialValues={{

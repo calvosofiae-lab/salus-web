@@ -6,7 +6,7 @@ export default function AdminProfessionalsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Profesionales</h1>
+        <h1 className="text-2xl font-semibold text-brand-navy">Profesionales</h1>
         <Button asChild>
           <Link href="/admin/profesionales/nuevo">Nuevo profesional</Link>
         </Button>

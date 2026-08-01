@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 export default function ProfessionalHomePage() {
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">Mi panel</h1>
+      <h1 className="text-2xl font-semibold text-brand-navy">Mi panel</h1>
       <p className="text-sm text-muted-foreground">
         Administrá tu información de perfil en SALUS.
       </p>

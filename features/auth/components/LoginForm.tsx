@@ -30,9 +30,9 @@ export function LoginForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
+      <Card className="border-t-4 border-t-brand-teal">
         <CardHeader>
-          <CardTitle className="text-2xl">Iniciar sesión</CardTitle>
+          <CardTitle className="text-2xl text-brand-navy">Iniciar sesión</CardTitle>
           <CardDescription>
             Acceso para administradores y profesionales de SALUS
           </CardDescription>

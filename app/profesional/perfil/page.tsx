@@ -32,7 +32,7 @@ export default function OwnProfilePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold">Mi perfil</h1>
+      <h1 className="text-2xl font-semibold text-brand-navy">Mi perfil</h1>
       <ProfessionalForm
         mode="edit"
         hideFeaturedToggle

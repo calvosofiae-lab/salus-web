@@ -30,7 +30,7 @@ export default function AvailabilityPage() {
 
   return (
     <div className="flex flex-col gap-10">
-      <h1 className="text-2xl font-semibold">Disponibilidad</h1>
+      <h1 className="text-2xl font-semibold text-brand-navy">Disponibilidad</h1>
       <WeeklyAvailabilityForm professionalId={professional.id} />
       <BlockDateForm professionalId={professional.id} />
     </div>

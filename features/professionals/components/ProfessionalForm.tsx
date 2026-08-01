@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
 import {
   CONSULTATION_REASONS,
   COVERAGE_OPTIONS,
@@ -44,6 +45,44 @@ interface ProfessionalFormProps {
   hideFeaturedToggle?: boolean;
 }
 
+const selectClassName =
+  "h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring";
+const textareaClassName =
+  "rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring";
+
+function ChipToggle({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+        active
+          ? "border-brand-teal bg-brand-teal text-white"
+          : "border-input bg-background text-muted-foreground hover:border-brand-teal/50",
+      )}
+    >
+      {label}
+    </button>
+  );
+}
+
+function FieldGroupLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <h3 className="text-xs font-semibold uppercase tracking-wide text-brand-navy">
+      {children}
+    </h3>
+  );
+}
+
 export function ProfessionalForm({
   mode,
   initialValues,
@@ -60,7 +99,10 @@ export function ProfessionalForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  function toggleArrayValue(field: "coverage" | "modality" | "consultation_reasons", value: string) {
+  function toggleArrayValue(
+    field: "coverage" | "modality" | "consultation_reasons",
+    value: string,
+  ) {
     setValues((prev) => {
       const current = prev[field];
       const next = current.includes(value)
@@ -76,175 +118,185 @@ export function ProfessionalForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6 max-w-2xl">
-      <div className="grid gap-2">
-        <Label htmlFor="full_name">Nombre y apellido</Label>
-        <Input
-          id="full_name"
-          required
-          value={values.full_name}
-          onChange={(e) => setValues((v) => ({ ...v, full_name: e.target.value }))}
-        />
-      </div>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6 max-w-3xl">
+      <div className="flex flex-col gap-3">
+        <FieldGroupLabel>Datos del profesional</FieldGroupLabel>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid gap-1.5">
+            <Label htmlFor="full_name">Nombre y apellido</Label>
+            <Input
+              id="full_name"
+              required
+              value={values.full_name}
+              onChange={(e) => setValues((v) => ({ ...v, full_name: e.target.value }))}
+            />
+          </div>
 
-      <div className="grid gap-2">
-        <Label htmlFor="profession">Profesión</Label>
-        <select
-          id="profession"
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm"
-          value={values.profession}
-          onChange={(e) => setValues((v) => ({ ...v, profession: e.target.value }))}
-        >
-          {PROFESSION_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-      </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="profession">Profesión</Label>
+            <select
+              id="profession"
+              className={selectClassName}
+              value={values.profession}
+              onChange={(e) => setValues((v) => ({ ...v, profession: e.target.value }))}
+            >
+              {PROFESSION_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
-      <div className="grid gap-2">
-        <Label htmlFor="license_number">Matrícula</Label>
-        <Input
-          id="license_number"
-          value={values.license_number}
-          onChange={(e) => setValues((v) => ({ ...v, license_number: e.target.value }))}
-        />
-      </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="license_number">Matrícula</Label>
+            <Input
+              id="license_number"
+              value={values.license_number}
+              onChange={(e) => setValues((v) => ({ ...v, license_number: e.target.value }))}
+            />
+          </div>
 
-      <div className="grid gap-2">
-        <Label htmlFor="gender">Género</Label>
-        <Input
-          id="gender"
-          value={values.gender}
-          onChange={(e) => setValues((v) => ({ ...v, gender: e.target.value }))}
-        />
-      </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="gender">Género</Label>
+            <Input
+              id="gender"
+              value={values.gender}
+              onChange={(e) => setValues((v) => ({ ...v, gender: e.target.value }))}
+            />
+          </div>
 
-      <div className="grid gap-2">
-        <Label htmlFor="description">Descripción</Label>
-        <textarea
-          id="description"
-          rows={3}
-          className="rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm"
-          value={values.description}
-          onChange={(e) => setValues((v) => ({ ...v, description: e.target.value }))}
-        />
-      </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="photo_url">URL de foto</Label>
+            <Input
+              id="photo_url"
+              value={values.photo_url}
+              onChange={(e) => setValues((v) => ({ ...v, photo_url: e.target.value }))}
+            />
+          </div>
 
-      <div className="grid gap-2">
-        <Label htmlFor="photo_url">URL de foto</Label>
-        <Input
-          id="photo_url"
-          value={values.photo_url}
-          onChange={(e) => setValues((v) => ({ ...v, photo_url: e.target.value }))}
-        />
-      </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="whatsapp">WhatsApp</Label>
+            <Input
+              id="whatsapp"
+              value={values.whatsapp}
+              onChange={(e) => setValues((v) => ({ ...v, whatsapp: e.target.value }))}
+            />
+          </div>
 
-      <div className="grid gap-2">
-        <Label htmlFor="whatsapp">WhatsApp</Label>
-        <Input
-          id="whatsapp"
-          value={values.whatsapp}
-          onChange={(e) => setValues((v) => ({ ...v, whatsapp: e.target.value }))}
-        />
-      </div>
-
-      <div className="grid gap-2">
-        <Label htmlFor="location">Ubicación</Label>
-        <Input
-          id="location"
-          value={values.location}
-          onChange={(e) => setValues((v) => ({ ...v, location: e.target.value }))}
-        />
-      </div>
-
-      <div className="grid gap-2">
-        <Label>Cobertura</Label>
-        <div className="flex gap-4">
-          {COVERAGE_OPTIONS.map((o) => (
-            <label key={o.value} className="flex items-center gap-2 text-sm">
-              <Checkbox
-                checked={values.coverage.includes(o.value)}
-                onCheckedChange={() => toggleArrayValue("coverage", o.value)}
-              />
-              {o.label}
-            </label>
-          ))}
+          <div className="grid gap-1.5 md:col-span-2">
+            <Label htmlFor="location">Ubicación</Label>
+            <Input
+              id="location"
+              value={values.location}
+              onChange={(e) => setValues((v) => ({ ...v, location: e.target.value }))}
+            />
+          </div>
         </div>
-      </div>
 
-      <div className="grid gap-2">
-        <Label>Modalidad</Label>
-        <div className="flex gap-4">
-          {MODALITY_OPTIONS.map((o) => (
-            <label key={o.value} className="flex items-center gap-2 text-sm">
-              <Checkbox
-                checked={values.modality.includes(o.value)}
-                onCheckedChange={() => toggleArrayValue("modality", o.value)}
-              />
-              {o.label}
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid gap-2">
-        <Label>Motivos de consulta</Label>
-        <div className="flex flex-col gap-2">
-          {CONSULTATION_REASONS.map((reason) => (
-            <label key={reason} className="flex items-center gap-2 text-sm">
-              <Checkbox
-                checked={values.consultation_reasons.includes(reason)}
-                onCheckedChange={() => toggleArrayValue("consultation_reasons", reason)}
-              />
-              {reason}
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {!hideFeaturedToggle && (
-        <label className="flex items-center gap-2 text-sm">
-          <Checkbox
-            checked={values.is_featured}
-            onCheckedChange={(checked) =>
-              setValues((v) => ({ ...v, is_featured: checked === true }))
-            }
+        <div className="grid gap-1.5">
+          <Label htmlFor="description">Descripción</Label>
+          <textarea
+            id="description"
+            rows={3}
+            className={textareaClassName}
+            value={values.description}
+            onChange={(e) => setValues((v) => ({ ...v, description: e.target.value }))}
           />
-          Destacado
-        </label>
-      )}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3 border-t pt-4">
+        <FieldGroupLabel>Atención</FieldGroupLabel>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid gap-1.5">
+            <Label>Cobertura</Label>
+            <div className="flex flex-wrap gap-2">
+              {COVERAGE_OPTIONS.map((o) => (
+                <ChipToggle
+                  key={o.value}
+                  label={o.label}
+                  active={values.coverage.includes(o.value)}
+                  onClick={() => toggleArrayValue("coverage", o.value)}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label>Modalidad</Label>
+            <div className="flex flex-wrap gap-2">
+              {MODALITY_OPTIONS.map((o) => (
+                <ChipToggle
+                  key={o.value}
+                  label={o.label}
+                  active={values.modality.includes(o.value)}
+                  onClick={() => toggleArrayValue("modality", o.value)}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-1.5">
+          <Label>Motivos de consulta</Label>
+          <div className="flex flex-wrap gap-2">
+            {CONSULTATION_REASONS.map((reason) => (
+              <ChipToggle
+                key={reason}
+                label={reason}
+                active={values.consultation_reasons.includes(reason)}
+                onClick={() => toggleArrayValue("consultation_reasons", reason)}
+              />
+            ))}
+          </div>
+        </div>
+
+        {!hideFeaturedToggle && (
+          <label className="flex items-center gap-2 text-sm">
+            <Checkbox
+              checked={values.is_featured}
+              onCheckedChange={(checked) =>
+                setValues((v) => ({ ...v, is_featured: checked === true }))
+              }
+            />
+            Destacado
+          </label>
+        )}
+      </div>
 
       {mode === "create" && (
-        <>
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email de acceso</Label>
-            <Input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+        <div className="flex flex-col gap-3 border-t pt-4">
+          <FieldGroupLabel>Acceso</FieldGroupLabel>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid gap-1.5">
+              <Label htmlFor="email">Email de acceso</Label>
+              <Input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="password">Contraseña provisoria</Label>
+              <Input
+                id="password"
+                type="password"
+                required
+                minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="password">Contraseña provisoria</Label>
-            <Input
-              id="password"
-              type="password"
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-        </>
+        </div>
       )}
 
       {error && <p className="text-sm text-red-500">{error}</p>}
 
-      <Button type="submit" disabled={isLoading}>
+      <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
         {isLoading ? "Guardando..." : submitLabel}
       </Button>
     </form>

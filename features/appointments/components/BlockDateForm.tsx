@@ -20,21 +20,29 @@ export function BlockDateForm({ professionalId }: { professionalId: string }) {
   }
 
   return (
-    <section className="flex flex-col gap-4">
-      <h2 className="text-lg font-medium">Bloquear fechas específicas</h2>
+    <section className="flex flex-col gap-3">
+      <h2 className="text-xs font-semibold uppercase tracking-wide text-brand-navy">
+        Bloquear fechas específicas
+      </h2>
       <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-2">
-        <div className="grid gap-2">
+        <div className="grid gap-1.5">
           <Label htmlFor="blocked_date">Fecha</Label>
           <Input
             id="blocked_date"
             type="date"
+            className="h-9"
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
         </div>
-        <div className="grid gap-2">
+        <div className="grid gap-1.5">
           <Label htmlFor="reason">Motivo (opcional)</Label>
-          <Input id="reason" value={reason} onChange={(e) => setReason(e.target.value)} />
+          <Input
+            id="reason"
+            className="h-9"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+          />
         </div>
         <Button type="submit">Bloquear</Button>
       </form>
@@ -42,22 +50,28 @@ export function BlockDateForm({ professionalId }: { professionalId: string }) {
       {status === "error" && (
         <p className="text-sm text-red-500">Error al cargar los bloqueos.</p>
       )}
-      <ul className="flex flex-col gap-2">
-        {blocks.map((block) => (
-          <li
-            key={block.id}
-            className="flex items-center justify-between text-sm border rounded-md px-3 py-2"
-          >
-            <span>
-              {block.blocked_date}
-              {block.reason ? ` — ${block.reason}` : ""}
-            </span>
-            <button type="button" className="text-red-500" onClick={() => removeBlock(block.id)}>
-              Quitar
-            </button>
-          </li>
-        ))}
-      </ul>
+      {blocks.length > 0 && (
+        <div className="flex flex-col divide-y rounded-md border">
+          {blocks.map((block) => (
+            <div
+              key={block.id}
+              className="flex items-center justify-between px-3 py-2 text-sm"
+            >
+              <span>
+                {block.blocked_date}
+                {block.reason ? ` — ${block.reason}` : ""}
+              </span>
+              <button
+                type="button"
+                className="text-xs text-red-500 hover:underline"
+                onClick={() => removeBlock(block.id)}
+              >
+                Quitar
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

@@ -157,13 +157,27 @@ Disponibilidad, cálculo de slots y gestión de turnos desde el rol Profesional.
      botón mientras la petición estaba en curso — un doble clic apurado facilitaba crear
      reglas superpuestas antes del fix del punto 1. Ahora los botones de agregar/quitar se
      deshabilitan mientras `isSaving` es `true`.
+  4. **Bug encontrado al verificar el punto 2:** el mensaje específico del trigger no
+     llegaba a mostrarse — se veía el fallback genérico ("Ocurrió un error al agregar el
+     horario") en vez de "Ese horario se superpone...". Causa: los errores de supabase-js
+     (`PostgrestError`, incluidos los `raise exception` de triggers/RPCs) no son instancias
+     de `Error` en la versión que usa este proyecto, y el chequeo `err instanceof Error ?
+     err.message : fallback` los descarta siempre. Se agregó `lib/errors.ts`
+     (`getErrorMessage`) que además de `instanceof Error` chequea si el objeto tiene un
+     campo `message` string, y se aplicó en los dos hooks de este épico. **Este mismo patrón
+     roto (`err instanceof Error ? err.message : ...`) aparece en otros 8 hooks del proyecto**
+     (`useCreateProfessional`, `useUpdateProfessional`, `useUpdateOwnProfile`,
+     `useSubmitReview`, `useBookAppointment`, `useUpdatePassword`, `useForgotPassword`,
+     `useLogin`) — quedan con el mismo problema silencioso hasta que se decida aplicarles el
+     mismo fix.
 - **Depende de:** E4-1, E4-2, E4-3
 - **Archivos:**
   `supabase/migrations/20260801120000_prevent_overlapping_availability_rules.sql`,
   `features/appointments/hooks/useAvailabilityRules.ts`,
   `features/appointments/hooks/useAvailabilityBlocks.ts`,
   `features/appointments/components/WeeklyAvailabilityForm.tsx`,
-  `features/appointments/components/BlockDateForm.tsx`
+  `features/appointments/components/BlockDateForm.tsx`,
+  `lib/errors.ts`
 - **Cambios de base de datos:** trigger `prevent_overlapping_availability_rules`
   (`before insert or update on availability_rules`); `get_available_slots` redefinida con
   `select distinct`
@@ -173,9 +187,12 @@ Disponibilidad, cálculo de slots y gestión de turnos desde el rol Profesional.
 - **Servicios/Repos:** —
 - **Tipos:** —
 - **Criterios de aceptación:**
-  - [ ] Cargar un horario que se superpone con uno existente muestra el mensaje de error del
-        trigger en vez de guardarse — pendiente de verificar
-  - [ ] Cargar dos veces la misma fecha bloqueada muestra un error en vez de fallar en
-        silencio — pendiente de verificar
-  - [ ] Los botones de agregar/quitar quedan deshabilitados mientras se guarda — pendiente de
-        verificar
+  - [x] Cargar un horario que se superpone con uno existente muestra el mensaje de error del
+        trigger en vez de guardarse — verificado en el navegador: "Ese horario se superpone
+        con uno que ya tenés cargado para ese día."
+  - [x] Cargar dos veces la misma fecha bloqueada muestra un error en vez de fallar en
+        silencio — verificado en el navegador (mensaje crudo del `unique` constraint, sin
+        traducir — funcional pero no lindo, ver nota abajo)
+  - [x] Los botones de agregar/quitar quedan deshabilitados mientras se guarda — confirmado
+        por lectura de código (`disabled={isSaving}` en ambos formularios); no observable de
+        forma confiable en un ida-y-vuelta tan rápido contra un entorno local

@@ -6,6 +6,7 @@ import {
   deleteAvailabilityBlock,
   getOwnAvailabilityBlocks,
 } from "@/repositories/availabilityRepository";
+import { getErrorMessage } from "@/lib/errors";
 import type { AvailabilityBlock } from "@/features/appointments/types";
 
 export function useAvailabilityBlocks(professionalId: string) {
@@ -42,7 +43,7 @@ export function useAvailabilityBlocks(professionalId: string) {
       await load();
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ocurrió un error al bloquear la fecha");
+      setError(getErrorMessage(err, "Ocurrió un error al bloquear la fecha"));
       return false;
     } finally {
       setIsSaving(false);
@@ -56,7 +57,7 @@ export function useAvailabilityBlocks(professionalId: string) {
       await deleteAvailabilityBlock(id);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ocurrió un error al quitar el bloqueo");
+      setError(getErrorMessage(err, "Ocurrió un error al quitar el bloqueo"));
     } finally {
       setIsSaving(false);
     }

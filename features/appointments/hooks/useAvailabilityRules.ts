@@ -6,6 +6,7 @@ import {
   deleteAvailabilityRule,
   getOwnAvailabilityRules,
 } from "@/repositories/availabilityRepository";
+import { getErrorMessage } from "@/lib/errors";
 import type { AvailabilityRule } from "@/features/appointments/types";
 
 export function useAvailabilityRules(professionalId: string) {
@@ -43,7 +44,7 @@ export function useAvailabilityRules(professionalId: string) {
       await load();
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ocurrió un error al agregar el horario");
+      setError(getErrorMessage(err, "Ocurrió un error al agregar el horario"));
       return false;
     } finally {
       setIsSaving(false);
@@ -57,7 +58,7 @@ export function useAvailabilityRules(professionalId: string) {
       await deleteAvailabilityRule(id);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ocurrió un error al quitar el horario");
+      setError(getErrorMessage(err, "Ocurrió un error al quitar el horario"));
     } finally {
       setIsSaving(false);
     }

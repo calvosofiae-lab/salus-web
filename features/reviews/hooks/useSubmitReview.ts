@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { submitReview } from "@/repositories/reviewsRepository";
+import { getErrorMessage } from "@/lib/errors";
 
 export function useSubmitReview() {
   const [error, setError] = useState<string | null>(null);
@@ -16,9 +17,7 @@ export function useSubmitReview() {
       await submitReview(token, rating, comment);
       setSuccess(true);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Ocurrió un error al enviar tu calificación",
-      );
+      setError(getErrorMessage(err, "Ocurrió un error al enviar tu calificación"));
     } finally {
       setIsLoading(false);
     }

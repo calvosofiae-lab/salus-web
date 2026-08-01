@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getErrorMessage } from "@/lib/errors";
 
 export function useForgotPassword() {
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +21,7 @@ export function useForgotPassword() {
       if (resetError) throw resetError;
       setSuccess(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ocurrió un error");
+      setError(getErrorMessage(err, "Ocurrió un error"));
     } finally {
       setIsLoading(false);
     }

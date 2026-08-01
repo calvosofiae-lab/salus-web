@@ -6,6 +6,7 @@ import {
   updateProfessional,
   uploadProfessionalPhoto,
 } from "@/repositories/professionalsRepository";
+import { getErrorMessage } from "@/lib/errors";
 import type { ProfessionalFormSubmitValues } from "@/features/professionals/components/ProfessionalForm";
 
 export function useUpdateOwnProfile(id: string) {
@@ -28,9 +29,7 @@ export function useUpdateOwnProfile(id: string) {
       await updateProfessional(id, { ...values, photo_url });
       setSuccess(true);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Ocurrió un error al actualizar tu perfil",
-      );
+      setError(getErrorMessage(err, "Ocurrió un error al actualizar tu perfil"));
     } finally {
       setIsLoading(false);
     }

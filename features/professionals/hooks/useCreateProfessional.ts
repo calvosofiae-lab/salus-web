@@ -7,6 +7,7 @@ import {
   updateProfessional,
   uploadProfessionalPhoto,
 } from "@/repositories/professionalsRepository";
+import { getErrorMessage } from "@/lib/errors";
 import type { ProfessionalCreateInput } from "@/features/professionals/types";
 
 export function useCreateProfessional() {
@@ -39,7 +40,7 @@ export function useCreateProfessional() {
 
       router.push("/admin/profesionales");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ocurrió un error al crear el profesional");
+      setError(getErrorMessage(err, "Ocurrió un error al crear el profesional"));
     } finally {
       setIsLoading(false);
     }

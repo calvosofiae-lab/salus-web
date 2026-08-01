@@ -7,6 +7,7 @@ import {
   updateProfessional,
   uploadProfessionalPhoto,
 } from "@/repositories/professionalsRepository";
+import { getErrorMessage } from "@/lib/errors";
 import type { ProfessionalFormSubmitValues } from "@/features/professionals/components/ProfessionalForm";
 
 export function useUpdateProfessional(id: string) {
@@ -28,9 +29,7 @@ export function useUpdateProfessional(id: string) {
       await updateProfessional(id, { ...values, photo_url });
       router.push("/admin/profesionales");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Ocurrió un error al actualizar el profesional",
-      );
+      setError(getErrorMessage(err, "Ocurrió un error al actualizar el profesional"));
     } finally {
       setIsLoading(false);
     }

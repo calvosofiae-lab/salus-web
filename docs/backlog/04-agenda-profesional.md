@@ -164,12 +164,18 @@ Disponibilidad, cálculo de slots y gestión de turnos desde el rol Profesional.
      de `Error` en la versión que usa este proyecto, y el chequeo `err instanceof Error ?
      err.message : fallback` los descarta siempre. Se agregó `lib/errors.ts`
      (`getErrorMessage`) que además de `instanceof Error` chequea si el objeto tiene un
-     campo `message` string, y se aplicó en los dos hooks de este épico. **Este mismo patrón
-     roto (`err instanceof Error ? err.message : ...`) aparece en otros 8 hooks del proyecto**
+     campo `message` string, y se aplicó en los dos hooks de este épico. El mismo patrón roto
+     (`err instanceof Error ? err.message : ...`) apareció en otros 8 hooks del proyecto
      (`useCreateProfessional`, `useUpdateProfessional`, `useUpdateOwnProfile`,
      `useSubmitReview`, `useBookAppointment`, `useUpdatePassword`, `useForgotPassword`,
-     `useLogin`) — quedan con el mismo problema silencioso hasta que se decida aplicarles el
-     mismo fix.
+     `useLogin`) — se les aplicó el mismo fix (`getErrorMessage`) el mismo día, a pedido del
+     usuario. Probado en el navegador forzando una colisión real de reserva (dos pestañas
+     efectivas vía curl + UI): antes se habría visto el fallback genérico, ahora aparece "El
+     horario seleccionado ya no está disponible." (el mensaje real que devuelve
+     `book_appointment`).
+     También se agregó `isPostgresErrorCode`/`POSTGRES_UNIQUE_VIOLATION` a `lib/errors.ts` y
+     se lo aplicó a `useAvailabilityBlocks` para traducir el mensaje crudo de Postgres en el
+     caso de fecha bloqueada duplicada ("Ya bloqueaste esa fecha antes.").
 - **Depende de:** E4-1, E4-2, E4-3
 - **Archivos:**
   `supabase/migrations/20260801120000_prevent_overlapping_availability_rules.sql`,
@@ -177,7 +183,12 @@ Disponibilidad, cálculo de slots y gestión de turnos desde el rol Profesional.
   `features/appointments/hooks/useAvailabilityBlocks.ts`,
   `features/appointments/components/WeeklyAvailabilityForm.tsx`,
   `features/appointments/components/BlockDateForm.tsx`,
-  `lib/errors.ts`
+  `lib/errors.ts`. El fix de `getErrorMessage` se extendió además a
+  `features/appointments/hooks/useBookAppointment.ts`,
+  `features/professionals/hooks/{useCreateProfessional,useUpdateProfessional,useUpdateOwnProfile}.ts`,
+  `features/reviews/hooks/useSubmitReview.ts` y
+  `features/auth/hooks/{useLogin,useForgotPassword,useUpdatePassword}.ts` (otras epics, se
+  lista acá porque es donde se originó y documentó el fix)
 - **Cambios de base de datos:** trigger `prevent_overlapping_availability_rules`
   (`before insert or update on availability_rules`); `get_available_slots` redefinida con
   `select distinct`

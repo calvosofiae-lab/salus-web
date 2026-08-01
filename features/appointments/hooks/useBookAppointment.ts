@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { bookAppointment } from "@/repositories/appointmentsRepository";
+import { getErrorMessage } from "@/lib/errors";
 
 export function useBookAppointment() {
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +25,7 @@ export function useBookAppointment() {
       setConfirmedId(id);
       return id;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ocurrió un error al reservar el turno");
+      setError(getErrorMessage(err, "Ocurrió un error al reservar el turno"));
       return null;
     } finally {
       setIsLoading(false);

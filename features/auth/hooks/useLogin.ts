@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getOwnProfile } from "@/repositories/profilesRepository";
+import { getErrorMessage } from "@/lib/errors";
 
 export function useLogin() {
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +30,7 @@ export function useLogin() {
 
       router.push(profile.role === "admin" ? "/admin" : "/profesional");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ocurrió un error al iniciar sesión");
+      setError(getErrorMessage(err, "Ocurrió un error al iniciar sesión"));
     } finally {
       setIsLoading(false);
     }

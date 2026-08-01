@@ -7,7 +7,7 @@ import { useAdminProfessionalsList } from "@/features/professionals/hooks/useAdm
 import { PROFESSION_LABELS } from "@/features/professionals/constants";
 
 export function ProfessionalsTable() {
-  const { status, professionals, deactivate } = useAdminProfessionalsList();
+  const { status, professionals, deactivate, activate } = useAdminProfessionalsList();
 
   if (status === "loading") {
     return <p className="text-sm text-muted-foreground">Cargando profesionales...</p>;
@@ -49,9 +49,13 @@ export function ProfessionalsTable() {
                   <Button asChild size="sm" variant="outline">
                     <Link href={`/admin/profesionales/${prof.id}/editar`}>Editar</Link>
                   </Button>
-                  {prof.is_active && (
+                  {prof.is_active ? (
                     <Button size="sm" variant="destructive" onClick={() => deactivate(prof.id)}>
                       Dar de baja
+                    </Button>
+                  ) : (
+                    <Button size="sm" variant="outline" onClick={() => activate(prof.id)}>
+                      Reactivar
                     </Button>
                   )}
                 </div>

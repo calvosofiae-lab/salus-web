@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
+  activateProfessional,
   deactivateProfessional,
   getAllProfessionalsAdmin,
 } from "@/repositories/professionalsRepository";
@@ -34,5 +35,10 @@ export function useAdminProfessionalsList() {
     await load();
   }
 
-  return { status, professionals, deactivate, reload: load };
+  async function activate(id: string) {
+    await activateProfessional(id);
+    await load();
+  }
+
+  return { status, professionals, deactivate, activate, reload: load };
 }

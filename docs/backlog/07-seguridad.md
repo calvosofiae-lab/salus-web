@@ -23,13 +23,14 @@ la confirmación puntual de cada criterio.
 - **Objetivo:** lectura pública acotada, escritura restringida.
 - **Implementado en:** `00-fundamentos.md#E0-4` (lectura pública `is_active=true`),
   `03-administracion-profesionales.md#E3-1` (`professionals_admin_full_access`) y `#E3-5`
-  (`professionals_update_own` + trigger que protege `is_active`/`is_featured`/`profile_id`).
+  (`professionals_update_own` + trigger que protege campos que no debería poder tocar un
+  no-admin — ver `#E7-7` por la ampliación de esa lista de campos).
 - **Criterios de aceptación:**
   - [x] Un usuario anónimo no puede leer profesionales con `is_active = false` (policy de
         lectura pública filtra explícitamente por `is_active = true`)
   - [x] Un usuario anónimo no puede hacer `update`/`insert`/`delete` sobre `professionals` —
         verificado: `insert` directo con anon key devuelve
-        `"new row violates row-level security policy"`; `update` de `is_featured`/`is_active`
+        `"new row violates row-level security policy"`; `update` de `is_active`
         devuelve `[]` (cero filas afectadas)
 
 ---
@@ -93,3 +94,50 @@ la confirmación puntual de cada criterio.
   - [x] Habilita la ejecución de `00-fundamentos.md#E0-9` (baja de la tabla legacy
         `profesionales`) — queda pendiente de que el usuario decida cuándo ejecutarla, ya que
         es una operación destructiva e irreversible
+
+---
+
+### E7-7 — Revisión post-implementación: columnas y RPCs sin validación server-side ✅ Hecho (2026-08-01)
+- **Objetivo:** cerrar tres huecos encontrados en una revisión técnica de todo lo agregado en
+  E3-6 (fotos), E6-6/E6-7 (contexto de reviews y destacados por rating) y el formateo de
+  WhatsApp: casos donde la única validación real vivía en el cliente (UI/JS) y no en RLS/RPC,
+  o donde una policy de fila no alcanzaba para proteger columnas puntuales.
+- **Descripción:**
+  1. **`professionals` — columnas sin proteger:** `professionals_update_own` (E7-2) solo
+     restringe qué fila puede tocar un profesional, no qué columnas. El trigger
+     `protect_professional_admin_fields` solo revertía `is_active`/`profile_id`; un
+     profesional podía auto-asignarse cualquier `average_rating` con un `update` directo,
+     salteando la UI (que ni siquiera expone ese campo). Esto pasó de cosmético a explotable
+     con `get_top_rated_professionals` (E6-7): ahora `average_rating` decide quién aparece en
+     "Profesionales Destacados". Se agregó `average_rating`, `consultation_fee` y
+     `gender_trained` a la lista de campos que el trigger revierte para no-admins.
+     `license_number` queda afuera a propósito (el profesional sí lo edita legítimamente).
+  2. **Bucket `professional-photos` sin límites:** la validación de tipo/tamaño de
+     `uploadProfessionalPhoto` (E3-6) era 100% client-side, saltable con un llamado directo a
+     la API de Storage. Se configuraron `file_size_limit` (5MB) y `allowed_mime_types`
+     (jpeg/png/webp) directo en `storage.buckets`, que Storage enforcea nativamente.
+  3. **`book_appointment` sin validar formato de WhatsApp:** solo chequeaba que no viniera
+     vacío. Un llamado directo a la RPC podía guardar un valor que rompiera después el link
+     `wa.me` de "Enviar encuesta". Se agregó el mismo chequeo de 10 dígitos que ya hace
+     `BookingForm.tsx` (`lib/whatsapp.ts`), pero server-side con una regex.
+- **Depende de:** E7-2, E3-6, E6-7, `05-reserva-turnos.md#E5-4`
+- **Archivos:**
+  `supabase/migrations/20260801090000_protect_more_professional_fields.sql`,
+  `supabase/migrations/20260801091000_restrict_professional_photos_bucket.sql`,
+  `supabase/migrations/20260801092000_validate_whatsapp_format_in_book_appointment.sql`
+- **Cambios de base de datos:** `protect_professional_admin_fields` redefinida (más campos
+  protegidos), `storage.buckets` (`file_size_limit`/`allowed_mime_types` del bucket
+  `professional-photos`), `book_appointment` redefinida (valida formato de WhatsApp)
+- **Componentes nuevos:** —
+- **Páginas nuevas:** —
+- **Hooks:** —
+- **Servicios/Repos:** —
+- **Tipos:** —
+- **Criterios de aceptación:**
+  - [ ] Un `update` directo de un profesional sobre su propia fila con
+        `average_rating`/`consultation_fee`/`gender_trained` no cambia el valor (RLS lo deja
+        pasar pero el trigger lo revierte) — pendiente de verificar en el navegador/API
+  - [ ] Subir un archivo que no sea jpeg/png/webp o que supere 5MB al bucket
+        `professional-photos` es rechazado por Storage — pendiente de verificar
+  - [ ] `book_appointment` con un `p_whatsapp` que no sean 10 dígitos devuelve el mensaje de
+        error nuevo en vez de guardar el turno — pendiente de verificar

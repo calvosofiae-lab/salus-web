@@ -11,6 +11,8 @@ import type { AvailabilityBlock } from "@/features/appointments/types";
 export function useAvailabilityBlocks(professionalId: string) {
   const [blocks, setBlocks] = useState<AvailabilityBlock[]>([]);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const load = useCallback(async () => {
     setStatus("loading");
@@ -29,18 +31,36 @@ export function useAvailabilityBlocks(professionalId: string) {
   }, [load]);
 
   async function addBlock(date: string, reason: string) {
-    await createAvailabilityBlock({
-      professional_id: professionalId,
-      blocked_date: date,
-      reason: reason || null,
-    });
-    await load();
+    setIsSaving(true);
+    setError(null);
+    try {
+      await createAvailabilityBlock({
+        professional_id: professionalId,
+        blocked_date: date,
+        reason: reason || null,
+      });
+      await load();
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ocurrió un error al bloquear la fecha");
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   async function removeBlock(id: string) {
-    await deleteAvailabilityBlock(id);
-    await load();
+    setIsSaving(true);
+    setError(null);
+    try {
+      await deleteAvailabilityBlock(id);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ocurrió un error al quitar el bloqueo");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
-  return { blocks, status, addBlock, removeBlock };
+  return { blocks, status, error, isSaving, addBlock, removeBlock };
 }

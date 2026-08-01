@@ -131,3 +131,51 @@ Disponibilidad, cálculo de slots y gestión de turnos desde el rol Profesional.
   - [x] Solo el profesional dueño o un admin pueden cambiar el estado (RLS `with check`)
   - [ ] Pasar a "Realizado" genera automáticamente el `rating_token` — pendiente hasta
         implementar el trigger de E6-2
+
+---
+
+### E4-6 — Revisión técnica: horarios superpuestos y errores silenciosos ✅ Hecho (2026-08-01)
+- **Objetivo:** tres gaps encontrados en una revisión técnica de E4-1/E4-2/E4-3.
+- **Descripción:**
+  1. **Sin prevención de horarios superpuestos:** nada impedía cargar dos reglas de
+     disponibilidad que se pisan para el mismo profesional+día (ej. 09:00-13:00 y
+     11:00-15:00 un lunes) — ni en el formulario ni en la base. `get_available_slots` no
+     hacía `distinct` en el select final, así que una superposición podía devolver el mismo
+     horario dos veces en el selector del paciente. Se agregó un trigger
+     `prevent_overlapping_availability_rules` (before insert/update en
+     `availability_rules`) que rechaza cualquier rango nuevo que se pise con uno existente
+     del mismo profesional y día — se usa un trigger en vez de un exclusion constraint
+     porque Postgres no tiene un tipo `timerange` nativo. De yapa se agregó `distinct` a
+     `get_available_slots` como defensa extra por si quedó algún dato viejo superpuesto.
+  2. **Sin manejo de errores:** `WeeklyAvailabilityForm` y `BlockDateForm` llamaban a
+     `addRule`/`addBlock` sin `try/catch` — un insert rechazado (el check `end_time >
+     start_time`, el `unique` de `blocked_date`, o ahora el trigger nuevo del punto 1)
+     fallaba en silencio, sin ningún mensaje para el profesional/admin. `useAvailabilityRules`
+     y `useAvailabilityBlocks` ahora exponen `error`/`isSaving`, y los dos componentes
+     muestran el error igual que el resto de los formularios de la app.
+  3. **Sin protección de doble-submit:** ninguno de los dos formularios deshabilitaba el
+     botón mientras la petición estaba en curso — un doble clic apurado facilitaba crear
+     reglas superpuestas antes del fix del punto 1. Ahora los botones de agregar/quitar se
+     deshabilitan mientras `isSaving` es `true`.
+- **Depende de:** E4-1, E4-2, E4-3
+- **Archivos:**
+  `supabase/migrations/20260801120000_prevent_overlapping_availability_rules.sql`,
+  `features/appointments/hooks/useAvailabilityRules.ts`,
+  `features/appointments/hooks/useAvailabilityBlocks.ts`,
+  `features/appointments/components/WeeklyAvailabilityForm.tsx`,
+  `features/appointments/components/BlockDateForm.tsx`
+- **Cambios de base de datos:** trigger `prevent_overlapping_availability_rules`
+  (`before insert or update on availability_rules`); `get_available_slots` redefinida con
+  `select distinct`
+- **Componentes nuevos:** —
+- **Páginas nuevas:** —
+- **Hooks:** — (extienden los dos existentes con `error`/`isSaving`)
+- **Servicios/Repos:** —
+- **Tipos:** —
+- **Criterios de aceptación:**
+  - [ ] Cargar un horario que se superpone con uno existente muestra el mensaje de error del
+        trigger en vez de guardarse — pendiente de verificar
+  - [ ] Cargar dos veces la misma fecha bloqueada muestra un error en vez de fallar en
+        silencio — pendiente de verificar
+  - [ ] Los botones de agregar/quitar quedan deshabilitados mientras se guarda — pendiente de
+        verificar

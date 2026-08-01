@@ -7,16 +7,19 @@ import { Label } from "@/components/ui/label";
 import { useAvailabilityBlocks } from "@/features/appointments/hooks/useAvailabilityBlocks";
 
 export function BlockDateForm({ professionalId }: { professionalId: string }) {
-  const { blocks, status, addBlock, removeBlock } = useAvailabilityBlocks(professionalId);
+  const { blocks, status, error, isSaving, addBlock, removeBlock } =
+    useAvailabilityBlocks(professionalId);
   const [date, setDate] = useState("");
   const [reason, setReason] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!date) return;
-    await addBlock(date, reason);
-    setDate("");
-    setReason("");
+    const success = await addBlock(date, reason);
+    if (success) {
+      setDate("");
+      setReason("");
+    }
   }
 
   return (
@@ -44,12 +47,15 @@ export function BlockDateForm({ professionalId }: { professionalId: string }) {
             onChange={(e) => setReason(e.target.value)}
           />
         </div>
-        <Button type="submit">Bloquear</Button>
+        <Button type="submit" disabled={isSaving}>
+          Bloquear
+        </Button>
       </form>
       {status === "loading" && <p className="text-sm text-muted-foreground">Cargando...</p>}
       {status === "error" && (
         <p className="text-sm text-red-500">Error al cargar los bloqueos.</p>
       )}
+      {error && <p className="text-sm text-red-500">{error}</p>}
       {blocks.length > 0 && (
         <div className="flex flex-col divide-y rounded-md border">
           {blocks.map((block) => (
@@ -63,7 +69,8 @@ export function BlockDateForm({ professionalId }: { professionalId: string }) {
               </span>
               <button
                 type="button"
-                className="text-xs text-red-500 hover:underline"
+                className="text-xs text-red-500 hover:underline disabled:opacity-50"
+                disabled={isSaving}
                 onClick={() => removeBlock(block.id)}
               >
                 Quitar

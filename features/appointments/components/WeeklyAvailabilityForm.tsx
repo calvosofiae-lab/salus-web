@@ -15,7 +15,8 @@ const DAYS = [
 ];
 
 export function WeeklyAvailabilityForm({ professionalId }: { professionalId: string }) {
-  const { rules, status, addRule, removeRule } = useAvailabilityRules(professionalId);
+  const { rules, status, error, isSaving, addRule, removeRule } =
+    useAvailabilityRules(professionalId);
   const [draft, setDraft] = useState<Record<number, { start: string; end: string }>>({});
 
   function updateDraft(day: number, field: "start" | "end", value: string) {
@@ -25,8 +26,10 @@ export function WeeklyAvailabilityForm({ professionalId }: { professionalId: str
   async function handleAdd(day: number) {
     const d = draft[day];
     if (!d?.start || !d?.end) return;
-    await addRule(day, d.start, d.end);
-    setDraft((prev) => ({ ...prev, [day]: { start: "", end: "" } }));
+    const success = await addRule(day, d.start, d.end);
+    if (success) {
+      setDraft((prev) => ({ ...prev, [day]: { start: "", end: "" } }));
+    }
   }
 
   return (
@@ -44,6 +47,7 @@ export function WeeklyAvailabilityForm({ professionalId }: { professionalId: str
       {status === "error" && (
         <p className="text-sm text-red-500">Error al cargar tu disponibilidad.</p>
       )}
+      {error && <p className="text-sm text-red-500">{error}</p>}
       <div className="flex flex-col divide-y rounded-md border">
         {DAYS.map((day) => {
           const dayRules = rules.filter((r) => r.day_of_week === day.value);
@@ -61,7 +65,8 @@ export function WeeklyAvailabilityForm({ professionalId }: { professionalId: str
                     {rule.start_time.slice(0, 5)}–{rule.end_time.slice(0, 5)}
                     <button
                       type="button"
-                      className="text-brand-teal-dark/70 hover:text-red-600"
+                      className="text-brand-teal-dark/70 hover:text-red-600 disabled:opacity-50"
+                      disabled={isSaving}
                       onClick={() => removeRule(rule.id)}
                     >
                       ×
@@ -87,6 +92,7 @@ export function WeeklyAvailabilityForm({ professionalId }: { professionalId: str
                   type="button"
                   size="sm"
                   variant="outline"
+                  disabled={isSaving}
                   onClick={() => handleAdd(day.value)}
                 >
                   Agregar

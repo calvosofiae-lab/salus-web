@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MODALITY_LABELS, PROFESSION_LABELS } from "@/features/professionals/constants";
+import { buildWhatsappLink } from "@/lib/whatsapp";
 import type { Professional } from "@/features/professionals/types";
 
 export function ProfessionalCard({ prof }: { prof: Professional }) {
@@ -18,7 +19,7 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
   const whatsapp = prof.whatsapp;
 
   const linkWa = whatsapp
-    ? `https://wa.me/${whatsapp}?text=Hola%20${encodeURIComponent(nombre)},%20te%20contacto%20desde%20SALUS`
+    ? buildWhatsappLink(whatsapp, `Hola ${nombre}, te contacto desde SALUS`)
     : null;
 
   return (

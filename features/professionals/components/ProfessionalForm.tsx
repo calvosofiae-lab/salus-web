@@ -15,6 +15,11 @@ import {
 } from "@/features/professionals/constants";
 import { useProvinces } from "@/features/professionals/hooks/useProvinces";
 import { useCitiesByProvince } from "@/features/professionals/hooks/useCitiesByProvince";
+import {
+  isValidWhatsappNumber,
+  sanitizeWhatsappDigits,
+  WHATSAPP_NUMBER_LENGTH,
+} from "@/lib/whatsapp";
 import type { ProfessionalFormValues } from "@/features/professionals/types";
 
 const EMPTY_VALUES: ProfessionalFormValues = {
@@ -277,9 +282,20 @@ export function ProfessionalForm({
             <Label htmlFor="whatsapp">WhatsApp</Label>
             <Input
               id="whatsapp"
+              inputMode="numeric"
+              maxLength={WHATSAPP_NUMBER_LENGTH}
+              placeholder="Ej: 3411234567"
               value={values.whatsapp}
-              onChange={(e) => setValues((v) => ({ ...v, whatsapp: e.target.value }))}
+              onChange={(e) =>
+                setValues((v) => ({ ...v, whatsapp: sanitizeWhatsappDigits(e.target.value) }))
+              }
             />
+            <p className="text-xs text-muted-foreground">Solo números, sin 0 ni 15.</p>
+            {values.whatsapp && !isValidWhatsappNumber(values.whatsapp) && (
+              <p className="text-xs text-red-500">
+                Deben ser {WHATSAPP_NUMBER_LENGTH} números (código de área + línea).
+              </p>
+            )}
           </div>
 
           <div className="grid gap-1.5">

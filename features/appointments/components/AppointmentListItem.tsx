@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AppointmentStatusMenu } from "@/features/appointments/components/AppointmentStatusMenu";
 import { STATUS_LABELS } from "@/features/appointments/constants";
+import { buildWhatsappLink } from "@/lib/whatsapp";
 import type { Appointment, AppointmentStatus } from "@/features/appointments/types";
 
 const STATUS_VARIANT: Record<
@@ -30,9 +31,10 @@ export function AppointmentListItem({
       : null;
 
   const surveyWhatsappHref = surveyLink
-    ? `https://wa.me/${appointment.patient_whatsapp}?text=${encodeURIComponent(
+    ? buildWhatsappLink(
+        appointment.patient_whatsapp,
         `Hola ${appointment.patient_first_name}, gracias por tu visita. ¿Nos ayudás completando esta breve encuesta de satisfacción? ${surveyLink}`,
-      )}`
+      )
     : null;
 
   return (

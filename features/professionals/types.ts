@@ -32,7 +32,6 @@ export interface ProfessionalFormValues {
   coverage: string[];
   modality: string[];
   consultation_reasons: string[];
-  is_featured: boolean;
 }
 
 export interface ProfessionalCreateInput extends ProfessionalFormValues {

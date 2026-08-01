@@ -5,28 +5,17 @@ import type {
   ProfessionalInput,
 } from "@/features/professionals/types";
 
-const FEATURED_FALLBACK_LIMIT = 3;
+const TOP_RATED_LIMIT = 4;
 
 export async function getFeaturedProfessionals(): Promise<Professional[]> {
   const supabase = createClient();
 
-  const { data, error } = await supabase
-    .from("professionals")
-    .select("*")
-    .eq("is_active", true)
-    .eq("is_featured", true);
+  const { data, error } = await supabase.rpc("get_top_rated_professionals", {
+    p_limit: TOP_RATED_LIMIT,
+  });
 
   if (error) throw error;
-  if (data && data.length > 0) return data;
-
-  const { data: fallback, error: fallbackError } = await supabase
-    .from("professionals")
-    .select("*")
-    .eq("is_active", true)
-    .limit(FEATURED_FALLBACK_LIMIT);
-
-  if (fallbackError) throw fallbackError;
-  return fallback ?? [];
+  return data ?? [];
 }
 
 export async function searchProfessionals(

@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import {
   CONSULTATION_REASONS,
@@ -35,7 +34,6 @@ const EMPTY_VALUES: ProfessionalFormValues = {
   coverage: [],
   modality: [],
   consultation_reasons: [],
-  is_featured: false,
 };
 
 export interface ProfessionalFormSubmitValues extends ProfessionalFormValues {
@@ -54,8 +52,6 @@ interface ProfessionalFormProps {
   isLoading: boolean;
   error: string | null;
   submitLabel: string;
-  /** El profesional editando su propio perfil no puede marcarse como destacado. */
-  hideFeaturedToggle?: boolean;
 }
 
 const selectClassName =
@@ -103,7 +99,6 @@ export function ProfessionalForm({
   isLoading,
   error,
   submitLabel,
-  hideFeaturedToggle = false,
 }: ProfessionalFormProps) {
   const [values, setValues] = useState<ProfessionalFormValues>({
     ...EMPTY_VALUES,
@@ -400,18 +395,6 @@ export function ProfessionalForm({
             ))}
           </div>
         </div>
-
-        {!hideFeaturedToggle && (
-          <label className="flex items-center gap-2 text-sm">
-            <Checkbox
-              checked={values.is_featured}
-              onCheckedChange={(checked) =>
-                setValues((v) => ({ ...v, is_featured: checked === true }))
-              }
-            />
-            Destacado
-          </label>
-        )}
       </div>
 
       {mode === "create" && (

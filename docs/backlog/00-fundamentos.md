@@ -138,7 +138,10 @@ convención de carpetas.
   (nombres de columna directos, sin necesidad de mapeo). Implementado con `getFeaturedProfessionals()`
   (con fallback a los primeros 3 activos si no hay destacados) y `searchProfessionals(filters)`
   ya usando operadores de array (`.contains()`), adelantando también E0-8 en el mismo archivo
-  para no reescribirlo dos veces.
+  para no reescribirlo dos veces. **Actualización (2026-08-01, `06-calificaciones.md#E6-7`):**
+  `getFeaturedProfessionals()` dejó de leer el flag manual `is_featured` con fallback; ahora
+  llama a la RPC `get_top_rated_professionals` (top 4 por `average_rating`). El nombre de la
+  función se mantuvo para no tocar el resto de los call sites.
 - **Depende de:** E0-5, E0-3
 - **Archivos:** `repositories/professionalsRepository.ts`, `features/professionals/types.ts`
 - **Cambios de base de datos:** —

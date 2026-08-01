@@ -154,3 +154,47 @@ Valoraciones vía link único, generado cuando un turno pasa a estado "Realizado
   - [x] Un token inválido o ya calificado muestra el mensaje de error antes del formulario,
         sin llegar a mostrar el formulario de calificación
   - [x] Tras calificar, aparece "Volver al inicio" y un contador de 10s que redirige solo
+
+---
+
+### E6-7 — "Profesionales Destacados" pasa a ser automático por rating ✅ Hecho (2026-08-01)
+- **Objetivo:** que la sección "Profesionales Destacados" de la home muestre a los mejores
+  calificados en vez de depender de que el admin los marque a mano.
+- **Descripción:** nueva RPC `get_top_rated_professionals(p_limit default 4)` — reemplaza
+  por completo el flag manual `is_featured` (y su fallback a "los primeros 3 activos") que
+  usaba `getFeaturedProfessionals()` desde `00-fundamentos.md#E0-6`. Ordena por
+  `average_rating desc`, con dos desempates: cantidad de reviews (`count(r.id) desc` — mismo
+  criterio de "confiabilidad" que ya usa `get_featured_professional_of_month`, E6-5) y por
+  último `full_name asc` para que el orden sea 100% determinístico entre cargas de página.
+  `nulls last` en `average_rating` por las filas viejas creadas antes del default de 3
+  estrellas (`20260801053303_default_professional_average_rating.sql`). Se mantuvo el nombre
+  `getFeaturedProfessionals()` en el repositorio (mismo contrato, solo cambió la
+  implementación) para no tocar el hook ni los componentes que ya la consumían.
+  El checkbox "Destacado" (`is_featured`) se sacó de `ProfessionalForm` (alta admin, edición
+  admin y "Mi perfil" del profesional) por quedar sin efecto sobre la home; con eso también
+  se pudo sacar el prop `hideFeaturedToggle` (ya no hace falta distinguir el caso del
+  profesional editando su propio perfil). La columna `is_featured` sigue existiendo en la
+  tabla `professionals` (no se tocó el esquema ni la policy/trigger que la protege) — solo
+  dejó de leerse/escribirse desde el formulario; queda sin uso salvo que se decida borrarla
+  más adelante.
+- **Depende de:** E0-6, E6-4, E6-5
+- **Archivos:** `supabase/migrations/20260801070000_create_get_top_rated_professionals_function.sql`,
+  `repositories/professionalsRepository.ts`, `types/database.ts`,
+  `features/professionals/types.ts`, `features/professionals/components/ProfessionalForm.tsx`,
+  `features/professionals/services/adminCreateProfessional.ts`,
+  `app/profesional/perfil/page.tsx`,
+  `app/admin/profesionales/[id]/editar/edit-professional-client.tsx`
+- **Cambios de base de datos:** función `get_top_rated_professionals(p_limit)`
+- **Componentes nuevos:** — (sin cambios, `FeaturedProfessionals`/`useFeaturedProfessionals`
+  siguen igual)
+- **Páginas nuevas:** —
+- **Hooks:** —
+- **Servicios/Repos:** `professionalsRepository.getFeaturedProfessionals` (implementación
+  nueva, mismo nombre)
+- **Tipos:** `ProfessionalFormValues` (pierde `is_featured`)
+- **Criterios de aceptación:**
+  - [x] Se muestran los 4 profesionales activos con mejor `average_rating`
+  - [x] Un empate en `average_rating` se resuelve por cantidad de reviews, y si persiste,
+        por nombre — el orden no cambia entre recargas
+  - [x] El formulario de alta/edición de profesional ya no tiene ningún control para marcar
+        "Destacado"

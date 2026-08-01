@@ -288,6 +288,10 @@ export interface Database {
         Args: Record<string, never>;
         Returns: string | null;
       };
+      get_top_rated_professionals: {
+        Args: { p_limit?: number };
+        Returns: Database["public"]["Tables"]["professionals"]["Row"][];
+      };
       get_review_context: {
         Args: { p_token: string };
         Returns: {

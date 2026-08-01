@@ -45,7 +45,6 @@ export function EditProfessionalClient() {
           coverage: professional.coverage,
           modality: professional.modality,
           consultation_reasons: professional.consultation_reasons,
-          is_featured: professional.is_featured,
         }}
         onSubmit={async (values) => {
           await update(values);

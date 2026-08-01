@@ -38,7 +38,6 @@ export async function adminCreateProfessional(input: ProfessionalCreateInput) {
       consultation_reasons: input.consultation_reasons,
       province: input.province || null,
       city: input.city || null,
-      is_featured: input.is_featured,
     })
     .select("id")
     .single();

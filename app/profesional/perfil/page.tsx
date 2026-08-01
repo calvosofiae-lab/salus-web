@@ -35,7 +35,6 @@ export default function OwnProfilePage() {
       <h1 className="text-2xl font-semibold text-brand-navy">Mi perfil</h1>
       <ProfessionalForm
         mode="edit"
-        hideFeaturedToggle
         initialValues={{
           full_name: professional.full_name,
           profession: professional.profession,
@@ -49,7 +48,6 @@ export default function OwnProfilePage() {
           coverage: professional.coverage,
           modality: professional.modality,
           consultation_reasons: professional.consultation_reasons,
-          is_featured: professional.is_featured,
         }}
         onSubmit={async (values) => {
           await update(values);

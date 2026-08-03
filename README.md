@@ -1,109 +1,117 @@
-<a href="https://demo-nextjs-with-supabase.vercel.app/">
-  <img alt="Next.js and Supabase Starter Kit - the fastest way to build apps with Next.js and Supabase" src="https://demo-nextjs-with-supabase.vercel.app/opengraph-image.png">
-  <h1 align="center">Next.js and Supabase Starter Kit</h1>
-</a>
+# SALUS
 
-<p align="center">
- The fastest way to build apps with Next.js and Supabase
-</p>
+Sistema de agenda y turnos online para profesionales de salud mental (psicólogos y
+psiquiatras). Permite a pacientes buscar profesionales por provincia, ciudad, modalidad y
+obra social/particular, reservar turnos sin necesidad de cuenta, y calificar la atención
+recibida mediante un link único. Los profesionales gestionan su disponibilidad y agenda desde
+un panel propio, y un rol admin administra el alta y edición de profesionales.
 
-<p align="center">
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#demo"><strong>Demo</strong></a> ·
-  <a href="#deploy-to-vercel"><strong>Deploy to Vercel</strong></a> ·
-  <a href="#clone-and-run-locally"><strong>Clone and run locally</strong></a> ·
-  <a href="#feedback-and-issues"><strong>Feedback and issues</strong></a>
-  <a href="#more-supabase-examples"><strong>More Examples</strong></a>
-</p>
-<br/>
+Construido con Next.js (App Router) y Supabase (Postgres + Auth + RLS), sin backend
+independiente: toda la lógica de negocio vive en la app Next.js y en funciones RPC
+`SECURITY DEFINER` de Supabase para las operaciones críticas (reservar un turno, calificar).
 
-## Features
+## Stack
 
-- Works across the entire [Next.js](https://nextjs.org) stack
-  - App Router
-  - Pages Router
-  - Proxy
-  - Client
-  - Server
-  - It just works!
-- supabase-ssr. A package to configure Supabase Auth to use cookies
-- Password-based authentication block installed via the [Supabase UI Library](https://supabase.com/ui/docs/nextjs/password-based-auth)
-- Styling with [Tailwind CSS](https://tailwindcss.com)
-- Components with [shadcn/ui](https://ui.shadcn.com/)
-- Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
-  - Environment variables automatically assigned to Vercel project
+- [Next.js 15](https://nextjs.org) (App Router) + React 19 + TypeScript
+- [Supabase](https://supabase.com) — Postgres, Auth (cookies vía `@supabase/ssr`), Row Level
+  Security, funciones RPC y Storage (fotos de profesionales)
+- [Tailwind CSS](https://tailwindcss.com) + [shadcn/ui](https://ui.shadcn.com/) (`components/ui`)
 
-## Demo
+## Estructura del proyecto
 
-You can view a fully working demo at [demo-nextjs-with-supabase.vercel.app](https://demo-nextjs-with-supabase.vercel.app/).
+El proyecto sigue una convención de capas documentada en detalle en
+[`docs/architecture.md`](./docs/architecture.md):
 
-## Deploy to Vercel
+```
+app/            Rutas (App Router). Lo más "delgado" posible: compone componentes de
+                features/ y llama hooks. Sin lógica de negocio ni queries directas a Supabase.
 
-Vercel deployment will guide you through creating a Supabase account and project.
+components/     UI compartida y agnóstica de dominio (incluye components/ui de shadcn y
+                components/salus, la landing pública).
 
-After installation of the Supabase integration, all relevant environment variables will be assigned to the project so the deployment is fully functioning.
+features/       Una carpeta por dominio funcional: auth, professionals, appointments,
+                reviews, admin. Cada una con sus propios components/hooks/services/types.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&project-name=nextjs-with-supabase&repository-name=nextjs-with-supabase&demo-title=nextjs-with-supabase&demo-description=This+starter+configures+Supabase+Auth+to+use+cookies%2C+making+the+user%27s+session+available+throughout+the+entire+Next.js+app+-+Client+Components%2C+Server+Components%2C+Route+Handlers%2C+Server+Actions+and+Middleware.&demo-url=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2F&external-id=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&demo-image=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2Fopengraph-image.png)
+repositories/   Acceso a datos puro contra Supabase (queries y RPCs), un archivo por entidad.
+                Es la única capa que conoce el esquema real de la base.
 
-The above will also clone the Starter kit to your GitHub, you can clone that locally and develop locally.
+services/       Lógica de negocio cross-feature.
 
-If you wish to just develop locally and not deploy to Vercel, [follow the steps below](#clone-and-run-locally).
+lib/            Clientes de Supabase (lib/supabase/client.ts, server.ts) y utilidades
+                generales.
 
-## Clone and run locally
+types/          Tipos compartidos, incluyendo el Database generado por Supabase.
 
-1. You'll first need a Supabase project which can be made [via the Supabase dashboard](https://database.new)
+supabase/       Migraciones SQL (esquema, RLS, funciones RPC, triggers) y config local.
 
-2. Create a Next.js app using the Supabase Starter template npx command
+docs/           Arquitectura, modelo de datos y backlog de desarrollo (docs/backlog).
+```
+
+## Funcionalidades
+
+- **Búsqueda pública de profesionales** por provincia, ciudad, modalidad (virtual/presencial)
+  y cobertura (particular/obra social), sin necesidad de cuenta.
+- **Reserva de turnos** de forma pública, con cálculo de horarios disponibles cruzando
+  disponibilidad, bloqueos y turnos ya reservados, y protección anti doble-reserva a nivel
+  de base de datos y de función RPC.
+- **Calificaciones** vía link único (`/valoracion/[token]`) generado automáticamente cuando un
+  turno pasa a estado "realizado".
+- **Panel de profesional** (`/profesional`): edición de perfil, configuración de
+  disponibilidad semanal y bloqueos puntuales, y gestión de la agenda de turnos.
+- **Panel de administración** (`/admin`): alta, edición y baja de profesionales, incluyendo la
+  creación del usuario de Supabase Auth asociado.
+- **Autenticación** basada en cookies (`@supabase/ssr`) con dos roles: `admin` y
+  `professional`, resueltos server-side contra la tabla `profiles`.
+
+## Requisitos
+
+- Node.js 18+
+- Un proyecto de [Supabase](https://database.new)
+
+## Configuración local
+
+1. Clonar el repositorio e instalar dependencias:
 
    ```bash
-   npx create-next-app --example with-supabase with-supabase-app
+   npm install
    ```
 
-   ```bash
-   yarn create next-app --example with-supabase with-supabase-app
+2. Copiar `.env.example` a `.env.local` y completar con los datos de tu proyecto de Supabase
+   (Project Settings → API):
+
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=[URL del proyecto]
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=[clave publishable o anon]
    ```
 
-   ```bash
-   pnpm create next-app --example with-supabase with-supabase-app
-   ```
+3. Aplicar las migraciones de `supabase/migrations` al proyecto de Supabase (vía
+   [Supabase CLI](https://supabase.com/docs/guides/cli) o pegando el SQL en el SQL Editor del
+   dashboard, en orden). Ver [`docs/data-model.md`](./docs/data-model.md) para el esquema
+   completo, funciones RPC y triggers.
 
-3. Use `cd` to change into the app's directory
-
-   ```bash
-   cd with-supabase-app
-   ```
-
-4. Rename `.env.example` to `.env.local` and update the following:
-
-  ```env
-  NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=[INSERT SUPABASE PROJECT API PUBLISHABLE OR ANON KEY]
-  ```
-  > [!NOTE]
-  > This example uses `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, which refers to Supabase's new **publishable** key format.
-  > Both legacy **anon** keys and new **publishable** keys can be used with this variable name during the transition period. Supabase's dashboard may show `NEXT_PUBLIC_SUPABASE_ANON_KEY`; its value can be used in this example.
-  > See the [full announcement](https://github.com/orgs/supabase/discussions/29260) for more information.
-
-  Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` can be found in [your Supabase project's API settings](https://supabase.com/dashboard/project/_?showConnect=true)
-
-5. You can now run the Next.js local development server:
+4. Levantar el servidor de desarrollo:
 
    ```bash
    npm run dev
    ```
 
-   The starter kit should now be running on [localhost:3000](http://localhost:3000/).
+   La app queda disponible en [localhost:3000](http://localhost:3000).
 
-6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+## Scripts disponibles
 
-> Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+| Script          | Descripción                          |
+| --------------- | ------------------------------------- |
+| `npm run dev`   | Servidor de desarrollo (Next.js)      |
+| `npm run build` | Build de producción                   |
+| `npm run start` | Sirve el build de producción          |
+| `npm run lint`  | Linting con ESLint                    |
 
-## Feedback and issues
+## Documentación
 
-Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).
-
-## More Supabase examples
-
-- [Next.js Subscription Payments Starter](https://github.com/vercel/nextjs-subscription-payments)
-- [Cookie-based Auth and the Next.js 13 App Router (free course)](https://youtube.com/playlist?list=PL5S4mPUpp4OtMhpnp93EFSo42iQ40XjbF)
-- [Supabase Auth and the Next.js App Router](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs)
+- [`docs/architecture.md`](./docs/architecture.md) — convención de carpetas y reglas de
+  dependencia entre capas
+- [`docs/data-model.md`](./docs/data-model.md) — esquema de base de datos, funciones RPC y
+  triggers
+- [`docs/backlog/`](./docs/backlog) — planificación por EPIC del desarrollo (autenticación,
+  roles, administración de profesionales, agenda, reserva de turnos, calificaciones,
+  seguridad)

@@ -1,4 +1,6 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
+import type { Database } from "@/types/database";
 import type {
   Professional,
   ProfessionalFilters,
@@ -76,9 +78,10 @@ export async function getAllProfessionalsAdmin(
   return { data: data ?? [], count: count ?? 0 };
 }
 
-export async function getProfessionalByIdAdmin(id: string): Promise<Professional | null> {
-  const supabase = createClient();
-
+export async function getProfessionalByIdAdmin(
+  supabase: SupabaseClient<Database>,
+  id: string,
+): Promise<Professional | null> {
   const { data, error } = await supabase
     .from("professionals")
     .select("*")
@@ -182,9 +185,9 @@ export async function removeProfessionalPhoto(professionalId: string): Promise<v
   await removeStalePhotos(professionalId);
 }
 
-export async function getOwnProfessional(): Promise<Professional | null> {
-  const supabase = createClient();
-
+export async function getOwnProfessional(
+  supabase: SupabaseClient<Database>,
+): Promise<Professional | null> {
   const {
     data: { user },
   } = await supabase.auth.getUser();

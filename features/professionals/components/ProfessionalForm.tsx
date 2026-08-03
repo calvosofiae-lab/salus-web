@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,14 +16,14 @@ import {
 } from "@/features/professionals/constants";
 import { useProvinces } from "@/features/professionals/hooks/useProvinces";
 import { useCitiesByProvince } from "@/features/professionals/hooks/useCitiesByProvince";
+import { sanitizeWhatsappDigits, WHATSAPP_NUMBER_LENGTH } from "@/lib/whatsapp";
 import {
-  isValidWhatsappNumber,
-  sanitizeWhatsappDigits,
-  WHATSAPP_NUMBER_LENGTH,
-} from "@/lib/whatsapp";
+  buildProfessionalFormSchema,
+  type ProfessionalFormSchema,
+} from "@/features/professionals/schemas/professionalSchema";
 import type { ProfessionalFormValues } from "@/features/professionals/types";
 
-const EMPTY_VALUES: ProfessionalFormValues = {
+const EMPTY_VALUES: ProfessionalFormSchema = {
   full_name: "",
   profession: PROFESSION_OPTIONS[0].value,
   license_number: "",
@@ -34,6 +36,8 @@ const EMPTY_VALUES: ProfessionalFormValues = {
   coverage: [],
   modality: [],
   consultation_reasons: [],
+  email: "",
+  password: "",
 };
 
 export interface ProfessionalFormSubmitValues extends ProfessionalFormValues {
@@ -101,17 +105,30 @@ export function ProfessionalForm({
   error,
   submitLabel,
 }: ProfessionalFormProps) {
-  const [values, setValues] = useState<ProfessionalFormValues>({
-    ...EMPTY_VALUES,
-    ...initialValues,
+  const {
+    register,
+    handleSubmit: handleFormSubmit,
+    watch,
+    setValue,
+    getValues,
+    formState: { errors },
+  } = useForm<ProfessionalFormSchema>({
+    resolver: zodResolver(buildProfessionalFormSchema(mode)),
+    defaultValues: { ...EMPTY_VALUES, ...initialValues },
   });
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoRemoved, setPhotoRemoved] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const photoUrl = watch("photo_url");
+  const province = watch("province");
+  const city = watch("city");
+  const coverage = watch("coverage");
+  const modality = watch("modality");
+  const consultationReasons = watch("consultation_reasons");
 
   useEffect(() => {
     if (!photoFile) {
@@ -145,60 +162,46 @@ export function ProfessionalForm({
     setPhotoFile(null);
     setPhotoError(null);
     setPhotoRemoved(true);
-    setValues((v) => ({ ...v, photo_url: "" }));
+    setValue("photo_url", "");
   }
 
   function toggleArrayValue(
     field: "coverage" | "modality" | "consultation_reasons",
     value: string,
   ) {
-    setValues((prev) => {
-      const current = prev[field];
-      const next = current.includes(value)
-        ? current.filter((v) => v !== value)
-        : [...current, value];
-      return { ...prev, [field]: next };
-    });
-  }
-
-  function handleProvinceChange(province: string) {
-    setValues((v) => ({ ...v, province, city: "" }));
+    const current = getValues(field);
+    const next = current.includes(value)
+      ? current.filter((v) => v !== value)
+      : [...current, value];
+    // RHF tipa setValue por path literal; con un field de tipo unión no distribuye el tipo
+    // automáticamente aunque los 3 campos sean todos string[].
+    setValue(field, next as never, { shouldValidate: true });
   }
 
   const { provinces } = useProvinces();
-  const { cities: ciudadesDisponibles, status: citiesStatus } = useCitiesByProvince(
-    values.province,
-  );
+  const { cities: ciudadesDisponibles, status: citiesStatus } = useCitiesByProvince(province);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  const onValid = handleFormSubmit(async ({ email, password, ...values }) => {
     const base = { ...values, photoFile, photoRemoved };
     await onSubmit(mode === "create" ? { ...base, email, password } : base);
-  }
+  });
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6 max-w-3xl">
+    <form onSubmit={onValid} className="flex flex-col gap-6 max-w-3xl">
       <div className="flex flex-col gap-3">
         <FieldGroupLabel>Datos del profesional</FieldGroupLabel>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="grid gap-1.5">
             <Label htmlFor="full_name">Nombre y apellido</Label>
-            <Input
-              id="full_name"
-              required
-              value={values.full_name}
-              onChange={(e) => setValues((v) => ({ ...v, full_name: e.target.value }))}
-            />
+            <Input id="full_name" {...register("full_name")} />
+            {errors.full_name && (
+              <p className="text-xs text-red-500">{errors.full_name.message}</p>
+            )}
           </div>
 
           <div className="grid gap-1.5">
             <Label htmlFor="profession">Profesión</Label>
-            <select
-              id="profession"
-              className={selectClassName}
-              value={values.profession}
-              onChange={(e) => setValues((v) => ({ ...v, profession: e.target.value }))}
-            >
+            <select id="profession" className={selectClassName} {...register("profession")}>
               {PROFESSION_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
@@ -209,21 +212,12 @@ export function ProfessionalForm({
 
           <div className="grid gap-1.5">
             <Label htmlFor="license_number">Matrícula</Label>
-            <Input
-              id="license_number"
-              value={values.license_number}
-              onChange={(e) => setValues((v) => ({ ...v, license_number: e.target.value }))}
-            />
+            <Input id="license_number" {...register("license_number")} />
           </div>
 
           <div className="grid gap-1.5">
             <Label htmlFor="gender">Género</Label>
-            <select
-              id="gender"
-              className={selectClassName}
-              value={values.gender}
-              onChange={(e) => setValues((v) => ({ ...v, gender: e.target.value }))}
-            >
+            <select id="gender" className={selectClassName} {...register("gender")}>
               <option value="">Sin especificar</option>
               {GENDER_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
@@ -236,10 +230,10 @@ export function ProfessionalForm({
           <div className="grid gap-1.5 md:col-span-2">
             <Label>Foto de perfil</Label>
             <div className="flex items-center gap-4">
-              {photoPreview || values.photo_url ? (
+              {photoPreview || photoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={photoPreview || values.photo_url}
+                  src={photoPreview || photoUrl}
                   alt="Foto de perfil"
                   className="w-20 h-20 rounded-full object-cover border"
                 />
@@ -263,9 +257,9 @@ export function ProfessionalForm({
                     size="sm"
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    {photoPreview || values.photo_url ? "Cambiar foto" : "Subir foto"}
+                    {photoPreview || photoUrl ? "Cambiar foto" : "Subir foto"}
                   </Button>
-                  {(photoPreview || values.photo_url) && (
+                  {(photoPreview || photoUrl) && (
                     <Button type="button" variant="ghost" size="sm" onClick={handleRemovePhoto}>
                       Quitar foto
                     </Button>
@@ -284,26 +278,30 @@ export function ProfessionalForm({
               inputMode="numeric"
               maxLength={WHATSAPP_NUMBER_LENGTH}
               placeholder="Ej: 3411234567"
-              value={values.whatsapp}
+              {...register("whatsapp")}
               onChange={(e) =>
-                setValues((v) => ({ ...v, whatsapp: sanitizeWhatsappDigits(e.target.value) }))
+                setValue("whatsapp", sanitizeWhatsappDigits(e.target.value), {
+                  shouldValidate: true,
+                })
               }
             />
             <p className="text-xs text-muted-foreground">Solo números, sin 0 ni 15.</p>
-            {values.whatsapp && !isValidWhatsappNumber(values.whatsapp) && (
-              <p className="text-xs text-red-500">
-                Deben ser {WHATSAPP_NUMBER_LENGTH} números (código de área + línea).
-              </p>
-            )}
+            {errors.whatsapp && <p className="text-xs text-red-500">{errors.whatsapp.message}</p>}
           </div>
 
           <div className="grid gap-1.5">
             <Label htmlFor="province">Provincia</Label>
+            {/* Select controlado (value + onChange) en vez de register(): sus <option> se */}
+            {/* cargan async vía useProvinces, y el defaultValue por ref de RHF se pierde */}
+            {/* si el valor inicial se setea antes de que esas opciones existan en el DOM. */}
             <select
               id="province"
               className={selectClassName}
-              value={values.province}
-              onChange={(e) => handleProvinceChange(e.target.value)}
+              value={province}
+              onChange={(e) => {
+                setValue("province", e.target.value);
+                setValue("city", "");
+              }}
             >
               <option value="">Sin especificar</option>
               {provinces.map((p) => (
@@ -319,12 +317,12 @@ export function ProfessionalForm({
             <select
               id="city"
               className={selectClassName}
-              value={values.city}
-              onChange={(e) => setValues((v) => ({ ...v, city: e.target.value }))}
-              disabled={!values.province}
+              value={city}
+              onChange={(e) => setValue("city", e.target.value, { shouldValidate: true })}
+              disabled={!province}
             >
               <option value="">
-                {!values.province
+                {!province
                   ? "Elegí primero una provincia"
                   : citiesStatus === "loading"
                     ? "Cargando ciudades..."
@@ -335,7 +333,7 @@ export function ProfessionalForm({
                   {c}
                 </option>
               ))}
-              {values.province && citiesStatus === "ready" && ciudadesDisponibles.length === 0 && (
+              {province && citiesStatus === "ready" && ciudadesDisponibles.length === 0 && (
                 <option value="General">Toda la provincia</option>
               )}
             </select>
@@ -348,8 +346,7 @@ export function ProfessionalForm({
             id="description"
             rows={3}
             className={textareaClassName}
-            value={values.description}
-            onChange={(e) => setValues((v) => ({ ...v, description: e.target.value }))}
+            {...register("description")}
           />
         </div>
       </div>
@@ -364,7 +361,7 @@ export function ProfessionalForm({
                 <ChipToggle
                   key={o.value}
                   label={o.label}
-                  active={values.coverage.includes(o.value)}
+                  active={coverage.includes(o.value)}
                   onClick={() => toggleArrayValue("coverage", o.value)}
                 />
               ))}
@@ -378,7 +375,7 @@ export function ProfessionalForm({
                 <ChipToggle
                   key={o.value}
                   label={o.label}
-                  active={values.modality.includes(o.value)}
+                  active={modality.includes(o.value)}
                   onClick={() => toggleArrayValue("modality", o.value)}
                 />
               ))}
@@ -393,7 +390,7 @@ export function ProfessionalForm({
               <ChipToggle
                 key={reason}
                 label={reason}
-                active={values.consultation_reasons.includes(reason)}
+                active={consultationReasons.includes(reason)}
                 onClick={() => toggleArrayValue("consultation_reasons", reason)}
               />
             ))}
@@ -407,24 +404,15 @@ export function ProfessionalForm({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="grid gap-1.5">
               <Label htmlFor="email">Email de acceso</Label>
-              <Input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+              <Input id="email" type="email" {...register("email")} />
+              {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
             </div>
             <div className="grid gap-1.5">
               <Label htmlFor="password">Contraseña provisoria</Label>
-              <Input
-                id="password"
-                type="password"
-                required
-                minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <Input id="password" type="password" {...register("password")} />
+              {errors.password && (
+                <p className="text-xs text-red-500">{errors.password.message}</p>
+              )}
             </div>
           </div>
         </div>

@@ -1,35 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
 import { ProfessionalForm } from "@/features/professionals/components/ProfessionalForm";
-import { useUpdateProfessional } from "@/features/professionals/hooks/useUpdateProfessional";
-import { getProfessionalByIdAdmin } from "@/repositories/professionalsRepository";
+import { useUpdateOwnProfile } from "@/features/professionals/hooks/useUpdateOwnProfile";
 import type { Professional } from "@/features/professionals/types";
 
-export function EditProfessionalClient() {
-  const { id } = useParams<{ id: string }>();
-  const [professional, setProfessional] = useState<Professional | null>(null);
-  const [loading, setLoading] = useState(true);
-  const { update, error, isLoading } = useUpdateProfessional(id);
-
-  useEffect(() => {
-    getProfessionalByIdAdmin(id).then((data) => {
-      setProfessional(data);
-      setLoading(false);
-    });
-  }, [id]);
-
-  if (loading) {
-    return <p className="text-sm text-muted-foreground">Cargando...</p>;
-  }
-  if (!professional) {
-    return <p className="text-sm text-red-500">Profesional no encontrado.</p>;
-  }
+export function OwnProfileForm({ professional }: { professional: Professional }) {
+  const { update, error, success, isLoading } = useUpdateOwnProfile(professional.id);
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold text-brand-navy">Editar profesional</h1>
+    <>
       <ProfessionalForm
         mode="edit"
         initialValues={{
@@ -53,6 +32,7 @@ export function EditProfessionalClient() {
         error={error}
         submitLabel="Guardar cambios"
       />
-    </div>
+      {success && <p className="text-sm text-green-600">Perfil actualizado correctamente.</p>}
+    </>
   );
 }

@@ -1,31 +1,13 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { getOwnProfessional } from "@/repositories/professionalsRepository";
+import { createClient } from "@/lib/supabase/server";
+import { getOwnProfessionalCached } from "@/features/professionals/services/getOwnProfessionalCached";
 import { ProfessionalCalendar } from "@/features/appointments/components/ProfessionalCalendar";
-import type { Professional } from "@/features/professionals/types";
 
-export default function AppointmentsPage() {
-  const [professional, setProfessional] = useState<Professional | null>(null);
-  const [loading, setLoading] = useState(true);
+export default async function AppointmentsPage() {
+  const supabase = await createClient();
+  const professional = await getOwnProfessionalCached(supabase);
 
-  useEffect(() => {
-    getOwnProfessional().then((data) => {
-      setProfessional(data);
-      setLoading(false);
-    });
-  }, []);
-
-  if (loading) {
-    return <p className="text-sm text-muted-foreground">Cargando...</p>;
-  }
-  if (!professional) {
-    return (
-      <p className="text-sm text-red-500">
-        No encontramos un perfil de profesional asociado a tu cuenta.
-      </p>
-    );
-  }
+  // El layout ya filtra este caso y no renderiza children sin perfil; esto es solo para TS.
+  if (!professional) return null;
 
   return (
     <div className="flex flex-col gap-6">

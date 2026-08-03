@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { LogoutButton } from "@/features/auth/components/LogoutButton";
+import { ProfessionalGate } from "./professional-gate";
 
 export default function ProfessionalLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -32,7 +34,11 @@ export default function ProfessionalLayout({ children }: { children: React.React
           <LogoutButton />
         </div>
       </header>
-      <main className="flex-1 max-w-5xl w-full mx-auto p-6">{children}</main>
+      <main className="flex-1 max-w-5xl w-full mx-auto p-6">
+        <Suspense fallback={<p className="text-sm text-muted-foreground">Cargando...</p>}>
+          <ProfessionalGate>{children}</ProfessionalGate>
+        </Suspense>
+      </main>
     </div>
   );
 }

@@ -10,6 +10,7 @@ import { BookingConfirmation } from "@/features/appointments/components/BookingC
 import { useBookAppointment } from "@/features/appointments/hooks/useBookAppointment";
 import { RatingSummary } from "@/features/reviews/components/RatingSummary";
 import { Button } from "@/components/ui/button";
+import { getDefaultAvatar } from "@/lib/avatar";
 
 export function ProfessionalProfile({ professional }: { professional: Professional }) {
   const [selected, setSelected] = useState<{ date: string; time: string } | null>(null);
@@ -29,7 +30,7 @@ export function ProfessionalProfile({ professional }: { professional: Profession
       <div className="flex items-center gap-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={professional.photo_url || "https://via.placeholder.com/150"}
+          src={professional.photo_url || getDefaultAvatar(professional.gender)}
           alt={professional.full_name}
           className="w-24 h-24 rounded-full object-cover"
         />

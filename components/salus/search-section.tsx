@@ -19,6 +19,8 @@ import type {
 import { ProfessionalCard } from "@/components/salus/professional-card";
 import { EmergencyBanner } from "@/components/salus/emergency-banner";
 
+const RESULTS_PAGE_SIZE = 6;
+
 export function SearchSection() {
   const [profesion, setProfesion] = useState<Profession | "">("");
   const [motivo, setMotivo] = useState("");
@@ -29,13 +31,21 @@ export function SearchSection() {
   const [ciudad, setCiudad] = useState("");
 
   const [searched, setSearched] = useState(false);
+  const [page, setPage] = useState(0);
   const { status, results, search } = useProfessionalSearch();
   const { provinces } = useProvinces();
   const { cities: ciudadesDisponibles, status: citiesStatus } = useCitiesByProvince(provincia);
 
+  const pageCount = Math.max(1, Math.ceil(results.length / RESULTS_PAGE_SIZE));
+  const paginatedResults = results.slice(
+    page * RESULTS_PAGE_SIZE,
+    page * RESULTS_PAGE_SIZE + RESULTS_PAGE_SIZE,
+  );
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setSearched(true);
+    setPage(0);
 
     await search({
       profession: profesion || undefined,
@@ -211,8 +221,31 @@ export function SearchSection() {
                 </div>
               )}
               {status === "ready" &&
-                results.map((prof) => <ProfessionalCard key={prof.id} prof={prof} />)}
+                paginatedResults.map((prof) => <ProfessionalCard key={prof.id} prof={prof} />)}
             </div>
+            {status === "ready" && pageCount > 1 && (
+              <div className="pagination">
+                <button
+                  type="button"
+                  className="pagination-btn"
+                  disabled={page === 0}
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                >
+                  Anterior
+                </button>
+                <span className="pagination-info">
+                  Página {page + 1} de {pageCount}
+                </span>
+                <button
+                  type="button"
+                  className="pagination-btn"
+                  disabled={page >= pageCount - 1}
+                  onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+                >
+                  Siguiente
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

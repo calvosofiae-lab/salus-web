@@ -715,6 +715,42 @@
   line-height: 1.3;
 }
 
+.salus .pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+  margin-top: 2rem;
+}
+
+.salus .pagination-btn {
+  padding: 0.6rem 1.2rem;
+  background-color: var(--salus-white);
+  color: var(--navy);
+  border: 1px solid var(--gray-border);
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.salus .pagination-btn:hover:not(:disabled) {
+  border-color: var(--teal);
+  color: var(--teal-dark);
+}
+
+.salus .pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.salus .pagination-info {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
 /* Footer */
 .salus footer {
   background: var(--navy);

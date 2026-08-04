@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { PROFESSION_LABELS } from "@/features/professionals/constants";
 import { ReviewForm } from "@/features/reviews/components/ReviewForm";
+import { getDefaultAvatar } from "@/lib/avatar";
 
 export async function ReviewPageContent({
   params,
@@ -37,7 +38,7 @@ export async function ReviewPageContent({
       <div className="flex items-center gap-4 rounded-lg border p-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={context.professional_photo_url || "https://via.placeholder.com/150"}
+          src={context.professional_photo_url || getDefaultAvatar(context.professional_gender)}
           alt={context.professional_full_name}
           className="w-16 h-16 rounded-full object-cover shrink-0"
         />

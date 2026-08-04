@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { MODALITY_LABELS, PROFESSION_LABELS } from "@/features/professionals/constants";
 import { buildWhatsappLink } from "@/lib/whatsapp";
+import { getDefaultAvatar } from "@/lib/avatar";
 import type { Professional } from "@/features/professionals/types";
 
 export function ProfessionalCard({ prof }: { prof: Professional }) {
-  const foto = prof.photo_url || "https://via.placeholder.com/150";
+  const foto = prof.photo_url || getDefaultAvatar(prof.gender);
   const nombre = prof.full_name || "Profesional SALUS";
   const profesionLabel = PROFESSION_LABELS[prof.profession] ?? prof.profession;
   const profesion = prof.profession

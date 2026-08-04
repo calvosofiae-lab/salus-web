@@ -306,6 +306,7 @@ export interface Database {
           professional_photo_url: string | null;
           professional_profession: string;
           professional_license_number: string | null;
+          professional_gender: string | null;
         }[];
       };
     };

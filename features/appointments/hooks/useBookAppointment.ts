@@ -16,6 +16,7 @@ export function useBookAppointment() {
     firstName: string;
     lastName: string;
     whatsapp: string;
+    whatsappCountry: string;
   }) {
     setIsLoading(true);
     setError(null);

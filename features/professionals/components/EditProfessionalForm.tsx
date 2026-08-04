@@ -18,6 +18,7 @@ export function EditProfessionalForm({ professional }: { professional: Professio
         description: professional.description ?? "",
         photo_url: professional.photo_url ?? "",
         whatsapp: professional.whatsapp ?? "",
+        whatsapp_country: professional.whatsapp_country,
         province: professional.province ?? "",
         city: professional.city ?? "",
         coverage: professional.coverage,

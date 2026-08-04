@@ -45,6 +45,7 @@ export interface Database {
           description: string | null;
           photo_url: string | null;
           whatsapp: string | null;
+          whatsapp_country: string;
           coverage: string[];
           modality: string[];
           consultation_reasons: string[];
@@ -66,6 +67,7 @@ export interface Database {
           description?: string | null;
           photo_url?: string | null;
           whatsapp?: string | null;
+          whatsapp_country?: string;
           coverage?: string[];
           modality?: string[];
           consultation_reasons?: string[];
@@ -87,6 +89,7 @@ export interface Database {
           description?: string | null;
           photo_url?: string | null;
           whatsapp?: string | null;
+          whatsapp_country?: string;
           coverage?: string[];
           modality?: string[];
           consultation_reasons?: string[];
@@ -162,6 +165,7 @@ export interface Database {
           patient_first_name: string;
           patient_last_name: string;
           patient_whatsapp: string;
+          patient_whatsapp_country: string;
           rating_token: string | null;
           reviewed: boolean;
           created_at: string;
@@ -176,6 +180,7 @@ export interface Database {
           patient_first_name: string;
           patient_last_name: string;
           patient_whatsapp: string;
+          patient_whatsapp_country?: string;
           rating_token?: string | null;
           reviewed?: boolean;
           created_at?: string;
@@ -190,6 +195,7 @@ export interface Database {
           patient_first_name?: string;
           patient_last_name?: string;
           patient_whatsapp?: string;
+          patient_whatsapp_country?: string;
           rating_token?: string | null;
           reviewed?: boolean;
           created_at?: string;
@@ -260,7 +266,7 @@ export interface Database {
         Relationships: [];
       };
     };
-    Views: Record<string, never>;
+    Views: Record<never, never>;
     Functions: {
       get_available_slots: {
         Args: { p_professional_id: string; p_date: string };
@@ -274,6 +280,7 @@ export interface Database {
           p_first_name: string;
           p_last_name: string;
           p_whatsapp: string;
+          p_whatsapp_country?: string;
         };
         Returns: string;
       };
@@ -306,6 +313,6 @@ export interface Database {
       user_role: UserRole;
       appointment_status: AppointmentStatus;
     };
-    CompositeTypes: Record<string, never>;
+    CompositeTypes: Record<never, never>;
   };
 }

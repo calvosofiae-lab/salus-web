@@ -16,7 +16,12 @@ import {
 } from "@/features/professionals/constants";
 import { useProvinces } from "@/features/professionals/hooks/useProvinces";
 import { useCitiesByProvince } from "@/features/professionals/hooks/useCitiesByProvince";
-import { sanitizeWhatsappDigits, WHATSAPP_NUMBER_LENGTH } from "@/lib/whatsapp";
+import {
+  DEFAULT_PHONE_COUNTRY,
+  getPhoneCountry,
+  PHONE_COUNTRIES,
+  sanitizePhoneDigits,
+} from "@/lib/whatsapp";
 import {
   buildProfessionalFormSchema,
   type ProfessionalFormSchema,
@@ -31,6 +36,7 @@ const EMPTY_VALUES: ProfessionalFormSchema = {
   description: "",
   photo_url: "",
   whatsapp: "",
+  whatsapp_country: DEFAULT_PHONE_COUNTRY,
   province: "",
   city: "",
   coverage: [],
@@ -124,6 +130,7 @@ export function ProfessionalForm({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const photoUrl = watch("photo_url");
+  const whatsappCountry = watch("whatsapp_country");
   const province = watch("province");
   const city = watch("city");
   const coverage = watch("coverage");
@@ -273,19 +280,40 @@ export function ProfessionalForm({
 
           <div className="grid gap-1.5">
             <Label htmlFor="whatsapp">WhatsApp</Label>
-            <Input
-              id="whatsapp"
-              inputMode="numeric"
-              maxLength={WHATSAPP_NUMBER_LENGTH}
-              placeholder="Ej: 3411234567"
-              {...register("whatsapp")}
-              onChange={(e) =>
-                setValue("whatsapp", sanitizeWhatsappDigits(e.target.value), {
-                  shouldValidate: true,
-                })
-              }
-            />
-            <p className="text-xs text-muted-foreground">Solo números, sin 0 ni 15.</p>
+            <div className="flex gap-2">
+              <select
+                id="whatsapp_country"
+                className={cn(selectClassName, "w-40 shrink-0")}
+                {...register("whatsapp_country")}
+                onChange={(e) => {
+                  setValue("whatsapp_country", e.target.value);
+                  setValue("whatsapp", sanitizePhoneDigits(getValues("whatsapp"), e.target.value), {
+                    shouldValidate: true,
+                  });
+                }}
+              >
+                {PHONE_COUNTRIES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+              <Input
+                id="whatsapp"
+                inputMode="numeric"
+                maxLength={getPhoneCountry(whatsappCountry).numberLength}
+                placeholder={whatsappCountry === "AR" ? "Ej: 3411234567" : "Ej: 666155767"}
+                {...register("whatsapp")}
+                onChange={(e) =>
+                  setValue("whatsapp", sanitizePhoneDigits(e.target.value, whatsappCountry), {
+                    shouldValidate: true,
+                  })
+                }
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {whatsappCountry === "AR" ? "Solo números, sin 0 ni 15." : "Solo números."}
+            </p>
             {errors.whatsapp && <p className="text-xs text-red-500">{errors.whatsapp.message}</p>}
           </div>
 

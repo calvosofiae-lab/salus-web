@@ -27,6 +27,7 @@ export interface ProfessionalFormValues {
   description: string;
   photo_url: string;
   whatsapp: string;
+  whatsapp_country: string;
   province: string;
   city: string;
   coverage: string[];

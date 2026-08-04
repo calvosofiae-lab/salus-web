@@ -260,7 +260,7 @@ export interface Database {
         Relationships: [];
       };
     };
-    Views: Record<string, never>;
+    Views: Record<never, never>;
     Functions: {
       get_available_slots: {
         Args: { p_professional_id: string; p_date: string };
@@ -306,6 +306,6 @@ export interface Database {
       user_role: UserRole;
       appointment_status: AppointmentStatus;
     };
-    CompositeTypes: Record<string, never>;
+    CompositeTypes: Record<never, never>;
   };
 }

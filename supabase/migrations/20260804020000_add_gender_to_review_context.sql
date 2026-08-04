@@ -2,7 +2,12 @@
 -- profesional no cargó foto. get_review_context no devolvía el género; se agrega la columna
 -- sin tocar el resto de la validación (token válido, turno realizado, no calificado todavía).
 
-create or replace function public.get_review_context(p_token uuid)
+-- CREATE OR REPLACE no permite cambiar las columnas de un RETURNS TABLE existente
+-- (el error 42P13 que tira Postgres pide justamente esto): hay que borrar la función
+-- vieja antes de recrearla con la columna nueva.
+drop function if exists public.get_review_context(uuid);
+
+create function public.get_review_context(p_token uuid)
 returns table (
   patient_first_name text,
   appointment_date date,

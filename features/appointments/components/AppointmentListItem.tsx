@@ -33,6 +33,7 @@ export function AppointmentListItem({
   const surveyWhatsappHref = surveyLink
     ? buildWhatsappLink(
         appointment.patient_whatsapp,
+        appointment.patient_whatsapp_country,
         `Hola ${appointment.patient_first_name}, gracias por tu visita. ¿Nos ayudás completando esta breve encuesta de satisfacción? ${surveyLink}`,
       )
     : null;

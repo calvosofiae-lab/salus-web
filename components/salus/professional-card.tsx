@@ -19,7 +19,7 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
   const whatsapp = prof.whatsapp;
 
   const linkWa = whatsapp
-    ? buildWhatsappLink(whatsapp, `Hola ${nombre}, te contacto desde SALUS`)
+    ? buildWhatsappLink(whatsapp, prof.whatsapp_country, `Hola ${nombre}, te contacto desde SALUS`)
     : null;
 
   return (

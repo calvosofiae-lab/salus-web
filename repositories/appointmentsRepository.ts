@@ -8,6 +8,7 @@ export interface BookAppointmentInput {
   firstName: string;
   lastName: string;
   whatsapp: string;
+  whatsappCountry: string;
 }
 
 export async function getOwnAppointments(
@@ -49,6 +50,7 @@ export async function bookAppointment(input: BookAppointmentInput): Promise<stri
     p_first_name: input.firstName,
     p_last_name: input.lastName,
     p_whatsapp: input.whatsapp,
+    p_whatsapp_country: input.whatsappCountry,
   });
 
   if (error) throw error;

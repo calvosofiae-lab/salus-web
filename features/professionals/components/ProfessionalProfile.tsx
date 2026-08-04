@@ -75,6 +75,7 @@ export function ProfessionalProfile({ professional }: { professional: Profession
                   firstName: values.firstName,
                   lastName: values.lastName,
                   whatsapp: values.whatsapp,
+                  whatsappCountry: values.whatsappCountry,
                 });
                 if (!id) {
                   // El turno pudo haberse ocupado entre que se cargó la lista y que se

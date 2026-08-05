@@ -38,6 +38,8 @@ const EMPTY_VALUES: ProfessionalFormSchema = {
   photo_url: "",
   whatsapp: "",
   whatsapp_country: DEFAULT_PHONE_COUNTRY,
+  instagram_url: "",
+  linkedin_url: "",
   province: "",
   city: "",
   coverage: [],
@@ -318,6 +320,24 @@ export function ProfessionalForm({
               {whatsappCountry === "AR" ? "Solo números, sin 0 ni 15." : "Solo números."}
             </p>
             {errors.whatsapp && <p className="text-xs text-red-500">{errors.whatsapp.message}</p>}
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label htmlFor="instagram_url">Instagram</Label>
+            <Input
+              id="instagram_url"
+              placeholder="Ej: usuario o https://instagram.com/usuario"
+              {...register("instagram_url")}
+            />
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label htmlFor="linkedin_url">LinkedIn</Label>
+            <Input
+              id="linkedin_url"
+              placeholder="Ej: usuario o https://linkedin.com/in/usuario"
+              {...register("linkedin_url")}
+            />
           </div>
 
           <div className="grid gap-1.5">

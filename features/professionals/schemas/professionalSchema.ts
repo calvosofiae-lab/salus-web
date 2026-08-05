@@ -25,6 +25,8 @@ const baseShape = {
   photo_url: z.string(),
   whatsapp: z.string(),
   whatsapp_country: z.enum(phoneCountryValues),
+  instagram_url: z.string(),
+  linkedin_url: z.string(),
   province: z.string(),
   city: z.string(),
   coverage: z.array(z.enum(coverageValues)),

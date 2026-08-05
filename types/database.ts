@@ -46,6 +46,8 @@ export interface Database {
           photo_url: string | null;
           whatsapp: string | null;
           whatsapp_country: string;
+          instagram_url: string | null;
+          linkedin_url: string | null;
           coverage: string[];
           modality: string[];
           consultation_reasons: string[];
@@ -69,6 +71,8 @@ export interface Database {
           photo_url?: string | null;
           whatsapp?: string | null;
           whatsapp_country?: string;
+          instagram_url?: string | null;
+          linkedin_url?: string | null;
           coverage?: string[];
           modality?: string[];
           consultation_reasons?: string[];
@@ -92,6 +96,8 @@ export interface Database {
           photo_url?: string | null;
           whatsapp?: string | null;
           whatsapp_country?: string;
+          instagram_url?: string | null;
+          linkedin_url?: string | null;
           coverage?: string[];
           modality?: string[];
           consultation_reasons?: string[];

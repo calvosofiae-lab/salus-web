@@ -34,6 +34,8 @@ export async function adminCreateProfessional(input: ProfessionalCreateInput) {
       photo_url: input.photo_url || null,
       whatsapp: input.whatsapp || null,
       whatsapp_country: input.whatsapp_country,
+      instagram_url: input.instagram_url || null,
+      linkedin_url: input.linkedin_url || null,
       coverage: input.coverage,
       modality: input.modality,
       consultation_reasons: input.consultation_reasons,

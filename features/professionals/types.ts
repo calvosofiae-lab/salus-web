@@ -28,6 +28,8 @@ export interface ProfessionalFormValues {
   photo_url: string;
   whatsapp: string;
   whatsapp_country: string;
+  instagram_url: string;
+  linkedin_url: string;
   province: string;
   city: string;
   coverage: string[];

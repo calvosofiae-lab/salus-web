@@ -22,10 +22,13 @@ export const CONSULTATION_REASONS = [
   "Adolescentes",
   "Psicología infantil",
   "Adultos general",
+  "Adultos mayores",
+  "Pareja",
   "Orientación vocacional",
   "Trastornos de la conducta alimentaria",
   "Consumo problemático",
   "Sexualidad y género",
+  "Transición de género",
   "Violencia de género",
   "Neurodivergencias",
 ];

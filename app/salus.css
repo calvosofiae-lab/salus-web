@@ -716,25 +716,40 @@
   background-color: var(--teal-dark);
 }
 
-.salus .prof-contact-btn {
+.salus .prof-social-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  text-align: center;
-  background-color: #25D366;
-  color: var(--salus-white);
-  text-decoration: none;
-  padding: 0.6rem 1rem;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 0.88rem;
+  gap: 0.6rem;
   margin-bottom: 1rem;
-  transition: background-color 0.3s ease;
 }
 
-.salus .prof-contact-btn:hover {
-  background-color: #128C7E;
+.salus .prof-social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  color: var(--salus-white);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.salus .prof-social-btn:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
+}
+
+.salus .prof-social-whatsapp {
+  background-color: #25d366;
+}
+
+.salus .prof-social-instagram {
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+}
+
+.salus .prof-social-linkedin {
+  background-color: #0a66c2;
 }
 
 .salus .prof-disclaimer {

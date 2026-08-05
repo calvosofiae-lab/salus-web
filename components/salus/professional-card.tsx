@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { Calendar, MessageCircle } from "lucide-react";
+import { Calendar, Instagram, Linkedin, MessageCircle } from "lucide-react";
 import { MODALITY_LABELS, PROFESSION_LABELS } from "@/features/professionals/constants";
 import { buildWhatsappLink } from "@/lib/whatsapp";
+import { buildInstagramLink, buildLinkedinLink } from "@/lib/social";
 import { getDefaultAvatar } from "@/lib/avatar";
 import type { Professional } from "@/features/professionals/types";
 
@@ -23,6 +24,9 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
   const linkWa = whatsapp
     ? buildWhatsappLink(whatsapp, prof.whatsapp_country, `Hola ${nombre}, te contacto desde SALUS`)
     : null;
+  const linkInstagram = prof.instagram_url ? buildInstagramLink(prof.instagram_url) : null;
+  const linkLinkedin = prof.linkedin_url ? buildLinkedinLink(prof.linkedin_url) : null;
+  const hasSocialLinks = linkWa || linkInstagram || linkLinkedin;
 
   return (
     <div className="prof-card">
@@ -45,11 +49,45 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
           <Calendar size={15} strokeWidth={2} />
           Reservar turno
         </Link>
-        {linkWa && (
-          <a href={linkWa} target="_blank" rel="noreferrer" className="prof-contact-btn">
-            <MessageCircle size={15} strokeWidth={2} />
-            Contactar por WhatsApp
-          </a>
+        {hasSocialLinks && (
+          <div className="prof-social-row">
+            {linkWa && (
+              <a
+                href={linkWa}
+                target="_blank"
+                rel="noreferrer"
+                className="prof-social-btn prof-social-whatsapp"
+                aria-label="Contactar por WhatsApp"
+                title="WhatsApp"
+              >
+                <MessageCircle size={16} strokeWidth={2} />
+              </a>
+            )}
+            {linkInstagram && (
+              <a
+                href={linkInstagram}
+                target="_blank"
+                rel="noreferrer"
+                className="prof-social-btn prof-social-instagram"
+                aria-label="Instagram"
+                title="Instagram"
+              >
+                <Instagram size={16} strokeWidth={2} />
+              </a>
+            )}
+            {linkLinkedin && (
+              <a
+                href={linkLinkedin}
+                target="_blank"
+                rel="noreferrer"
+                className="prof-social-btn prof-social-linkedin"
+                aria-label="LinkedIn"
+                title="LinkedIn"
+              >
+                <Linkedin size={16} strokeWidth={2} />
+              </a>
+            )}
+          </div>
         )}
         <div className="prof-disclaimer">
           Atención independiente bajo matrícula profesional habilitante.

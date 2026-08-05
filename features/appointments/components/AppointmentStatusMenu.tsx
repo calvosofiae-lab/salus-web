@@ -21,12 +21,12 @@ export function AppointmentStatusMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button size="sm" variant="outline">
+        <Button size="sm" variant="outline" className="gap-1.5">
           Cambiar estado
-          <ChevronDown className="size-3.5" />
+          <ChevronDown className="size-3.5 -ml-0.5" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" alignOffset={-8} collisionPadding={12}>
         {STATUS_OPTIONS.map((status) => (
           <DropdownMenuItem
             key={status}

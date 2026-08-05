@@ -18,14 +18,23 @@ export function WeeklyAvailabilityForm({ professionalId }: { professionalId: str
   const { rules, status, error, isSaving, addRule, removeRule } =
     useAvailabilityRules(professionalId);
   const [draft, setDraft] = useState<Record<number, { start: string; end: string }>>({});
+  const [rangeError, setRangeError] = useState<Record<number, string | undefined>>({});
 
   function updateDraft(day: number, field: "start" | "end", value: string) {
     setDraft((prev) => ({ ...prev, [day]: { ...prev[day], [field]: value } }));
+    setRangeError((prev) => ({ ...prev, [day]: undefined }));
   }
 
   async function handleAdd(day: number) {
     const d = draft[day];
     if (!d?.start || !d?.end) return;
+    if (d.start >= d.end) {
+      setRangeError((prev) => ({
+        ...prev,
+        [day]: "El horario de fin debe ser posterior al de inicio.",
+      }));
+      return;
+    }
     const success = await addRule(day, d.start, d.end);
     if (success) {
       setDraft((prev) => ({ ...prev, [day]: { start: "", end: "" } }));
@@ -52,8 +61,8 @@ export function WeeklyAvailabilityForm({ professionalId }: { professionalId: str
         {DAYS.map((day) => {
           const dayRules = rules.filter((r) => r.day_of_week === day.value);
           return (
-            <div key={day.value} className="flex flex-wrap items-center gap-2 p-2.5">
-              <span className="w-20 shrink-0 text-sm font-medium text-brand-navy">
+            <div key={day.value} className="flex flex-wrap items-start gap-2 p-2.5">
+              <span className="w-20 shrink-0 pt-1.5 text-sm font-medium text-brand-navy">
                 {day.label}
               </span>
               <div className="flex flex-wrap gap-1.5">
@@ -74,29 +83,34 @@ export function WeeklyAvailabilityForm({ professionalId }: { professionalId: str
                   </span>
                 ))}
               </div>
-              <div className="ml-auto flex items-center gap-1.5">
-                <Input
-                  type="time"
-                  className="h-8 w-24 text-xs"
-                  value={draft[day.value]?.start ?? ""}
-                  onChange={(e) => updateDraft(day.value, "start", e.target.value)}
-                />
-                <span className="text-xs text-muted-foreground">a</span>
-                <Input
-                  type="time"
-                  className="h-8 w-24 text-xs"
-                  value={draft[day.value]?.end ?? ""}
-                  onChange={(e) => updateDraft(day.value, "end", e.target.value)}
-                />
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  disabled={isSaving}
-                  onClick={() => handleAdd(day.value)}
-                >
-                  Agregar
-                </Button>
+              <div className="ml-auto flex flex-col items-end gap-1">
+                <div className="flex items-center gap-1.5">
+                  <Input
+                    type="time"
+                    className="h-8 w-24 text-xs"
+                    value={draft[day.value]?.start ?? ""}
+                    onChange={(e) => updateDraft(day.value, "start", e.target.value)}
+                  />
+                  <span className="text-xs text-muted-foreground">a</span>
+                  <Input
+                    type="time"
+                    className="h-8 w-24 text-xs"
+                    value={draft[day.value]?.end ?? ""}
+                    onChange={(e) => updateDraft(day.value, "end", e.target.value)}
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={isSaving}
+                    onClick={() => handleAdd(day.value)}
+                  >
+                    Agregar
+                  </Button>
+                </div>
+                {rangeError[day.value] && (
+                  <p className="text-xs text-red-500">{rangeError[day.value]}</p>
+                )}
               </div>
             </div>
           );

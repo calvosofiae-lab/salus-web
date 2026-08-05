@@ -52,6 +52,7 @@ export interface Database {
           province: string | null;
           city: string | null;
           is_active: boolean;
+          is_premium: boolean;
           average_rating: number | null;
           gender_trained: boolean | null;
           consultation_fee: number | null;
@@ -74,6 +75,7 @@ export interface Database {
           province?: string | null;
           city?: string | null;
           is_active?: boolean;
+          is_premium?: boolean;
           average_rating?: number | null;
           gender_trained?: boolean | null;
           consultation_fee?: number | null;
@@ -96,6 +98,7 @@ export interface Database {
           province?: string | null;
           city?: string | null;
           is_active?: boolean;
+          is_premium?: boolean;
           average_rating?: number | null;
           gender_trained?: boolean | null;
           consultation_fee?: number | null;
@@ -292,8 +295,8 @@ export interface Database {
         Args: Record<string, never>;
         Returns: string | null;
       };
-      get_top_rated_professionals: {
-        Args: { p_limit?: number };
+      get_premium_professionals: {
+        Args: Record<string, never>;
         Returns: Database["public"]["Tables"]["professionals"]["Row"][];
       };
       get_review_context: {

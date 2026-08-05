@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ProfessionalProfile } from "@/features/professionals/components/ProfessionalProfile";
+import { SiteHeader } from "@/components/salus/site-header";
+import "@/app/salus.css";
 
 export async function ProfessionalProfileServer({
   params,
@@ -22,8 +24,13 @@ export async function ProfessionalProfileServer({
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
-      <ProfessionalProfile professional={professional} />
-    </div>
+    <>
+      <div className="salus salus--header-only">
+        <SiteHeader />
+      </div>
+      <div className="max-w-5xl mx-auto p-6">
+        <ProfessionalProfile professional={professional} />
+      </div>
+    </>
   );
 }

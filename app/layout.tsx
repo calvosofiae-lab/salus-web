@@ -13,7 +13,11 @@ export const metadata: Metadata = {
   title: "SALUS - Red de Profesionales",
   description: "Red de Profesionales de la Salud Mental",
   icons: {
-    icon: "/logo-salus.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.png", type: "image/png" },
+    ],
+    apple: "/favicon.png",
   },
 };
 

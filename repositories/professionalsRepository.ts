@@ -7,14 +7,10 @@ import type {
   ProfessionalInput,
 } from "@/features/professionals/types";
 
-const TOP_RATED_LIMIT = 4;
-
 export async function getFeaturedProfessionals(): Promise<Professional[]> {
   const supabase = createClient();
 
-  const { data, error } = await supabase.rpc("get_top_rated_professionals", {
-    p_limit: TOP_RATED_LIMIT,
-  });
+  const { data, error } = await supabase.rpc("get_premium_professionals");
 
   if (error) throw error;
   return data ?? [];
@@ -121,6 +117,12 @@ export async function deactivateProfessional(id: string): Promise<void> {
 
 export async function activateProfessional(id: string): Promise<void> {
   await updateProfessional(id, { is_active: true });
+}
+
+// is_premium solo lo puede escribir un admin (protect_professional_admin_fields en la base lo
+// revierte si no lo es), así que esta función solo tiene sentido llamada desde el panel admin.
+export async function setProfessionalPremium(id: string, isPremium: boolean): Promise<void> {
+  await updateProfessional(id, { is_premium: isPremium });
 }
 
 export async function getPublicProfessionalById(id: string): Promise<Professional | null> {

@@ -1,18 +1,5 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { redirect } from "next/navigation";
 
 export default function ProfessionalHomePage() {
-  return (
-    <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold text-brand-navy">Mi panel</h1>
-      <p className="text-sm text-muted-foreground">
-        Administrá tu información de perfil en SALUS.
-      </p>
-      <div>
-        <Button asChild>
-          <Link href="/profesional/perfil">Editar mi perfil</Link>
-        </Button>
-      </div>
-    </div>
-  );
+  redirect("/profesional/turnos");
 }

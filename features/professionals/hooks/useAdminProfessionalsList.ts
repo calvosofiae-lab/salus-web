@@ -5,6 +5,7 @@ import {
   activateProfessional,
   deactivateProfessional,
   getAllProfessionalsAdmin,
+  setProfessionalPremium,
 } from "@/repositories/professionalsRepository";
 import { getErrorMessage } from "@/lib/errors";
 import type { Professional } from "@/features/professionals/types";
@@ -64,6 +65,19 @@ export function useAdminProfessionalsList() {
     }
   }
 
+  async function togglePremium(id: string, isPremium: boolean) {
+    setSavingId(id);
+    setError(null);
+    try {
+      await setProfessionalPremium(id, isPremium);
+      await load();
+    } catch (err) {
+      setError(getErrorMessage(err, "Ocurrió un error al cambiar el plan del profesional"));
+    } finally {
+      setSavingId(null);
+    }
+  }
+
   const pageCount = Math.max(1, Math.ceil(totalCount / ADMIN_PROFESSIONALS_PAGE_SIZE));
 
   return {
@@ -73,6 +87,7 @@ export function useAdminProfessionalsList() {
     savingId,
     deactivate,
     activate,
+    togglePremium,
     reload: load,
     page,
     pageCount,

@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { ProfessionalForm } from "@/features/professionals/components/ProfessionalForm";
 import { useUpdateOwnProfile } from "@/features/professionals/hooks/useUpdateOwnProfile";
 import type { Professional } from "@/features/professionals/types";
@@ -9,6 +10,20 @@ export function OwnProfileForm({ professional }: { professional: Professional })
 
   return (
     <>
+      <div className="flex items-center gap-2 text-sm">
+        <span className="text-muted-foreground">Tu plan:</span>
+        <Badge
+          variant={professional.is_premium ? "default" : "outline"}
+          className={professional.is_premium ? "bg-brand-yellow text-brand-navy hover:bg-brand-yellow" : ""}
+        >
+          {professional.is_premium ? "Premium" : "Estándar"}
+        </Badge>
+        {!professional.is_premium && (
+          <span className="text-xs text-muted-foreground">
+            Contactá a SALUS para sumarte al plan premium.
+          </span>
+        )}
+      </div>
       <ProfessionalForm
         mode="edit"
         initialValues={{

@@ -15,6 +15,7 @@ export function ProfessionalsTable() {
     savingId,
     deactivate,
     activate,
+    togglePremium,
     page,
     pageCount,
     setPage,
@@ -48,6 +49,7 @@ export function ProfessionalsTable() {
               <th className="py-2 pr-4">Nombre</th>
               <th className="py-2 pr-4">Profesión</th>
               <th className="py-2 pr-4">Estado</th>
+              <th className="py-2 pr-4">Plan</th>
               <th className="py-2 pr-4" />
             </tr>
           </thead>
@@ -64,6 +66,26 @@ export function ProfessionalsTable() {
                     <Badge variant={prof.is_active ? "default" : "secondary"}>
                       {prof.is_active ? "Activo" : "Inactivo"}
                     </Badge>
+                  </td>
+                  <td className="py-2 pr-4">
+                    <button
+                      type="button"
+                      disabled={isSaving}
+                      onClick={() => togglePremium(prof.id, !prof.is_premium)}
+                      title={
+                        prof.is_premium
+                          ? "Pasar a plan estándar"
+                          : "Pasar a plan premium"
+                      }
+                      className="disabled:opacity-50"
+                    >
+                      <Badge
+                        variant={prof.is_premium ? "default" : "outline"}
+                        className={prof.is_premium ? "bg-brand-yellow text-brand-navy hover:bg-brand-yellow" : ""}
+                      >
+                        {prof.is_premium ? "Premium" : "Estándar"}
+                      </Badge>
+                    </button>
                   </td>
                   <td className="py-2 pr-4">
                     <div className="flex justify-end gap-2">

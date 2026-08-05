@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useAvailabilityRules } from "@/features/appointments/hooks/useAvailabilityRules";
 
 // Solo de lunes a viernes: SALUS no opera fines de semana.
@@ -14,6 +13,16 @@ const DAYS = [
   { value: 4, label: "Jueves" },
   { value: 5, label: "Viernes" },
 ];
+
+// Cada media hora, de 00:00 a 23:30: son los únicos horarios que se pueden elegir.
+const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
+  const hour = String(Math.floor(i / 2)).padStart(2, "0");
+  const minute = i % 2 === 0 ? "00" : "30";
+  return `${hour}:${minute}`;
+});
+
+const timeSelectClass =
+  "h-8 w-24 rounded-md border border-brand-teal/40 bg-transparent px-2 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-teal disabled:cursor-not-allowed disabled:opacity-50";
 
 export function WeeklyAvailabilityForm({ professionalId }: { professionalId: string }) {
   const { rules, status, error, isSaving, addRule, removeRule } =
@@ -33,6 +42,17 @@ export function WeeklyAvailabilityForm({ professionalId }: { professionalId: str
       setRangeError((prev) => ({
         ...prev,
         [day]: "El horario de fin debe ser posterior al de inicio.",
+      }));
+      return;
+    }
+    const [startH, startM] = d.start.split(":").map(Number);
+    const [endH, endM] = d.end.split(":").map(Number);
+    const durationMinutes = endH * 60 + endM - (startH * 60 + startM);
+    if (durationMinutes % 60 !== 0) {
+      setRangeError((prev) => ({
+        ...prev,
+        [day]:
+          "El rango debe cubrir turnos completos de 1 hora (por ejemplo, 09:00 a 10:00 o 09:30 a 11:30).",
       }));
       return;
     }
@@ -86,19 +106,33 @@ export function WeeklyAvailabilityForm({ professionalId }: { professionalId: str
               </div>
               <div className="ml-auto flex flex-col items-end gap-1">
                 <div className="flex items-center gap-1.5">
-                  <Input
-                    type="time"
-                    className="h-8 w-24 text-xs"
+                  <select
+                    aria-label="Hora de inicio"
+                    className={timeSelectClass}
                     value={draft[day.value]?.start ?? ""}
                     onChange={(e) => updateDraft(day.value, "start", e.target.value)}
-                  />
+                  >
+                    <option value="">--:--</option>
+                    {TIME_OPTIONS.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
                   <span className="text-xs text-muted-foreground">a</span>
-                  <Input
-                    type="time"
-                    className="h-8 w-24 text-xs"
+                  <select
+                    aria-label="Hora de fin"
+                    className={timeSelectClass}
                     value={draft[day.value]?.end ?? ""}
                     onChange={(e) => updateDraft(day.value, "end", e.target.value)}
-                  />
+                  >
+                    <option value="">--:--</option>
+                    {TIME_OPTIONS.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
                   <Button
                     type="button"
                     size="sm"

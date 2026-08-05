@@ -74,7 +74,7 @@ export function ProfessionalCalendar({ professionalId }: { professionalId: strin
     return acc;
   }, {});
 
-  const sortedDates = Object.entries(byDate).sort(([a], [b]) => b.localeCompare(a));
+  const sortedDates = Object.entries(byDate).sort(([a], [b]) => a.localeCompare(b));
 
   return (
     <div className="flex flex-col gap-6">

@@ -107,7 +107,14 @@ export async function updateProfessional(
 ): Promise<void> {
   const supabase = createClient();
 
-  const { error } = await supabase.from("professionals").update(input).eq("id", id);
+  // province tiene FK a provinces.id: "" (modalidad solo virtual, sin provincia elegida) no es
+  // un id válido y rompe el constraint. city no tiene FK pero se normaliza igual porque solo
+  // tiene sentido junto con province.
+  const normalized: Partial<ProfessionalInput> = { ...input };
+  if (normalized.province === "") normalized.province = null;
+  if (normalized.city === "") normalized.city = null;
+
+  const { error } = await supabase.from("professionals").update(normalized).eq("id", id);
   if (error) throw error;
 }
 

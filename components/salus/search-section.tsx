@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { Search } from "lucide-react";
 import {
   COVERAGE_OPTIONS,
   CONSULTATION_REASONS,
@@ -197,6 +198,7 @@ export function SearchSection() {
 
           <div className="btn-search-container">
             <button type="submit" className="btn-search" disabled={status === "loading"}>
+              <Search size={18} strokeWidth={2} />
               {status === "loading" ? "Buscando..." : "Buscar Profesionales"}
             </button>
           </div>

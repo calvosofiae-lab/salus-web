@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAvailabilityRules } from "@/features/appointments/hooks/useAvailabilityRules";
@@ -105,6 +106,7 @@ export function WeeklyAvailabilityForm({ professionalId }: { professionalId: str
                     disabled={isSaving}
                     onClick={() => handleAdd(day.value)}
                   >
+                    <Plus className="size-3.5" />
                     Agregar
                   </Button>
                 </div>

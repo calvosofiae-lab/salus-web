@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Pencil, UserCheck, UserX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAdminProfessionalsList } from "@/features/professionals/hooks/useAdminProfessionalsList";
@@ -13,6 +14,7 @@ export function ProfessionalsTable() {
     professionals,
     error,
     savingId,
+    savingAction,
     deactivate,
     activate,
     togglePremium,
@@ -56,6 +58,8 @@ export function ProfessionalsTable() {
           <tbody>
             {professionals.map((prof) => {
               const isSaving = savingId === prof.id;
+              const isSavingAction = (action: "activate" | "deactivate" | "premium") =>
+                isSaving && savingAction === action;
               return (
                 <tr key={prof.id} className="border-b">
                   <td className="py-2 pr-4">{prof.full_name}</td>
@@ -90,7 +94,10 @@ export function ProfessionalsTable() {
                   <td className="py-2 pr-4">
                     <div className="flex justify-end gap-2">
                       <Button asChild size="sm" variant="outline" disabled={isSaving}>
-                        <Link href={`/admin/profesionales/${prof.id}/editar`}>Editar</Link>
+                        <Link href={`/admin/profesionales/${prof.id}/editar`}>
+                          <Pencil className="size-3.5" />
+                          Editar
+                        </Link>
                       </Button>
                       {prof.is_active ? (
                         <Button
@@ -99,7 +106,8 @@ export function ProfessionalsTable() {
                           disabled={isSaving}
                           onClick={() => handleDeactivate(prof)}
                         >
-                          {isSaving ? "Dando de baja..." : "Dar de baja"}
+                          <UserX className="size-3.5" />
+                          {isSavingAction("deactivate") ? "Dando de baja..." : "Dar de baja"}
                         </Button>
                       ) : (
                         <Button
@@ -108,7 +116,8 @@ export function ProfessionalsTable() {
                           disabled={isSaving}
                           onClick={() => activate(prof.id)}
                         >
-                          {isSaving ? "Reactivando..." : "Reactivar"}
+                          <UserCheck className="size-3.5" />
+                          {isSavingAction("activate") ? "Reactivando..." : "Reactivar"}
                         </Button>
                       )}
                     </div>

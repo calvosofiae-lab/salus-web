@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { CalendarOff, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,6 +49,7 @@ export function BlockDateForm({ professionalId }: { professionalId: string }) {
           />
         </div>
         <Button type="submit" disabled={isSaving}>
+          <CalendarOff className="size-4" />
           Bloquear
         </Button>
       </form>
@@ -69,10 +71,11 @@ export function BlockDateForm({ professionalId }: { professionalId: string }) {
               </span>
               <button
                 type="button"
-                className="text-xs text-red-500 hover:underline disabled:opacity-50"
+                className="inline-flex items-center gap-1 text-xs text-red-500 hover:underline disabled:opacity-50"
                 disabled={isSaving}
                 onClick={() => removeBlock(block.id)}
               >
+                <X className="size-3" />
                 Quitar
               </button>
             </div>

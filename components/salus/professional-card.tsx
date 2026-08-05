@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Calendar, MessageCircle } from "lucide-react";
 import { MODALITY_LABELS, PROFESSION_LABELS } from "@/features/professionals/constants";
 import { buildWhatsappLink } from "@/lib/whatsapp";
 import { getDefaultAvatar } from "@/lib/avatar";
@@ -41,10 +42,12 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
       </div>
       <div>
         <Link href={`/profesionales/${prof.id}`} className="prof-book-btn">
+          <Calendar size={15} strokeWidth={2} />
           Reservar turno
         </Link>
         {linkWa && (
           <a href={linkWa} target="_blank" rel="noreferrer" className="prof-contact-btn">
+            <MessageCircle size={15} strokeWidth={2} />
             Contactar por WhatsApp
           </a>
         )}

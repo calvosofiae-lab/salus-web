@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Star } from "lucide-react";
+import { Home, Send, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useSubmitReview } from "@/features/reviews/hooks/useSubmitReview";
@@ -28,6 +28,7 @@ function ReviewSuccess() {
       <p>Nos ayuda a mejorar la red de profesionales.</p>
       <p className="mt-2 text-green-700">Te vamos a redirigir al inicio en {secondsLeft}s.</p>
       <Button className="mt-3" size="sm" onClick={() => router.push("/")}>
+        <Home className="size-3.5" />
         Volver al inicio
       </Button>
     </div>
@@ -82,6 +83,7 @@ export function ReviewForm({ token }: { token: string }) {
       </div>
       {error && <p className="text-sm text-red-500">{error}</p>}
       <Button type="submit" disabled={isLoading || rating < 1}>
+        <Send className="size-4" />
         {isLoading ? "Enviando..." : "Enviar calificación"}
       </Button>
     </form>

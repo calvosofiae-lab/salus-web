@@ -474,6 +474,10 @@
 }
 
 .salus .btn-search {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
   max-width: 400px;
   width: 100%;
   padding: 1.1rem;
@@ -692,7 +696,10 @@
 }
 
 .salus .prof-book-btn {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
   text-align: center;
   background-color: var(--navy);
   color: var(--salus-white);
@@ -710,7 +717,10 @@
 }
 
 .salus .prof-contact-btn {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
   text-align: center;
   background-color: #25D366;
   color: var(--salus-white);

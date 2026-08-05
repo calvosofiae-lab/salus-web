@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const REDIRECT_SECONDS = 10;
@@ -37,6 +38,7 @@ export function BookingConfirmation({
         Te vamos a redirigir al inicio en {secondsLeft}s.
       </p>
       <Button className="mt-3" size="sm" onClick={() => router.push("/")}>
+        <Home className="size-3.5" />
         Volver al inicio
       </Button>
     </div>

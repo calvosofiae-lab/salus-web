@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useState } from "react";
+import { Send } from "lucide-react";
 import { useForgotPassword } from "@/features/auth/hooks/useForgotPassword";
 
 export function ForgotPasswordForm({
@@ -66,6 +67,7 @@ export function ForgotPasswordForm({
                 </div>
                 {error && <p className="text-sm text-red-500">{error}</p>}
                 <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Send className="size-4" />
                   {isLoading ? "Enviando..." : "Enviar email de recupero"}
                 </Button>
               </div>

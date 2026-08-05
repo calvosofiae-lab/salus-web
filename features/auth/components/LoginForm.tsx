@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useState } from "react";
+import { LogIn } from "lucide-react";
 import { useLogin } from "@/features/auth/hooks/useLogin";
 
 export function LoginForm({
@@ -79,6 +80,7 @@ export function LoginForm({
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
               <Button type="submit" className="w-full" disabled={isLoading}>
+                <LogIn className="size-4" />
                 {isLoading ? "Ingresando..." : "Ingresar"}
               </Button>
             </div>

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
+import { Home } from "lucide-react";
 import { MODALITY_LABELS, PROFESSION_LABELS } from "@/features/professionals/constants";
 import type { Professional } from "@/features/professionals/types";
 import { SlotPicker, type SlotPickerHandle } from "@/features/appointments/components/SlotPicker";
@@ -88,7 +89,10 @@ export function ProfessionalProfile({ professional }: { professional: Profession
             />
           )}
           <Button variant="outline" asChild className="self-start">
-            <Link href="/">Volver a inicio</Link>
+            <Link href="/">
+              <Home className="size-4" />
+              Volver a inicio
+            </Link>
           </Button>
         </div>
       )}

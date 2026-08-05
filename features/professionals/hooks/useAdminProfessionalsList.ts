@@ -11,6 +11,7 @@ import { getErrorMessage } from "@/lib/errors";
 import type { Professional } from "@/features/professionals/types";
 
 type Status = "loading" | "error" | "ready";
+type SavingAction = "activate" | "deactivate" | "premium";
 
 export const ADMIN_PROFESSIONALS_PAGE_SIZE = 20;
 
@@ -21,6 +22,11 @@ export function useAdminProfessionalsList() {
   const [page, setPage] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
+  // Las tres acciones (activar/desactivar/cambiar plan) comparten savingId para
+  // deshabilitar los botones de la fila mientras cualquiera esté en curso, pero cada botón
+  // necesita saber si la acción EN CURSO es la suya para no mostrar "Dando de baja..." cuando
+  // en realidad se está cambiando el plan (o viceversa).
+  const [savingAction, setSavingAction] = useState<SavingAction | null>(null);
 
   const load = useCallback(async () => {
     setStatus("loading");
@@ -41,6 +47,7 @@ export function useAdminProfessionalsList() {
 
   async function deactivate(id: string) {
     setSavingId(id);
+    setSavingAction("deactivate");
     setError(null);
     try {
       await deactivateProfessional(id);
@@ -49,11 +56,13 @@ export function useAdminProfessionalsList() {
       setError(getErrorMessage(err, "Ocurrió un error al dar de baja al profesional"));
     } finally {
       setSavingId(null);
+      setSavingAction(null);
     }
   }
 
   async function activate(id: string) {
     setSavingId(id);
+    setSavingAction("activate");
     setError(null);
     try {
       await activateProfessional(id);
@@ -62,11 +71,13 @@ export function useAdminProfessionalsList() {
       setError(getErrorMessage(err, "Ocurrió un error al reactivar al profesional"));
     } finally {
       setSavingId(null);
+      setSavingAction(null);
     }
   }
 
   async function togglePremium(id: string, isPremium: boolean) {
     setSavingId(id);
+    setSavingAction("premium");
     setError(null);
     try {
       await setProfessionalPremium(id, isPremium);
@@ -75,6 +86,7 @@ export function useAdminProfessionalsList() {
       setError(getErrorMessage(err, "Ocurrió un error al cambiar el plan del profesional"));
     } finally {
       setSavingId(null);
+      setSavingAction(null);
     }
   }
 
@@ -85,6 +97,7 @@ export function useAdminProfessionalsList() {
     professionals,
     error,
     savingId,
+    savingAction,
     deactivate,
     activate,
     togglePremium,

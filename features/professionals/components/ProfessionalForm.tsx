@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Plus, Save, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -264,10 +265,12 @@ export function ProfessionalForm({
                     size="sm"
                     onClick={() => fileInputRef.current?.click()}
                   >
+                    <Upload className="size-3.5" />
                     {photoPreview || photoUrl ? "Cambiar foto" : "Subir foto"}
                   </Button>
                   {(photoPreview || photoUrl) && (
                     <Button type="button" variant="ghost" size="sm" onClick={handleRemovePhoto}>
+                      <Trash2 className="size-3.5" />
                       Quitar foto
                     </Button>
                   )}
@@ -449,6 +452,7 @@ export function ProfessionalForm({
       {error && <p className="text-sm text-red-500">{error}</p>}
 
       <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
+        {mode === "create" ? <Plus className="size-4" /> : <Save className="size-4" />}
         {isLoading ? "Guardando..." : submitLabel}
       </Button>
     </form>

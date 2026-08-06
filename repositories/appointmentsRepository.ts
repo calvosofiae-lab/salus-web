@@ -31,6 +31,20 @@ export async function getOwnAppointments(
   return data ?? [];
 }
 
+export async function rescheduleAppointment(
+  appointmentId: string,
+  date: string,
+  startTime: string,
+): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase.rpc("reschedule_appointment", {
+    p_appointment_id: appointmentId,
+    p_new_date: date,
+    p_new_start_time: startTime,
+  });
+  if (error) throw error;
+}
+
 export async function updateAppointmentStatus(
   id: string,
   status: AppointmentStatus,

@@ -293,6 +293,10 @@ export interface Database {
         };
         Returns: string;
       };
+      reschedule_appointment: {
+        Args: { p_appointment_id: string; p_new_date: string; p_new_start_time: string };
+        Returns: void;
+      };
       submit_review: {
         Args: { p_token: string; p_rating: number; p_comment: string | null };
         Returns: void;

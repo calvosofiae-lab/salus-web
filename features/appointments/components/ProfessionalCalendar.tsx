@@ -5,21 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMyAppointments } from "@/features/appointments/hooks/useMyAppointments";
 import { AppointmentListItem } from "@/features/appointments/components/AppointmentListItem";
+import { formatLongDate } from "@/features/appointments/lib/date";
 import type { Appointment } from "@/features/appointments/types";
 
 const MAX_RANGE_DAYS = 21;
-
-function capitalize(word: string): string {
-  return word.charAt(0).toUpperCase() + word.slice(1);
-}
-
-function formatLongDate(isoDate: string): string {
-  const [year, month, day] = isoDate.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
-  const weekday = capitalize(date.toLocaleDateString("es-AR", { weekday: "long" }));
-  const monthName = capitalize(date.toLocaleDateString("es-AR", { month: "long" }));
-  return `${weekday} ${String(day).padStart(2, "0")} ${monthName} ${year}`;
-}
 
 function toISODate(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -47,7 +36,16 @@ const DEFAULT_TO = addDays(TODAY, MAX_RANGE_DAYS - 8);
 export function ProfessionalCalendar({ professionalId }: { professionalId: string }) {
   const [from, setFrom] = useState(DEFAULT_FROM);
   const [to, setTo] = useState(DEFAULT_TO);
-  const { appointments, status, changeStatus } = useMyAppointments(professionalId, from, to);
+  const { appointments, status, changeStatus, reschedule } = useMyAppointments(
+    professionalId,
+    from,
+    to,
+  );
+  // Al reprogramar, el turno cambia de fecha y su fila se re-monta bajo otro encabezado de
+  // día -- se guarda acá (por id) para que la confirmación sobreviva ese re-montaje.
+  const [justRescheduled, setJustRescheduled] = useState<
+    Record<string, { date: string; time: string }>
+  >({});
 
   function handleFromChange(value: string) {
     if (!value) return;
@@ -120,7 +118,15 @@ export function ProfessionalCalendar({ professionalId }: { professionalId: strin
                 <AppointmentListItem
                   key={appt.id}
                   appointment={appt}
+                  professionalId={professionalId}
                   onChangeStatus={(newStatus) => changeStatus(appt.id, newStatus)}
+                  onReschedule={(newDate, newStartTime) =>
+                    reschedule(appt.id, newDate, newStartTime)
+                  }
+                  justRescheduledTo={justRescheduled[appt.id] ?? null}
+                  onRescheduled={(slot) =>
+                    setJustRescheduled((prev) => ({ ...prev, [appt.id]: slot }))
+                  }
                 />
               ))}
             </div>

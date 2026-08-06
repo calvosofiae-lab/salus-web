@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   getOwnAppointments,
+  rescheduleAppointment,
   updateAppointmentStatus,
 } from "@/repositories/appointmentsRepository";
+import { getErrorMessage } from "@/lib/errors";
 import type { Appointment, AppointmentStatus } from "@/features/appointments/types";
 
 export function useMyAppointments(professionalId: string, from: string, to: string) {
@@ -32,5 +34,19 @@ export function useMyAppointments(professionalId: string, from: string, to: stri
     await load();
   }
 
-  return { appointments, status, changeStatus };
+  async function reschedule(
+    id: string,
+    date: string,
+    startTime: string,
+  ): Promise<{ success: true } | { success: false; error: string }> {
+    try {
+      await rescheduleAppointment(id, date, startTime);
+      await load();
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: getErrorMessage(err, "No se pudo reprogramar el turno") };
+    }
+  }
+
+  return { appointments, status, changeStatus, reschedule };
 }

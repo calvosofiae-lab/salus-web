@@ -11,7 +11,7 @@ export interface BookAppointmentInput {
   whatsappCountry: string;
 }
 
-export async function getOwnAppointments(
+export async function getAppointmentsForProfessional(
   professionalId: string,
   from: string,
   to: string,

@@ -6,20 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AppointmentStatusMenu } from "@/features/appointments/components/AppointmentStatusMenu";
 import { SlotPicker } from "@/features/appointments/components/SlotPicker";
-import { STATUS_LABELS } from "@/features/appointments/constants";
+import { STATUS_LABELS, STATUS_VARIANT } from "@/features/appointments/constants";
 import { formatLongDate } from "@/features/appointments/lib/date";
 import { buildWhatsappLink } from "@/lib/whatsapp";
 import type { Appointment, AppointmentStatus } from "@/features/appointments/types";
-
-const STATUS_VARIANT: Record<
-  AppointmentStatus,
-  "default" | "secondary" | "destructive"
-> = {
-  reservado: "default",
-  realizado: "secondary",
-  cancelado: "destructive",
-  no_asistio: "destructive",
-};
 
 type RescheduleResult = { success: true } | { success: false; error: string };
 

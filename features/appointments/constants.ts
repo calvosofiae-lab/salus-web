@@ -13,3 +13,10 @@ export const STATUS_OPTIONS: AppointmentStatus[] = [
   "cancelado",
   "no_asistio",
 ];
+
+export const STATUS_VARIANT: Record<AppointmentStatus, "default" | "secondary" | "destructive"> = {
+  reservado: "default",
+  realizado: "secondary",
+  cancelado: "destructive",
+  no_asistio: "destructive",
+};

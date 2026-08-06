@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Pencil, UserCheck, UserX } from "lucide-react";
+import { Eye, Pencil, UserCheck, UserX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAdminProfessionalsList } from "@/features/professionals/hooks/useAdminProfessionalsList";
@@ -93,6 +93,12 @@ export function ProfessionalsTable() {
                   </td>
                   <td className="py-2 pr-4">
                     <div className="flex justify-end gap-2">
+                      <Button asChild size="sm" variant="outline" disabled={isSaving}>
+                        <Link href={`/admin/profesionales/${prof.id}/turnos`}>
+                          <Eye className="size-3.5" />
+                          Ver turnos
+                        </Link>
+                      </Button>
                       <Button asChild size="sm" variant="outline" disabled={isSaving}>
                         <Link href={`/admin/profesionales/${prof.id}/editar`}>
                           <Pencil className="size-3.5" />

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
-  getOwnAppointments,
+  getAppointmentsForProfessional,
   rescheduleAppointment,
   updateAppointmentStatus,
 } from "@/repositories/appointmentsRepository";
@@ -16,7 +16,7 @@ export function useMyAppointments(professionalId: string, from: string, to: stri
   const load = useCallback(async () => {
     setStatus("loading");
     try {
-      const data = await getOwnAppointments(professionalId, from, to);
+      const data = await getAppointmentsForProfessional(professionalId, from, to);
       setAppointments(data);
       setStatus("ready");
     } catch (err) {

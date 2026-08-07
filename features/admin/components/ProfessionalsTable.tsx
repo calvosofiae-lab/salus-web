@@ -50,6 +50,7 @@ export function ProfessionalsTable() {
             <tr className="border-b text-left">
               <th className="py-2 pr-4">Nombre</th>
               <th className="py-2 pr-4">Profesión</th>
+              <th className="py-2 pr-4">Precio</th>
               <th className="py-2 pr-4">Estado</th>
               <th className="py-2 pr-4">Plan</th>
               <th className="py-2 pr-4" />
@@ -65,6 +66,11 @@ export function ProfessionalsTable() {
                   <td className="py-2 pr-4">{prof.full_name}</td>
                   <td className="py-2 pr-4">
                     {PROFESSION_LABELS[prof.profession] ?? prof.profession}
+                  </td>
+                  <td className="py-2 pr-4">
+                    {prof.consultation_fee != null
+                      ? `$${prof.consultation_fee.toLocaleString("es-AR")}`
+                      : "—"}
                   </td>
                   <td className="py-2 pr-4">
                     <Badge variant={prof.is_active ? "default" : "secondary"}>

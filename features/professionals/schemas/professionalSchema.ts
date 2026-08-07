@@ -21,6 +21,7 @@ const baseShape = {
   profession: z.enum(professionValues),
   license_number: z.string(),
   gender: z.union([z.enum(genderValues), z.literal("")]),
+  consultation_fee: z.string(),
   description: z.string(),
   photo_url: z.string(),
   whatsapp: z.string(),
@@ -45,6 +46,17 @@ export function buildProfessionalFormSchema(mode: "create" | "edit") {
         path: ["whatsapp"],
         message: `Deben ser ${country.numberLength} números para ${country.label}.`,
       });
+    }
+
+    if (values.consultation_fee !== "") {
+      const fee = Number(values.consultation_fee);
+      if (!Number.isFinite(fee) || fee < 0) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["consultation_fee"],
+          message: "Ingresá un precio válido.",
+        });
+      }
     }
 
     if (mode !== "create") return;

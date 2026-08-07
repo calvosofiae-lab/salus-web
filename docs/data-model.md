@@ -46,7 +46,7 @@ proyecto (tarea E0-9), una vez validado que nada la referencia.
 | is_active | boolean | default true |
 | average_rating | numeric | cacheado, recalculado desde `reviews` |
 | gender_trained | boolean, nullable | migrado de `profesionales.Capacitacion_en_genero`; no estaba en el diseño original, se agregó al migrar datos reales (E0-5) |
-| consultation_fee | numeric, nullable | migrado de `profesionales.Valor_de_consulta`; no estaba en el diseño original, se agregó al migrar datos reales (E0-5) |
+| consultation_fee | numeric, nullable | precio de la sesión; se carga/edita desde `ProfessionalForm` (alta, edición admin y "Mi perfil") |
 | created_at | timestamptz | default now() |
 
 ### `availability_rules`

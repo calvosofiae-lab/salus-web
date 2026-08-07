@@ -35,6 +35,7 @@ const EMPTY_VALUES: ProfessionalFormSchema = {
   profession: PROFESSION_OPTIONS[0].value,
   license_number: "",
   gender: "",
+  consultation_fee: "",
   description: "",
   photo_url: "",
   whatsapp: "",
@@ -252,6 +253,26 @@ export function ProfessionalForm({
           <div className="grid gap-1.5">
             <Label htmlFor="license_number">Matrícula</Label>
             <Input id="license_number" {...register("license_number")} />
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label htmlFor="consultation_fee">Precio de la sesión</Label>
+            <Input
+              id="consultation_fee"
+              type="number"
+              inputMode="decimal"
+              min="0"
+              step="1"
+              placeholder="Ej: 15000"
+              aria-invalid={!!errors.consultation_fee}
+              aria-describedby={errors.consultation_fee ? "consultation_fee-error" : undefined}
+              {...register("consultation_fee")}
+            />
+            {errors.consultation_fee && (
+              <p id="consultation_fee-error" role="alert" className="text-xs text-red-600">
+                {errors.consultation_fee.message}
+              </p>
+            )}
           </div>
 
           <div className="grid gap-1.5">

@@ -52,6 +52,9 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
           </p>
         )}
         <span className="prof-badge">{modalidad}</span>
+        {prof.consultation_fee != null && (
+          <p className="prof-price">${prof.consultation_fee.toLocaleString("es-AR")} la sesión</p>
+        )}
         {descripcion && <p className="prof-description">{descripcion}</p>}
       </div>
       <div>

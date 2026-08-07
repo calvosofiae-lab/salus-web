@@ -15,7 +15,12 @@ export function useUpdateProfessional(id: string) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  async function update({ photoFile, photoRemoved, ...values }: ProfessionalFormSubmitValues) {
+  async function update({
+    photoFile,
+    photoRemoved,
+    consultation_fee,
+    ...values
+  }: ProfessionalFormSubmitValues) {
     setIsLoading(true);
     setError(null);
 
@@ -26,7 +31,11 @@ export function useUpdateProfessional(id: string) {
       } else if (photoRemoved) {
         await removeProfessionalPhoto(id);
       }
-      await updateProfessional(id, { ...values, photo_url });
+      await updateProfessional(id, {
+        ...values,
+        photo_url,
+        consultation_fee: consultation_fee.trim() === "" ? null : Number(consultation_fee),
+      });
       router.push("/admin/profesionales");
     } catch (err) {
       setError(getErrorMessage(err, "Ocurrió un error al actualizar el profesional"));

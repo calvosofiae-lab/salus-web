@@ -687,6 +687,13 @@
   line-height: 1.4;
 }
 
+.salus .prof-price {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 0.6rem;
+}
+
 .salus .prof-book-btn {
   display: flex;
   align-items: center;

@@ -31,6 +31,8 @@ export function OwnProfileForm({ professional }: { professional: Professional })
           profession: professional.profession,
           license_number: professional.license_number ?? "",
           gender: professional.gender ?? "",
+          consultation_fee:
+            professional.consultation_fee != null ? String(professional.consultation_fee) : "",
           description: professional.description ?? "",
           photo_url: professional.photo_url ?? "",
           whatsapp: professional.whatsapp ?? "",

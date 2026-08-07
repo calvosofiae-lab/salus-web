@@ -24,6 +24,7 @@ export interface ProfessionalFormValues {
   profession: string;
   license_number: string;
   gender: string;
+  consultation_fee: string;
   description: string;
   photo_url: string;
   whatsapp: string;

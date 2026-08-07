@@ -14,7 +14,12 @@ export function useUpdateOwnProfile(id: string) {
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  async function update({ photoFile, photoRemoved, ...values }: ProfessionalFormSubmitValues) {
+  async function update({
+    photoFile,
+    photoRemoved,
+    consultation_fee,
+    ...values
+  }: ProfessionalFormSubmitValues) {
     setIsLoading(true);
     setError(null);
     setSuccess(false);
@@ -26,7 +31,11 @@ export function useUpdateOwnProfile(id: string) {
       } else if (photoRemoved) {
         await removeProfessionalPhoto(id);
       }
-      await updateProfessional(id, { ...values, photo_url });
+      await updateProfessional(id, {
+        ...values,
+        photo_url,
+        consultation_fee: consultation_fee.trim() === "" ? null : Number(consultation_fee),
+      });
       setSuccess(true);
     } catch (err) {
       setError(getErrorMessage(err, "Ocurrió un error al actualizar tu perfil"));

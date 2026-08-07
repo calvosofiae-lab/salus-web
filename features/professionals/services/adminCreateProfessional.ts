@@ -30,6 +30,8 @@ export async function adminCreateProfessional(input: ProfessionalCreateInput) {
       profession: input.profession,
       license_number: input.license_number || null,
       gender: input.gender || null,
+      consultation_fee:
+        input.consultation_fee.trim() === "" ? null : Number(input.consultation_fee),
       description: input.description || null,
       photo_url: input.photo_url || null,
       whatsapp: input.whatsapp || null,

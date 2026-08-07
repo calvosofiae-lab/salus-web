@@ -57,6 +57,11 @@ export function ProfessionalProfile({ professional }: { professional: Profession
           </p>
           {modalidad && <p className="text-sm text-muted-foreground">Atención {modalidad}</p>}
           {ubicacion && <p className="text-sm text-muted-foreground">📍 {ubicacion}</p>}
+          {professional.consultation_fee != null && (
+            <p className="text-sm text-muted-foreground">
+              Precio de la sesión: ${professional.consultation_fee.toLocaleString("es-AR")}
+            </p>
+          )}
           <RatingSummary averageRating={professional.average_rating} />
         </div>
       </div>

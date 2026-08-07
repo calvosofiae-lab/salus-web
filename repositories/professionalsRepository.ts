@@ -45,6 +45,8 @@ export async function searchProfessionals(
     query = query.eq("city", filters.city);
   }
 
+  query = query.order("average_rating", { ascending: false, nullsFirst: false });
+
   const { data, error } = await query;
   if (error) throw error;
   return data ?? [];

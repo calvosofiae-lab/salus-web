@@ -1,6 +1,6 @@
 "use client";
 
-import { KeyRound } from "lucide-react";
+import { KeyRound, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useUpdatePassword } from "@/features/auth/hooks/useUpdatePassword";
 
 export function UpdatePasswordForm({
@@ -21,10 +21,17 @@ export function UpdatePasswordForm({
 }: React.ComponentPropsWithoutRef<"div">) {
   const [password, setPassword] = useState("");
   const { updatePassword, error, isLoading } = useUpdatePassword();
+  const isSubmittingRef = useRef(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await updatePassword(password);
+    if (isSubmittingRef.current || isLoading) return;
+    isSubmittingRef.current = true;
+    try {
+      await updatePassword(password);
+    } finally {
+      isSubmittingRef.current = false;
+    }
   };
 
   return (
@@ -42,15 +49,24 @@ export function UpdatePasswordForm({
                 <Input
                   id="password"
                   type="password"
+                  autoComplete="new-password"
                   placeholder="Nueva contraseña"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                <KeyRound className="size-4" />
+              {error && (
+                <p role="alert" className="text-sm text-red-600">
+                  {error}
+                </p>
+              )}
+              <Button type="submit" className="w-full" disabled={isLoading} aria-busy={isLoading}>
+                {isLoading ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                ) : (
+                  <KeyRound className="size-4" aria-hidden="true" />
+                )}
                 {isLoading ? "Guardando..." : "Guardar nueva contraseña"}
               </Button>
             </div>

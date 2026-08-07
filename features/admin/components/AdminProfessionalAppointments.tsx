@@ -51,7 +51,11 @@ export function AdminProfessionalAppointments({ professionalId }: { professional
       {status === "loading" && (
         <p className="text-sm text-muted-foreground">Cargando turnos...</p>
       )}
-      {status === "error" && <p className="text-sm text-red-500">Error al cargar los turnos.</p>}
+      {status === "error" && (
+        <p role="alert" className="text-sm text-red-600">
+          Error al cargar los turnos.
+        </p>
+      )}
       {status === "ready" && appointments.length === 0 && (
         <p className="text-sm text-muted-foreground">
           No hay turnos reservados en este rango de fechas.

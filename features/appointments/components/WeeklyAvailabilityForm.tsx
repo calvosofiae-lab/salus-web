@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAvailabilityRules } from "@/features/appointments/hooks/useAvailabilityRules";
 
 // Solo de lunes a viernes: SALUS no opera fines de semana.
@@ -63,21 +64,26 @@ export function WeeklyAvailabilityForm({ professionalId }: { professionalId: str
   }
 
   return (
-    <section className="flex flex-col gap-3">
-      <div>
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-brand-navy">
-          Horario semanal
-        </h2>
-        <p className="text-xs text-muted-foreground">
+    <Card>
+      <CardHeader className="pb-4">
+        <CardTitle className="text-base text-brand-navy">Horario semanal</CardTitle>
+        <p className="text-sm text-muted-foreground">
           Solo se atiende de lunes a viernes. Los cambios solo afectan turnos futuros, no
           modifican los ya reservados.
         </p>
-      </div>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-3">
       {status === "loading" && <p className="text-sm text-muted-foreground">Cargando...</p>}
       {status === "error" && (
-        <p className="text-sm text-red-500">Error al cargar tu disponibilidad.</p>
+        <p role="alert" className="text-sm text-red-600">
+          Error al cargar tu disponibilidad.
+        </p>
       )}
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {error && (
+        <p role="alert" className="text-sm text-red-600">
+          {error}
+        </p>
+      )}
       <div className="flex flex-col divide-y rounded-md border">
         {DAYS.map((day) => {
           const dayRules = rules.filter((r) => r.day_of_week === day.value);
@@ -140,18 +146,21 @@ export function WeeklyAvailabilityForm({ professionalId }: { professionalId: str
                     disabled={isSaving}
                     onClick={() => handleAdd(day.value)}
                   >
-                    <Plus className="size-3.5" />
+                    <Plus className="size-3.5" aria-hidden="true" />
                     Agregar
                   </Button>
                 </div>
                 {rangeError[day.value] && (
-                  <p className="text-xs text-red-500">{rangeError[day.value]}</p>
+                  <p role="alert" className="text-xs text-red-600">
+                    {rangeError[day.value]}
+                  </p>
                 )}
               </div>
             </div>
           );
         })}
       </div>
-    </section>
+      </CardContent>
+    </Card>
   );
 }

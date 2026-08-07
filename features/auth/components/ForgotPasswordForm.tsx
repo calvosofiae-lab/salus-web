@@ -12,8 +12,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useState } from "react";
-import { Send } from "lucide-react";
+import { useRef, useState } from "react";
+import { CheckCircle2, Loader2, Send } from "lucide-react";
 import { useForgotPassword } from "@/features/auth/hooks/useForgotPassword";
 
 export function ForgotPasswordForm({
@@ -22,17 +22,31 @@ export function ForgotPasswordForm({
 }: React.ComponentPropsWithoutRef<"div">) {
   const [email, setEmail] = useState("");
   const { sendResetEmail, error, success, isLoading } = useForgotPassword();
+  const isSubmittingRef = useRef(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await sendResetEmail(email);
+    if (isSubmittingRef.current || isLoading) return;
+    isSubmittingRef.current = true;
+    try {
+      await sendResetEmail(email);
+    } finally {
+      isSubmittingRef.current = false;
+    }
   };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       {success ? (
-        <Card className="border-t-4 border-t-brand-teal">
+        <Card
+          role="status"
+          aria-live="polite"
+          className="motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 motion-safe:duration-200 border-t-4 border-t-brand-teal"
+        >
           <CardHeader>
+            <div className="mb-1 flex size-10 items-center justify-center rounded-full bg-brand-teal/10">
+              <CheckCircle2 className="size-5 text-brand-teal" aria-hidden="true" />
+            </div>
             <CardTitle className="text-2xl text-brand-navy">Revisá tu email</CardTitle>
             <CardDescription>Te enviamos instrucciones para restablecer la contraseña</CardDescription>
           </CardHeader>
@@ -59,15 +73,24 @@ export function ForgotPasswordForm({
                   <Input
                     id="email"
                     type="email"
+                    autoComplete="email"
                     placeholder="m@example.com"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
-                {error && <p className="text-sm text-red-500">{error}</p>}
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  <Send className="size-4" />
+                {error && (
+                  <p role="alert" className="text-sm text-red-600">
+                    {error}
+                  </p>
+                )}
+                <Button type="submit" className="w-full" disabled={isLoading} aria-busy={isLoading}>
+                  {isLoading ? (
+                    <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                  ) : (
+                    <Send className="size-4" aria-hidden="true" />
+                  )}
                   {isLoading ? "Enviando..." : "Enviar email de recupero"}
                 </Button>
               </div>

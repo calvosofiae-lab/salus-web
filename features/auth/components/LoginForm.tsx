@@ -12,8 +12,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useState } from "react";
-import { LogIn } from "lucide-react";
+import { useRef, useState } from "react";
+import { Loader2, LogIn } from "lucide-react";
 import { useLogin } from "@/features/auth/hooks/useLogin";
 
 export function LoginForm({
@@ -23,10 +23,17 @@ export function LoginForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { login, error, isLoading } = useLogin();
+  const isSubmittingRef = useRef(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login(email, password);
+    if (isSubmittingRef.current || isLoading) return;
+    isSubmittingRef.current = true;
+    try {
+      await login(email, password);
+    } finally {
+      isSubmittingRef.current = false;
+    }
   };
 
   return (
@@ -54,6 +61,7 @@ export function LoginForm({
                 <Input
                   id="email"
                   type="email"
+                  autoComplete="email"
                   placeholder="m@example.com"
                   required
                   value={email}
@@ -65,7 +73,7 @@ export function LoginForm({
                   <Label htmlFor="password">Contraseña</Label>
                   <Link
                     href="/auth/forgot-password"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                    className="ml-auto inline-block text-sm text-brand-teal-dark underline-offset-4 hover:underline"
                   >
                     ¿Olvidaste tu contraseña?
                   </Link>
@@ -73,14 +81,23 @@ export function LoginForm({
                 <Input
                   id="password"
                   type="password"
+                  autoComplete="current-password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                <LogIn className="size-4" />
+              {error && (
+                <p role="alert" className="text-sm text-red-600">
+                  {error}
+                </p>
+              )}
+              <Button type="submit" className="w-full" disabled={isLoading} aria-busy={isLoading}>
+                {isLoading ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                ) : (
+                  <LogIn className="size-4" aria-hidden="true" />
+                )}
                 {isLoading ? "Ingresando..." : "Ingresar"}
               </Button>
             </div>

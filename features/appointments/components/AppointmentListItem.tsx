@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { CalendarClock, CheckCircle2, MessageCircle } from "lucide-react";
+import { useRef, useState } from "react";
+import { CalendarClock, CheckCircle2, Loader2, MessageCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AppointmentStatusMenu } from "@/features/appointments/components/AppointmentStatusMenu";
@@ -35,6 +35,7 @@ export function AppointmentListItem({
   const [selectedSlot, setSelectedSlot] = useState<{ date: string; time: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rescheduleError, setRescheduleError] = useState<string | null>(null);
+  const isSubmittingRef = useRef(false);
 
   const surveyLink =
     appointment.status === "realizado" && appointment.rating_token
@@ -64,18 +65,23 @@ export function AppointmentListItem({
   }
 
   async function handleConfirmReschedule() {
-    if (!selectedSlot) return;
+    if (!selectedSlot || isSubmittingRef.current) return;
     const slot = selectedSlot;
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
     setRescheduleError(null);
-    const result = await onReschedule(slot.date, slot.time);
-    setIsSubmitting(false);
-    if (result.success) {
-      onRescheduled(slot);
-      setIsRescheduling(false);
-      setSelectedSlot(null);
-    } else {
-      setRescheduleError(result.error);
+    try {
+      const result = await onReschedule(slot.date, slot.time);
+      if (result.success) {
+        onRescheduled(slot);
+        setIsRescheduling(false);
+        setSelectedSlot(null);
+      } else {
+        setRescheduleError(result.error);
+      }
+    } finally {
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
     }
   }
 
@@ -130,17 +136,24 @@ export function AppointmentListItem({
         <div className="flex flex-col gap-3 rounded-md border bg-muted/30 p-3">
           <p className="text-xs font-medium text-brand-navy">Elegí el nuevo día y horario</p>
           <SlotPicker
+            compact
             professionalId={professionalId}
             selectedSlot={selectedSlot}
             onSelectSlot={(date, time) => setSelectedSlot({ date, time })}
           />
-          {rescheduleError && <p className="text-sm text-red-500">{rescheduleError}</p>}
+          {rescheduleError && (
+            <p role="alert" className="text-sm text-red-600">
+              {rescheduleError}
+            </p>
+          )}
           <div className="flex gap-2">
             <Button
               size="sm"
               disabled={!selectedSlot || isSubmitting}
+              aria-busy={isSubmitting}
               onClick={handleConfirmReschedule}
             >
+              {isSubmitting && <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />}
               {isSubmitting ? "Reprogramando..." : "Confirmar reprogramación"}
             </Button>
             <Button
@@ -156,14 +169,18 @@ export function AppointmentListItem({
       )}
 
       {justRescheduledTo && rescheduleWhatsappHref && (
-        <div className="flex items-center justify-between rounded-md border border-green-600 bg-green-50 px-3 py-2">
-          <p className="text-xs text-green-800">
+        <div
+          role="status"
+          className="flex items-center justify-between gap-3 rounded-md border border-brand-teal/40 bg-brand-teal/5 px-3 py-2"
+        >
+          <p className="flex items-center gap-1.5 text-xs text-brand-navy">
+            <CheckCircle2 className="size-3.5 shrink-0 text-brand-teal" aria-hidden="true" />
             Turno reprogramado para el {formatLongDate(justRescheduledTo.date)} a las{" "}
             {justRescheduledTo.time.slice(0, 5)} hs.
           </p>
           <Button asChild size="sm" variant="outline">
             <a href={rescheduleWhatsappHref} target="_blank" rel="noopener noreferrer">
-              <MessageCircle className="size-3.5" />
+              <MessageCircle className="size-3.5" aria-hidden="true" />
               Avisar por WhatsApp
             </a>
           </Button>

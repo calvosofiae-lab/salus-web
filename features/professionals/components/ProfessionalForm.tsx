@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Save, Trash2, Upload } from "lucide-react";
+import { Loader2, Plus, Save, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -68,10 +69,10 @@ interface ProfessionalFormProps {
   submitLabel: string;
 }
 
-const selectClassName =
-  "h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring";
+const fieldClassName =
+  "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm";
 const textareaClassName =
-  "rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring";
+  "flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 
 function ChipToggle({
   label,
@@ -85,12 +86,13 @@ function ChipToggle({
   return (
     <button
       type="button"
+      aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+        "rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
         active
           ? "border-brand-teal bg-brand-teal text-white"
-          : "border-input bg-background text-muted-foreground hover:border-brand-teal/50",
+          : "border-input bg-background text-muted-foreground hover:border-brand-teal/50 hover:text-brand-navy",
       )}
     >
       {label}
@@ -98,11 +100,23 @@ function ChipToggle({
   );
 }
 
-function FieldGroupLabel({ children }: { children: React.ReactNode }) {
+function SectionCard({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <h3 className="text-xs font-semibold uppercase tracking-wide text-brand-navy">
-      {children}
-    </h3>
+    <Card>
+      <CardHeader className="pb-4">
+        <CardTitle className="text-base text-brand-navy">{title}</CardTitle>
+        {description && <p className="text-sm text-muted-foreground">{description}</p>}
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">{children}</CardContent>
+    </Card>
   );
 }
 
@@ -131,6 +145,8 @@ export function ProfessionalForm({
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Guarda contra doble-click: ver misma justificación en BookingForm.
+  const isSubmittingRef = useRef(false);
 
   const photoUrl = watch("photo_url");
   const whatsappCountry = watch("whatsapp_country");
@@ -192,26 +208,39 @@ export function ProfessionalForm({
   const { cities: ciudadesDisponibles, status: citiesStatus } = useCitiesByProvince(province);
 
   const onValid = handleFormSubmit(async ({ email, password, ...values }) => {
-    const base = { ...values, photoFile, photoRemoved };
-    await onSubmit(mode === "create" ? { ...base, email, password } : base);
+    if (isSubmittingRef.current || isLoading) return;
+    isSubmittingRef.current = true;
+    try {
+      const base = { ...values, photoFile, photoRemoved };
+      await onSubmit(mode === "create" ? { ...base, email, password } : base);
+    } finally {
+      isSubmittingRef.current = false;
+    }
   });
 
   return (
     <form onSubmit={onValid} className="flex flex-col gap-6 max-w-3xl">
-      <div className="flex flex-col gap-3">
-        <FieldGroupLabel>Datos del profesional</FieldGroupLabel>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <SectionCard title="Datos del profesional">
+        <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2">
           <div className="grid gap-1.5">
             <Label htmlFor="full_name">Nombre y apellido</Label>
-            <Input id="full_name" {...register("full_name")} />
+            <Input
+              id="full_name"
+              autoComplete="name"
+              aria-invalid={!!errors.full_name}
+              aria-describedby={errors.full_name ? "full_name-error" : undefined}
+              {...register("full_name")}
+            />
             {errors.full_name && (
-              <p className="text-xs text-red-500">{errors.full_name.message}</p>
+              <p id="full_name-error" role="alert" className="text-xs text-red-600">
+                {errors.full_name.message}
+              </p>
             )}
           </div>
 
           <div className="grid gap-1.5">
             <Label htmlFor="profession">Profesión</Label>
-            <select id="profession" className={selectClassName} {...register("profession")}>
+            <select id="profession" className={fieldClassName} {...register("profession")}>
               {PROFESSION_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
@@ -227,7 +256,7 @@ export function ProfessionalForm({
 
           <div className="grid gap-1.5">
             <Label htmlFor="gender">Género</Label>
-            <select id="gender" className={selectClassName} {...register("gender")}>
+            <select id="gender" className={fieldClassName} {...register("gender")}>
               <option value="">Sin especificar</option>
               {GENDER_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
@@ -237,109 +266,6 @@ export function ProfessionalForm({
             </select>
           </div>
 
-          <div className="grid gap-1.5 md:col-span-2">
-            <Label>Foto de perfil</Label>
-            <div className="flex items-center gap-4">
-              {photoPreview || photoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={photoPreview || photoUrl}
-                  alt="Foto de perfil"
-                  className="w-20 h-20 rounded-full object-cover border"
-                />
-              ) : (
-                <div className="w-20 h-20 shrink-0 rounded-full border bg-muted flex items-center justify-center text-xs text-muted-foreground text-center px-1">
-                  Sin foto
-                </div>
-              )}
-              <div className="flex flex-col gap-2">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="hidden"
-                  onChange={handlePhotoChange}
-                />
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Upload className="size-3.5" />
-                    {photoPreview || photoUrl ? "Cambiar foto" : "Subir foto"}
-                  </Button>
-                  {(photoPreview || photoUrl) && (
-                    <Button type="button" variant="ghost" size="sm" onClick={handleRemovePhoto}>
-                      <Trash2 className="size-3.5" />
-                      Quitar foto
-                    </Button>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground">JPG, PNG o WEBP. Máximo 5MB.</p>
-                {photoError && <p className="text-xs text-red-500">{photoError}</p>}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid gap-1.5">
-            <Label htmlFor="whatsapp">WhatsApp</Label>
-            <div className="flex gap-2">
-              <select
-                id="whatsapp_country"
-                className={cn(selectClassName, "w-40 shrink-0")}
-                {...register("whatsapp_country")}
-                onChange={(e) => {
-                  setValue("whatsapp_country", e.target.value);
-                  setValue("whatsapp", sanitizePhoneDigits(getValues("whatsapp"), e.target.value), {
-                    shouldValidate: true,
-                  });
-                }}
-              >
-                {PHONE_COUNTRIES.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
-              <Input
-                id="whatsapp"
-                inputMode="numeric"
-                maxLength={getPhoneCountry(whatsappCountry).numberLength}
-                placeholder={whatsappCountry === "AR" ? "Ej: 3411234567" : "Ej: 666155767"}
-                {...register("whatsapp")}
-                onChange={(e) =>
-                  setValue("whatsapp", sanitizePhoneDigits(e.target.value, whatsappCountry), {
-                    shouldValidate: true,
-                  })
-                }
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {whatsappCountry === "AR" ? "Solo números, sin 0 ni 15." : "Solo números."}
-            </p>
-            {errors.whatsapp && <p className="text-xs text-red-500">{errors.whatsapp.message}</p>}
-          </div>
-
-          <div className="grid gap-1.5">
-            <Label htmlFor="instagram_url">Instagram</Label>
-            <Input
-              id="instagram_url"
-              placeholder="Ej: usuario o https://instagram.com/usuario"
-              {...register("instagram_url")}
-            />
-          </div>
-
-          <div className="grid gap-1.5">
-            <Label htmlFor="linkedin_url">LinkedIn</Label>
-            <Input
-              id="linkedin_url"
-              placeholder="Ej: usuario o https://linkedin.com/in/usuario"
-              {...register("linkedin_url")}
-            />
-          </div>
-
           <div className="grid gap-1.5">
             <Label htmlFor="province">Provincia</Label>
             {/* Select controlado (value + onChange) en vez de register(): sus <option> se */}
@@ -347,7 +273,7 @@ export function ProfessionalForm({
             {/* si el valor inicial se setea antes de que esas opciones existan en el DOM. */}
             <select
               id="province"
-              className={selectClassName}
+              className={fieldClassName}
               value={province}
               onChange={(e) => {
                 setValue("province", e.target.value);
@@ -367,7 +293,7 @@ export function ProfessionalForm({
             <Label htmlFor="city">Ciudad / Localidad</Label>
             <select
               id="city"
-              className={selectClassName}
+              className={fieldClassName}
               value={city}
               onChange={(e) => setValue("city", e.target.value, { shouldValidate: true })}
               disabled={!province}
@@ -389,6 +315,121 @@ export function ProfessionalForm({
               )}
             </select>
           </div>
+
+          <div className="grid gap-1.5 md:col-span-2">
+            <Label>Foto de perfil</Label>
+            <div className="flex items-center gap-4">
+              {photoPreview || photoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={photoPreview || photoUrl}
+                  alt="Foto de perfil"
+                  className="h-20 w-20 shrink-0 rounded-full border-2 border-brand-teal/30 object-cover"
+                />
+              ) : (
+                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border border-dashed bg-muted px-1 text-center text-xs text-muted-foreground">
+                  Sin foto
+                </div>
+              )}
+              <div className="flex flex-col gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={handlePhotoChange}
+                />
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Upload className="size-3.5" aria-hidden="true" />
+                    {photoPreview || photoUrl ? "Cambiar foto" : "Subir foto"}
+                  </Button>
+                  {(photoPreview || photoUrl) && (
+                    <Button type="button" variant="ghost" size="sm" onClick={handleRemovePhoto}>
+                      <Trash2 className="size-3.5" aria-hidden="true" />
+                      Quitar foto
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">JPG, PNG o WEBP. Máximo 5MB.</p>
+                {photoError && (
+                  <p role="alert" className="text-xs text-red-600">
+                    {photoError}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label htmlFor="whatsapp">WhatsApp</Label>
+            <div className="flex gap-2">
+              <select
+                id="whatsapp_country"
+                aria-label="País"
+                className={cn(fieldClassName, "w-40 shrink-0")}
+                {...register("whatsapp_country")}
+                onChange={(e) => {
+                  setValue("whatsapp_country", e.target.value);
+                  setValue("whatsapp", sanitizePhoneDigits(getValues("whatsapp"), e.target.value), {
+                    shouldValidate: true,
+                  });
+                }}
+              >
+                {PHONE_COUNTRIES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+              <Input
+                id="whatsapp"
+                inputMode="numeric"
+                autoComplete="tel-national"
+                maxLength={getPhoneCountry(whatsappCountry).numberLength}
+                placeholder={whatsappCountry === "AR" ? "Ej: 3411234567" : "Ej: 666155767"}
+                aria-invalid={!!errors.whatsapp}
+                aria-describedby="whatsapp-hint"
+                {...register("whatsapp")}
+                onChange={(e) =>
+                  setValue("whatsapp", sanitizePhoneDigits(e.target.value, whatsappCountry), {
+                    shouldValidate: true,
+                  })
+                }
+              />
+            </div>
+            <p id="whatsapp-hint" className="text-xs text-muted-foreground">
+              {whatsappCountry === "AR" ? "Solo números, sin 0 ni 15." : "Solo números."}
+            </p>
+            {errors.whatsapp && (
+              <p role="alert" className="text-xs text-red-600">
+                {errors.whatsapp.message}
+              </p>
+            )}
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label htmlFor="instagram_url">Instagram</Label>
+            <Input
+              id="instagram_url"
+              placeholder="Ej: usuario o https://instagram.com/usuario"
+              {...register("instagram_url")}
+            />
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label htmlFor="linkedin_url">LinkedIn</Label>
+            <Input
+              id="linkedin_url"
+              placeholder="Ej: usuario o https://linkedin.com/in/usuario"
+              {...register("linkedin_url")}
+            />
+          </div>
         </div>
 
         <div className="grid gap-1.5">
@@ -400,11 +441,10 @@ export function ProfessionalForm({
             {...register("description")}
           />
         </div>
-      </div>
+      </SectionCard>
 
-      <div className="flex flex-col gap-3 border-t pt-4">
-        <FieldGroupLabel>Atención</FieldGroupLabel>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <SectionCard title="Atención" description="Cobertura, modalidad y motivos que atiende.">
+        <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
           <div className="grid gap-1.5">
             <Label>Cobertura</Label>
             <div className="flex flex-wrap gap-2">
@@ -447,32 +487,66 @@ export function ProfessionalForm({
             ))}
           </div>
         </div>
-      </div>
+      </SectionCard>
 
       {mode === "create" && (
-        <div className="flex flex-col gap-3 border-t pt-4">
-          <FieldGroupLabel>Acceso</FieldGroupLabel>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <SectionCard title="Acceso" description="Credenciales para que el profesional pueda ingresar.">
+          <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2">
             <div className="grid gap-1.5">
               <Label htmlFor="email">Email de acceso</Label>
-              <Input id="email" type="email" {...register("email")} />
-              {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                aria-invalid={!!errors.email}
+                aria-describedby={errors.email ? "email-error" : undefined}
+                {...register("email")}
+              />
+              {errors.email && (
+                <p id="email-error" role="alert" className="text-xs text-red-600">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
             <div className="grid gap-1.5">
               <Label htmlFor="password">Contraseña provisoria</Label>
-              <Input id="password" type="password" {...register("password")} />
+              <Input
+                id="password"
+                type="password"
+                autoComplete="new-password"
+                aria-invalid={!!errors.password}
+                aria-describedby={errors.password ? "password-error" : undefined}
+                {...register("password")}
+              />
               {errors.password && (
-                <p className="text-xs text-red-500">{errors.password.message}</p>
+                <p id="password-error" role="alert" className="text-xs text-red-600">
+                  {errors.password.message}
+                </p>
               )}
             </div>
           </div>
-        </div>
+        </SectionCard>
       )}
 
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {error && (
+        <p role="alert" className="text-sm text-red-600">
+          {error}
+        </p>
+      )}
 
-      <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
-        {mode === "create" ? <Plus className="size-4" /> : <Save className="size-4" />}
+      <Button
+        type="submit"
+        disabled={isLoading}
+        aria-busy={isLoading}
+        className="w-full sm:w-auto sm:self-start"
+      >
+        {isLoading ? (
+          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+        ) : mode === "create" ? (
+          <Plus className="size-4" aria-hidden="true" />
+        ) : (
+          <Save className="size-4" aria-hidden="true" />
+        )}
         {isLoading ? "Guardando..." : submitLabel}
       </Button>
     </form>

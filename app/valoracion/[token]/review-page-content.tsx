@@ -40,7 +40,7 @@ export async function ReviewPageContent({
 
   return (
     <>
-      <div className="salus">
+      <div className="salus salus--header-only">
         <SiteHeader />
       </div>
       <div className="max-w-md mx-auto p-6 flex flex-col gap-6">

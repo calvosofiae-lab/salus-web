@@ -41,6 +41,7 @@ export function useCreateProfessional() {
       router.push("/admin/profesionales");
     } catch (err) {
       setError(getErrorMessage(err, "Ocurrió un error al crear el profesional"));
+      throw err;
     } finally {
       setIsLoading(false);
     }

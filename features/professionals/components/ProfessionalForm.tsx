@@ -135,6 +135,7 @@ export function ProfessionalForm({
     watch,
     setValue,
     getValues,
+    reset,
     formState: { errors },
   } = useForm<ProfessionalFormSchema>({
     resolver: zodResolver(buildProfessionalFormSchema(mode)),
@@ -214,6 +215,17 @@ export function ProfessionalForm({
     try {
       const base = { ...values, photoFile, photoRemoved };
       await onSubmit(mode === "create" ? { ...base, email, password } : base);
+      if (mode === "create") {
+        // Si el navegador reutiliza la instancia del formulario al volver a "nuevo"
+        // (cache de navegación de Next.js), evita que queden los datos del alta anterior.
+        reset(EMPTY_VALUES);
+        setPhotoFile(null);
+        setPhotoRemoved(false);
+        setPhotoError(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      }
+    } catch {
+      // El error ya quedó expuesto vía la prop `error`; no se limpia el formulario.
     } finally {
       isSubmittingRef.current = false;
     }

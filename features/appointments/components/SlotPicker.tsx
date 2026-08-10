@@ -38,11 +38,18 @@ export const SlotPicker = forwardRef<
 ) {
   const [date, setDate] = useState("");
   const [dateError, setDateError] = useState<string | null>(null);
-  // En iOS, la rueda nativa del input de fecha dispara onChange en cada tick de scroll (no
-  // solo al terminar de elegir), pasando por valores intermedios antes de llegar al elegido.
-  // Por eso `date` nunca se fuerza a "" acá: si se vaciara al pasar por un domingo intermedio,
-  // se perdería la selección en curso. En cambio, mientras la fecha elegida sea domingo, se
-  // bloquea el paso 2 (no se busca horarios) mostrando el error, sin tocar el input.
+  // En iOS (Safari y Chrome, ambos sobre WebKit), si el input de fecha es un componente
+  // controlado, React vuelve a asignarle `.value` en cada render -- y WebKit interpreta esa
+  // asignación programática como un cambio externo mientras el popover de selección está
+  // abierto, cerrándolo solo. Por eso el input usa `defaultValue` (no controlado): el DOM
+  // maneja su propio valor y React solo lee `date` a través de `onChange`. Ver los <Input
+  // type="date"> más abajo.
+  //
+  // Además, la rueda nativa dispara onChange en cada tick de scroll (no solo al terminar de
+  // elegir), pasando por valores intermedios antes de llegar al elegido. Por eso `date` nunca
+  // se fuerza a "" acá: si se vaciara al pasar por un domingo intermedio, se perdería la
+  // selección en curso. En cambio, mientras la fecha elegida sea domingo, se bloquea el paso 2
+  // (no se busca horarios) mostrando el error, sin tocar el input.
   const isDateSunday = date !== "" && isSunday(date);
   const { slots, status, reload } = useAvailableSlots(
     professionalId,
@@ -72,7 +79,7 @@ export const SlotPicker = forwardRef<
           <Input
             id="appointment_date"
             type="date"
-            value={date}
+            defaultValue={date}
             onChange={(e) => handleDateChange(e.target.value)}
           />
           {dateError && <p className="text-sm text-red-500">{dateError}</p>}
@@ -127,7 +134,7 @@ export const SlotPicker = forwardRef<
             <Input
               id="appointment_date"
               type="date"
-              value={date}
+              defaultValue={date}
               aria-invalid={!!dateError}
               aria-describedby={dateError ? "appointment_date-error" : undefined}
               onChange={(e) => handleDateChange(e.target.value)}

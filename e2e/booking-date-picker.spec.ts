@@ -1,22 +1,24 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page, type Locator } from "@playwright/test";
 
 // Regresión para el selector de fecha del turno (features/appointments/components/SlotPicker.tsx).
 //
-// Bug reportado: en Safari y Chrome de iPhone (ambos sobre WebKit) el popover nativo del
-// input de fecha se cerraba solo apenas el usuario empezaba a elegir. Causas encontradas:
-//   1. El input era un componente controlado (value={date}): React le reasignaba `.value` en
-//      cada render, y WebKit interpreta esa asignación programática como un cambio externo
-//      mientras el popover está abierto, cerrándolo. Se pasó a `defaultValue` (no controlado).
-//   2. La rueda nativa de iOS dispara `onChange` en cada tick de scroll -- no solo al
-//      confirmar -- pasando por valores intermedios (posiblemente domingo) antes de llegar a
-//      la fecha final. El código ya no vacía la selección al pasar por un domingo intermedio.
+// Bug reportado: en Safari y Chrome de iPhone (ambos sobre WebKit) el picker nativo de fecha
+// se cerraba solo apenas el usuario empezaba a elegir. Causa: en iOS la rueda nativa dispara
+// `onChange` en cada tick de scroll (no solo al confirmar), y esos valores intermedios son
+// casi siempre un día hábil válido. Como el paso "Elegí una fecha" reemplazaba el <input> por
+// el resumen "Fecha: ... Cambiar fecha" apenas la fecha elegida era válida, el primer tick ya
+// alcanzaba para desmontar el <input> -- con el picker nativo todavía abierto, cerrándolo de
+// golpe. No pasaba en Android/desktop porque ahí el evento se dispara una sola vez, al
+// confirmar. Se agregó un botón "Continuar" explícito: el input ya no se desmonta hasta que
+// la persona usuaria confirma a propósito, sin importar cuántos onChange intermedios dispare
+// el navegador mientras tanto.
 //
-// IMPORTANTE -- lo que esta suite NO puede probar: el popover de fecha es UI del sistema
+// IMPORTANTE -- lo que esta suite NO puede probar: el picker de fecha en sí es UI del sistema
 // operativo, fuera del DOM de la página, así que ningún test de Playwright (en ningún motor,
 // ni siquiera WebKit) puede abrirlo/cerrarlo ni verificar si "se cerró solo". Lo que sí cubre,
 // corriendo en Chromium/Firefox/WebKit (desktop y con viewport de iPhone/Android emulado): que
-// el estado de React no se resetea al elegir fecha y que el flujo llega y se queda en el paso
-// de horarios. La confirmación en un iPhone real la sigue haciendo una persona.
+// el <input> no se desmonta mientras el usuario sigue editando, y que el estado de React no se
+// resetea al confirmar. La confirmación en un iPhone real la sigue haciendo una persona.
 //
 // Los tests no completan la reserva (no tocan horarios ni envían el formulario de datos) para
 // no crear turnos reales contra la base de datos configurada en .env.local.
@@ -36,8 +38,15 @@ function nextBookableDate(): Date {
   return d;
 }
 
-// Domingo más cercano anterior a `target` -- simula el valor intermedio que la rueda nativa
-// de iOS dispara al pasar por ese día mientras el usuario todavía scrollea hacia `target`.
+// Un día hábil distinto a `from`, unos días más adelante.
+function anotherBookableDate(from: Date): Date {
+  const d = new Date(from);
+  d.setDate(d.getDate() + 2);
+  while (d.getDay() === 0) d.setDate(d.getDate() + 1);
+  return d;
+}
+
+// Domingo más cercano anterior a `target`.
 function precedingSunday(target: Date): Date {
   const d = new Date(target);
   while (d.getDay() !== 0) d.setDate(d.getDate() - 1);
@@ -45,7 +54,7 @@ function precedingSunday(target: Date): Date {
 }
 
 // Busca sin filtros (trae todos los profesionales activos) y entra al perfil del primero.
-async function gotoFirstProfessionalBooking(page: Page) {
+async function gotoFirstProfessionalBooking(page: Page): Promise<Locator> {
   await page.goto("/");
   await page.getByRole("button", { name: "Buscar Profesionales" }).click();
 
@@ -59,42 +68,55 @@ async function gotoFirstProfessionalBooking(page: Page) {
 }
 
 test.describe("Selector de fecha del turno", () => {
-  test("elegir una fecha válida después de pasar por un domingo intermedio no se resetea", async ({
+  test("el input no se desmonta mientras se sigue editando, antes de confirmar", async ({
     page,
   }) => {
     const target = nextBookableDate();
-    const sunday = precedingSunday(target);
+    const another = anotherBookableDate(target);
     const dateInput = await gotoFirstProfessionalBooking(page);
 
-    // Valor intermedio simulado (equivalente a un tick de la rueda de iOS a mitad de camino).
-    await dateInput.fill(toISODate(sunday));
-    await expect(page.getByText(DATE_ERROR)).toBeVisible();
-
-    // Fecha final elegida por la persona usuaria.
+    // Simula varios ticks de la rueda nativa de iOS mientras el usuario todavía está
+    // eligiendo, sin tocar "Continuar" -- el input tiene que seguir en el DOM en todo momento.
     await dateInput.fill(toISODate(target));
-    await expect(page.getByText(DATE_ERROR)).toBeHidden();
-    await expect(page.getByRole("heading", { name: "Elegí un horario" })).toBeVisible();
+    await expect(dateInput).toBeVisible();
+    await dateInput.fill(toISODate(another));
+    await expect(dateInput).toBeVisible();
+    await expect(page.getByText("Cambiar fecha")).toBeHidden();
 
-    // Deja que el fetch de horarios resuelva (loading -> ready/error/empty), que dispara otro
-    // re-render del componente -- si el input siguiera siendo controlado, esto podría volver
-    // a pisar su valor y devolver la UI al paso 1.
-    await expect(page.getByText("Buscando horarios...")).toBeHidden({ timeout: 15_000 });
+    await page.getByRole("button", { name: "Continuar" }).click();
 
-    // El paso 1 debe seguir colapsado en "hecho": si el estado se hubiera reseteado, veríamos
-    // de nuevo el input de fecha vacío en vez del resumen con "Cambiar fecha".
     await expect(page.getByText("Cambiar fecha")).toBeVisible();
     await expect(dateInput).toBeHidden();
   });
 
-  test("elegir un domingo muestra el error sin vaciar el campo", async ({ page }) => {
+  test("confirmar una fecha válida muestra el paso de horarios y no se resetea", async ({
+    page,
+  }) => {
+    const target = nextBookableDate();
+    const dateInput = await gotoFirstProfessionalBooking(page);
+
+    await dateInput.fill(toISODate(target));
+    await page.getByRole("button", { name: "Continuar" }).click();
+
+    await expect(page.getByRole("heading", { name: "Elegí un horario" })).toBeVisible();
+
+    // Deja que el fetch de horarios resuelva (loading -> ready/error/empty), que dispara otro
+    // re-render -- el paso de fecha debe seguir colapsado en "hecho" después de eso.
+    await expect(page.getByText("Buscando horarios...")).toBeHidden({ timeout: 15_000 });
+    await expect(page.getByText("Cambiar fecha")).toBeVisible();
+    await expect(dateInput).toBeHidden();
+  });
+
+  test("confirmar un domingo muestra el error y no avanza de paso", async ({ page }) => {
     const sunday = precedingSunday(nextBookableDate());
     const dateInput = await gotoFirstProfessionalBooking(page);
 
     await dateInput.fill(toISODate(sunday));
+    await page.getByRole("button", { name: "Continuar" }).click();
 
     await expect(page.getByText(DATE_ERROR)).toBeVisible();
-    // El valor elegido debe seguir en el input (regresión del bug original: `setDate("")`
-    // lo vaciaba apenas se detectaba un domingo).
+    // No se confirmó ninguna fecha: seguimos en el paso 1, con el valor elegido en el input.
+    await expect(page.getByText("Cambiar fecha")).toBeHidden();
     await expect(dateInput).toHaveValue(toISODate(sunday));
   });
 });

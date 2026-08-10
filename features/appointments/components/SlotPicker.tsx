@@ -36,35 +36,56 @@ export const SlotPicker = forwardRef<
   { professionalId, selectedSlot, onSelectSlot, onClearSelection = () => {}, compact = false },
   ref,
 ) {
-  const [date, setDate] = useState("");
-  const [dateError, setDateError] = useState<string | null>(null);
-  // En iOS (Safari y Chrome, ambos sobre WebKit), si el input de fecha es un componente
-  // controlado, React vuelve a asignarle `.value` en cada render -- y WebKit interpreta esa
-  // asignación programática como un cambio externo mientras el popover de selección está
-  // abierto, cerrándolo solo. Por eso el input usa `defaultValue` (no controlado): el DOM
-  // maneja su propio valor y React solo lee `date` a través de `onChange`. Ver los <Input
-  // type="date"> más abajo.
+  // `date`: fecha confirmada (dispara la búsqueda de horarios y, en el paso no-compact,
+  // colapsa el input a "Fecha: ...  Cambiar fecha"). `draftDate`: lo que el input muestra
+  // mientras se está eligiendo, sin confirmar todavía.
   //
-  // Además, la rueda nativa dispara onChange en cada tick de scroll (no solo al terminar de
-  // elegir), pasando por valores intermedios antes de llegar al elegido. Por eso `date` nunca
-  // se fuerza a "" acá: si se vaciara al pasar por un domingo intermedio, se perdería la
-  // selección en curso. En cambio, mientras la fecha elegida sea domingo, se bloquea el paso 2
-  // (no se busca horarios) mostrando el error, sin tocar el input.
-  const isDateSunday = date !== "" && isSunday(date);
-  const { slots, status, reload } = useAvailableSlots(
-    professionalId,
-    date && !isDateSunday ? date : null,
-  );
+  // En iOS, la rueda nativa del input de fecha dispara onChange en cada tick de scroll (no
+  // solo al terminar de elegir), y esos valores intermedios son casi siempre un día hábil. Si
+  // `date` se actualizara directamente en cada onChange, ese primer tick ya alcanzaría para
+  // desmontar el <Input> (el paso no-compact lo reemplaza por el resumen "Fecha: ...") con el
+  // picker nativo todavía abierto, cerrándolo de golpe -- eso es lo que se reportó como "se
+  // cierra el calendario solo" en Safari y Chrome de iPhone (no pasa en Android/desktop porque
+  // ahí el evento se dispara una sola vez, al confirmar). Por eso `date` solo se fija al
+  // confirmar explícitamente (botón "Continuar" acá, o directo en modo `compact`, que nunca
+  // desmonta el input): el <Input> nunca desaparece mientras el usuario puede seguir
+  // interactuando con el picker.
+  const [date, setDate] = useState("");
+  const [draftDate, setDraftDate] = useState("");
+  const [dateError, setDateError] = useState<string | null>(null);
+  const { slots, status, reload } = useAvailableSlots(professionalId, date || null);
 
   useImperativeHandle(ref, () => ({ reload }), [reload]);
 
+  // Modo compact: el input nunca se desmonta, así que confirmar en cada onChange es seguro.
   function handleDateChange(value: string) {
+    if (value && isSunday(value)) {
+      setDateError("Solo se puede reservar de lunes a sábado.");
+      setDate("");
+      return;
+    }
+    setDateError(null);
     setDate(value);
-    setDateError(value && isSunday(value) ? "Solo se puede reservar de lunes a sábado." : null);
+  }
+
+  function handleDraftDateChange(value: string) {
+    setDraftDate(value);
+    setDateError(null);
+  }
+
+  function handleConfirmDate() {
+    if (!draftDate) return;
+    if (isSunday(draftDate)) {
+      setDateError("Solo se puede reservar de lunes a sábado.");
+      return;
+    }
+    setDateError(null);
+    setDate(draftDate);
   }
 
   function handleChangeDate() {
     setDate("");
+    setDraftDate("");
     setDateError(null);
     onClearSelection?.();
   }
@@ -117,7 +138,7 @@ export const SlotPicker = forwardRef<
 
   return (
     <div className="flex flex-col gap-4">
-      {date && !isDateSunday ? (
+      {date ? (
         <BookingStepDone
           label="Fecha"
           value={formatLongDate(date)}
@@ -134,10 +155,10 @@ export const SlotPicker = forwardRef<
             <Input
               id="appointment_date"
               type="date"
-              defaultValue={date}
+              defaultValue={draftDate}
               aria-invalid={!!dateError}
               aria-describedby={dateError ? "appointment_date-error" : undefined}
-              onChange={(e) => handleDateChange(e.target.value)}
+              onChange={(e) => handleDraftDateChange(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">Turnos de lunes a sábado.</p>
             {dateError && (
@@ -145,12 +166,20 @@ export const SlotPicker = forwardRef<
                 {dateError}
               </p>
             )}
+            <Button
+              type="button"
+              size="sm"
+              className="self-start"
+              disabled={!draftDate}
+              onClick={handleConfirmDate}
+            >
+              Continuar
+            </Button>
           </div>
         </div>
       )}
 
       {date &&
-        !isDateSunday &&
         (selectedTime ? (
           <BookingStepDone
             label="Horario"

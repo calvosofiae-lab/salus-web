@@ -8,9 +8,9 @@ import { formatLongDate } from "@/features/appointments/lib/date";
 import { useAvailableSlots } from "@/features/appointments/hooks/useAvailableSlots";
 import { BookingStepDone, BookingStepHeading } from "@/features/appointments/components/BookingStep";
 
-function isWeekend(dateStr: string) {
+function isSunday(dateStr: string) {
   const day = new Date(`${dateStr}T00:00:00`).getDay();
-  return day === 0 || day === 6;
+  return day === 0;
 }
 
 export interface SlotPickerHandle {
@@ -43,8 +43,8 @@ export const SlotPicker = forwardRef<
   useImperativeHandle(ref, () => ({ reload }), [reload]);
 
   function handleDateChange(value: string) {
-    if (value && isWeekend(value)) {
-      setDateError("Solo se puede reservar de lunes a viernes.");
+    if (value && isSunday(value)) {
+      setDateError("Solo se puede reservar de lunes a sábado.");
       setDate("");
       return;
     }
@@ -64,7 +64,7 @@ export const SlotPicker = forwardRef<
     return (
       <div className="flex flex-col gap-4">
         <div className="grid gap-2 max-w-xs">
-          <Label htmlFor="appointment_date">Elegí una fecha (lunes a viernes)</Label>
+          <Label htmlFor="appointment_date">Elegí una fecha (lunes a sábado)</Label>
           <Input
             id="appointment_date"
             type="date"
@@ -118,7 +118,7 @@ export const SlotPicker = forwardRef<
           <BookingStepHeading step={1} title="Elegí una fecha" />
           <div className="grid max-w-[220px] gap-1.5 pl-8">
             <Label htmlFor="appointment_date" className="sr-only">
-              Fecha (lunes a viernes)
+              Fecha (lunes a sábado)
             </Label>
             <Input
               id="appointment_date"
@@ -128,7 +128,7 @@ export const SlotPicker = forwardRef<
               aria-describedby={dateError ? "appointment_date-error" : undefined}
               onChange={(e) => handleDateChange(e.target.value)}
             />
-            <p className="text-xs text-muted-foreground">Turnos de lunes a viernes.</p>
+            <p className="text-xs text-muted-foreground">Turnos de lunes a sábado.</p>
             {dateError && (
               <p id="appointment_date-error" role="alert" className="text-sm text-red-600">
                 {dateError}

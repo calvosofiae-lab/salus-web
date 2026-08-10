@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAvailabilityRules } from "@/features/appointments/hooks/useAvailabilityRules";
 
-// Solo de lunes a viernes: SALUS no opera fines de semana.
+// Lunes a sábado: SALUS no opera domingos.
 const DAYS = [
   { value: 1, label: "Lunes" },
   { value: 2, label: "Martes" },
   { value: 3, label: "Miércoles" },
   { value: 4, label: "Jueves" },
   { value: 5, label: "Viernes" },
+  { value: 6, label: "Sábado" },
 ];
 
 // Cada media hora, de 00:00 a 23:30: son los únicos horarios que se pueden elegir.
@@ -68,7 +69,7 @@ export function WeeklyAvailabilityForm({ professionalId }: { professionalId: str
       <CardHeader className="pb-4">
         <CardTitle className="text-base text-brand-navy">Horario semanal</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Solo se atiende de lunes a viernes. Los cambios solo afectan turnos futuros, no
+          Se atiende de lunes a sábado. Los cambios solo afectan turnos futuros, no
           modifican los ya reservados.
         </p>
       </CardHeader>

@@ -38,18 +38,22 @@ export const SlotPicker = forwardRef<
 ) {
   const [date, setDate] = useState("");
   const [dateError, setDateError] = useState<string | null>(null);
-  const { slots, status, reload } = useAvailableSlots(professionalId, date || null);
+  // En iOS, la rueda nativa del input de fecha dispara onChange en cada tick de scroll (no
+  // solo al terminar de elegir), pasando por valores intermedios antes de llegar al elegido.
+  // Por eso `date` nunca se fuerza a "" acá: si se vaciara al pasar por un domingo intermedio,
+  // se perdería la selección en curso. En cambio, mientras la fecha elegida sea domingo, se
+  // bloquea el paso 2 (no se busca horarios) mostrando el error, sin tocar el input.
+  const isDateSunday = date !== "" && isSunday(date);
+  const { slots, status, reload } = useAvailableSlots(
+    professionalId,
+    date && !isDateSunday ? date : null,
+  );
 
   useImperativeHandle(ref, () => ({ reload }), [reload]);
 
   function handleDateChange(value: string) {
-    if (value && isSunday(value)) {
-      setDateError("Solo se puede reservar de lunes a sábado.");
-      setDate("");
-      return;
-    }
-    setDateError(null);
     setDate(value);
+    setDateError(value && isSunday(value) ? "Solo se puede reservar de lunes a sábado." : null);
   }
 
   function handleChangeDate() {
@@ -106,7 +110,7 @@ export const SlotPicker = forwardRef<
 
   return (
     <div className="flex flex-col gap-4">
-      {date ? (
+      {date && !isDateSunday ? (
         <BookingStepDone
           label="Fecha"
           value={formatLongDate(date)}
@@ -139,6 +143,7 @@ export const SlotPicker = forwardRef<
       )}
 
       {date &&
+        !isDateSunday &&
         (selectedTime ? (
           <BookingStepDone
             label="Horario"

@@ -143,21 +143,24 @@ export interface Database {
         Row: {
           id: string;
           professional_id: string;
-          blocked_date: string;
+          start_date: string;
+          end_date: string;
           reason: string | null;
           created_at: string;
         };
         Insert: {
           id?: string;
           professional_id: string;
-          blocked_date: string;
+          start_date: string;
+          end_date: string;
           reason?: string | null;
           created_at?: string;
         };
         Update: {
           id?: string;
           professional_id?: string;
-          blocked_date?: string;
+          start_date?: string;
+          end_date?: string;
           reason?: string | null;
           created_at?: string;
         };

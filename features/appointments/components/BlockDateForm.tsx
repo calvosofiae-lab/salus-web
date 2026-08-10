@@ -7,22 +7,32 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAvailabilityBlocks } from "@/features/appointments/hooks/useAvailabilityBlocks";
+import { formatLongDate } from "@/features/appointments/lib/date";
 
 export function BlockDateForm({ professionalId }: { professionalId: string }) {
   const { blocks, status, error, isSaving, addBlock, removeBlock } =
     useAvailabilityBlocks(professionalId);
-  const [date, setDate] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [reason, setReason] = useState("");
   const isSubmittingRef = useRef(false);
 
+  // Al elegir "Desde", "Hasta" lo sigue mientras no se haya elegido un "Hasta" propio (o
+  // quedó antes que el nuevo "Desde") -- así bloquear un solo día no pide tocar dos campos.
+  function handleStartDateChange(value: string) {
+    setStartDate(value);
+    if (!endDate || endDate < value) setEndDate(value);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (isSubmittingRef.current || isSaving || !date) return;
+    if (isSubmittingRef.current || isSaving || !startDate || !endDate) return;
     isSubmittingRef.current = true;
     try {
-      const success = await addBlock(date, reason);
+      const success = await addBlock(startDate, endDate, reason);
       if (success) {
-        setDate("");
+        setStartDate("");
+        setEndDate("");
         setReason("");
       }
     } finally {
@@ -41,13 +51,25 @@ export function BlockDateForm({ professionalId }: { professionalId: string }) {
       <CardContent className="flex flex-col gap-3">
         <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-2">
           <div className="grid gap-1.5">
-            <Label htmlFor="blocked_date">Fecha</Label>
+            <Label htmlFor="block_start_date">Desde</Label>
             <Input
-              id="blocked_date"
+              id="block_start_date"
               type="date"
               className="h-9"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
+              value={startDate}
+              max={endDate || undefined}
+              onChange={(e) => handleStartDateChange(e.target.value)}
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="block_end_date">Hasta</Label>
+            <Input
+              id="block_end_date"
+              type="date"
+              className="h-9"
+              value={endDate}
+              min={startDate || undefined}
+              onChange={(e) => setEndDate(e.target.value)}
             />
           </div>
           <div className="grid gap-1.5">
@@ -60,7 +82,7 @@ export function BlockDateForm({ professionalId }: { professionalId: string }) {
               onChange={(e) => setReason(e.target.value)}
             />
           </div>
-          <Button type="submit" disabled={isSaving || !date} aria-busy={isSaving}>
+          <Button type="submit" disabled={isSaving || !startDate || !endDate} aria-busy={isSaving}>
             {isSaving ? (
               <Loader2 className="size-4 animate-spin" aria-hidden="true" />
             ) : (
@@ -85,7 +107,9 @@ export function BlockDateForm({ professionalId }: { professionalId: string }) {
             {blocks.map((block) => (
               <div key={block.id} className="flex items-center justify-between px-3 py-2 text-sm">
                 <span>
-                  {block.blocked_date}
+                  {block.start_date === block.end_date
+                    ? formatLongDate(block.start_date)
+                    : `${formatLongDate(block.start_date)} al ${formatLongDate(block.end_date)}`}
                   {block.reason ? ` — ${block.reason}` : ""}
                 </span>
                 <button

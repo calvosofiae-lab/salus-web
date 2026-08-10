@@ -6,7 +6,7 @@ import {
   deleteAvailabilityBlock,
   getOwnAvailabilityBlocks,
 } from "@/repositories/availabilityRepository";
-import { getErrorMessage, isPostgresErrorCode, POSTGRES_UNIQUE_VIOLATION } from "@/lib/errors";
+import { getErrorMessage } from "@/lib/errors";
 import type { AvailabilityBlock } from "@/features/appointments/types";
 
 export function useAvailabilityBlocks(professionalId: string) {
@@ -31,23 +31,20 @@ export function useAvailabilityBlocks(professionalId: string) {
     load();
   }, [load]);
 
-  async function addBlock(date: string, reason: string) {
+  async function addBlock(startDate: string, endDate: string, reason: string) {
     setIsSaving(true);
     setError(null);
     try {
       await createAvailabilityBlock({
         professional_id: professionalId,
-        blocked_date: date,
+        start_date: startDate,
+        end_date: endDate,
         reason: reason || null,
       });
       await load();
       return true;
     } catch (err) {
-      setError(
-        isPostgresErrorCode(err, POSTGRES_UNIQUE_VIOLATION)
-          ? "Ya bloqueaste esa fecha antes."
-          : getErrorMessage(err, "Ocurrió un error al bloquear la fecha"),
-      );
+      setError(getErrorMessage(err, "Ocurrió un error al bloquear la fecha"));
       return false;
     } finally {
       setIsSaving(false);

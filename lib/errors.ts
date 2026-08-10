@@ -4,6 +4,8 @@
 // legible en vez de mostrar "violates check constraint ...".
 const CHECK_CONSTRAINT_MESSAGES: Record<string, string> = {
   availability_rules_end_after_start_check: "El horario de fin debe ser posterior al de inicio.",
+  availability_blocks_end_after_start_check:
+    "La fecha de fin debe ser igual o posterior a la de inicio.",
 };
 
 function translateConstraintViolation(message: string): string | null {

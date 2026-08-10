@@ -63,7 +63,8 @@ proyecto (tarea E0-9), una vez validado que nada la referencia.
 |---|---|---|
 | id | uuid PK | |
 | professional_id | uuid | FK a `professionals.id` |
-| blocked_date | date | |
+| start_date | date | inicio del rango bloqueado (un rango de 1 día = `start_date = end_date`) |
+| end_date | date | fin del rango bloqueado; `check (end_date >= start_date)`; sin solapar con otro rango del mismo profesional (trigger) |
 | reason | text, nullable | |
 
 ### `appointments`

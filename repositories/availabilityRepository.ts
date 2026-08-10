@@ -52,7 +52,7 @@ export async function getOwnAvailabilityBlocks(
     .from("availability_blocks")
     .select("*")
     .eq("professional_id", professionalId)
-    .order("blocked_date");
+    .order("start_date");
 
   if (error) throw error;
   return data ?? [];

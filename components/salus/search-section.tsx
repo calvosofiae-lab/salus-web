@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import {
   COVERAGE_OPTIONS,
@@ -33,6 +33,7 @@ export function SearchSection() {
 
   const [searched, setSearched] = useState(false);
   const [page, setPage] = useState(0);
+  const resultsTitleRef = useRef<HTMLHeadingElement>(null);
   const { status, results, search } = useProfessionalSearch();
   const { provinces } = useProvinces();
   const { cities: ciudadesDisponibles, status: citiesStatus } = useCitiesByProvince(provincia);
@@ -57,6 +58,15 @@ export function SearchSection() {
       province: modalidad === "presencial" ? provincia || undefined : undefined,
       city: modalidad === "presencial" ? ciudad || undefined : undefined,
     });
+  }
+
+  // Al cambiar de página, el resultsGrid puede achicarse (menos tarjetas o imágenes que
+  // todavía no cargaron), lo que baja la altura total de la página y hace que el navegador
+  // ajuste el scroll -- a veces devolviéndolo hasta la sección de destacados, arriba del
+  // todo. Por eso el cambio de página siempre reubica el scroll al inicio de esta sección.
+  function goToPage(newPage: number) {
+    setPage(newPage);
+    resultsTitleRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function handleModalidadChange(value: Modality | "") {
@@ -206,7 +216,9 @@ export function SearchSection() {
 
         {searched && (
           <div id="resultsContainer" className="results-container active">
-            <h3 className="results-title">Resultados de tu Búsqueda</h3>
+            <h3 ref={resultsTitleRef} className="results-title">
+              Resultados de tu Búsqueda
+            </h3>
             <div id="resultsGrid" className="featured-grid">
               {status === "loading" && (
                 <div className="status-msg">Buscando profesionales disponibles...</div>
@@ -231,7 +243,7 @@ export function SearchSection() {
                   type="button"
                   className="pagination-btn"
                   disabled={page === 0}
-                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  onClick={() => goToPage(Math.max(0, page - 1))}
                 >
                   Anterior
                 </button>
@@ -242,7 +254,7 @@ export function SearchSection() {
                   type="button"
                   className="pagination-btn"
                   disabled={page >= pageCount - 1}
-                  onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+                  onClick={() => goToPage(Math.min(pageCount - 1, page + 1))}
                 >
                   Siguiente
                 </button>

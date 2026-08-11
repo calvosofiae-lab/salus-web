@@ -13,6 +13,7 @@ import {
   CONSULTATION_REASONS,
   COVERAGE_OPTIONS,
   GENDER_OPTIONS,
+  LICENSE_TYPE_OPTIONS,
   MODALITY_OPTIONS,
   PROFESSION_OPTIONS,
 } from "@/features/professionals/constants";
@@ -34,6 +35,8 @@ const EMPTY_VALUES: ProfessionalFormSchema = {
   full_name: "",
   profession: PROFESSION_OPTIONS[0].value,
   license_number: "",
+  license_type: "nacional",
+  license_province: "",
   gender: "",
   consultation_fee: "",
   description: "",
@@ -152,6 +155,8 @@ export function ProfessionalForm({
 
   const photoUrl = watch("photo_url");
   const whatsappCountry = watch("whatsapp_country");
+  const licenseType = watch("license_type");
+  const licenseProvince = watch("license_province");
   const province = watch("province");
   const city = watch("city");
   const coverage = watch("coverage");
@@ -266,6 +271,51 @@ export function ProfessionalForm({
             <Label htmlFor="license_number">Matrícula</Label>
             <Input id="license_number" {...register("license_number")} />
           </div>
+
+          <div className="grid gap-1.5">
+            <Label>Tipo de matrícula</Label>
+            <div className="flex flex-wrap gap-2">
+              {LICENSE_TYPE_OPTIONS.map((o) => (
+                <ChipToggle
+                  key={o.value}
+                  label={o.label}
+                  active={licenseType === o.value}
+                  onClick={() => {
+                    setValue("license_type", o.value, { shouldValidate: true });
+                    if (o.value === "nacional") {
+                      setValue("license_province", "", { shouldValidate: true });
+                    }
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+
+          {licenseType === "provincial" && (
+            <div className="grid gap-1.5">
+              <Label htmlFor="license_province">Provincia de la matrícula</Label>
+              <select
+                id="license_province"
+                className={fieldClassName}
+                value={licenseProvince}
+                onChange={(e) =>
+                  setValue("license_province", e.target.value, { shouldValidate: true })
+                }
+              >
+                <option value="">Elegí una provincia</option>
+                {provinces.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+              {errors.license_province && (
+                <p role="alert" className="text-xs text-red-600">
+                  {errors.license_province.message}
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="grid gap-1.5">
             <Label htmlFor="consultation_fee">Precio de la sesión</Label>

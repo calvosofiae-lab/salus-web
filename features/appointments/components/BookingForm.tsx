@@ -19,9 +19,12 @@ import {
 const selectClassName =
   "h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring";
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export interface PatientValues {
   firstName: string;
   lastName: string;
+  email: string;
   whatsappCountry: string;
   whatsappArea: string;
   whatsappNumber: string;
@@ -50,8 +53,9 @@ export function BookingForm({
   isLoading: boolean;
   error: string | null;
 }) {
-  const { firstName, lastName, whatsappCountry, whatsappArea, whatsappNumber } = values;
+  const { firstName, lastName, email, whatsappCountry, whatsappArea, whatsappNumber } = values;
   const [whatsappError, setWhatsappError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
   // Guarda contra doble-click: `isLoading` (estado de React) puede tardar un ciclo en
   // reflejarse en el botón, y en ese margen un doble click alcanza a disparar dos reservas.
   const isSubmittingRef = useRef(false);
@@ -59,11 +63,16 @@ export function BookingForm({
   const isComplete =
     firstName.trim().length > 0 &&
     lastName.trim().length > 0 &&
+    EMAIL_PATTERN.test(email) &&
     isValidSplitPhone(whatsappArea, whatsappNumber, whatsappCountry);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (isSubmittingRef.current || isLoading) return;
+    if (!EMAIL_PATTERN.test(email)) {
+      setEmailError("Ingresá un email válido.");
+      return;
+    }
     if (!isValidSplitPhone(whatsappArea, whatsappNumber, whatsappCountry)) {
       setWhatsappError("Ingresá un WhatsApp válido para el país seleccionado.");
       return;
@@ -105,6 +114,27 @@ export function BookingForm({
             value={lastName}
             onChange={(e) => onValuesChange({ ...values, lastName: e.target.value })}
           />
+        </div>
+        <div className="grid gap-1.5 sm:col-span-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            required
+            autoComplete="email"
+            placeholder="Ej: juan.perez@gmail.com"
+            value={email}
+            aria-invalid={!!emailError}
+            onChange={(e) => {
+              onValuesChange({ ...values, email: e.target.value });
+              setEmailError(null);
+            }}
+          />
+          {emailError && (
+            <p role="alert" className="text-sm text-red-600">
+              {emailError}
+            </p>
+          )}
         </div>
         <div className="grid gap-1.5 sm:col-span-2">
           <Label htmlFor="whatsapp_country">WhatsApp</Label>
@@ -192,13 +222,14 @@ export function BookingForm({
           )}
         </ul>
 
-        {(firstName || lastName || whatsappArea || whatsappNumber) && (
+        {(firstName || lastName || email || whatsappArea || whatsappNumber) && (
           <>
             <div className="my-3 border-t" />
             <p className="mb-1 font-semibold text-primary">Tus datos</p>
             <p className="text-muted-foreground">
               {[firstName, lastName].filter(Boolean).join(" ") || "—"}
             </p>
+            {email && <p className="text-muted-foreground">{email}</p>}
             {(whatsappArea || whatsappNumber) && (
               <p className="text-muted-foreground">
                 WhatsApp: +{getPhoneCallingCode(whatsappCountry)} {whatsappArea} {whatsappNumber}

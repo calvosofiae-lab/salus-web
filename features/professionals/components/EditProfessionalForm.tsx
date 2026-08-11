@@ -14,6 +14,8 @@ export function EditProfessionalForm({ professional }: { professional: Professio
         full_name: professional.full_name,
         profession: professional.profession,
         license_number: professional.license_number ?? "",
+        license_type: professional.license_type,
+        license_province: professional.license_province ?? "",
         gender: professional.gender ?? "",
         consultation_fee:
           professional.consultation_fee != null ? String(professional.consultation_fee) : "",

@@ -15,6 +15,7 @@ export function useBookAppointment() {
     startTime: string;
     firstName: string;
     lastName: string;
+    email: string;
     whatsapp: string;
     whatsappCountry: string;
   }) {

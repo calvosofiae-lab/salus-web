@@ -41,6 +41,8 @@ export interface Database {
           full_name: string;
           profession: string;
           license_number: string | null;
+          license_type: string;
+          license_province: string | null;
           gender: string | null;
           description: string | null;
           photo_url: string | null;
@@ -66,6 +68,8 @@ export interface Database {
           full_name: string;
           profession: string;
           license_number?: string | null;
+          license_type?: string;
+          license_province?: string | null;
           gender?: string | null;
           description?: string | null;
           photo_url?: string | null;
@@ -91,6 +95,8 @@ export interface Database {
           full_name?: string;
           profession?: string;
           license_number?: string | null;
+          license_type?: string;
+          license_province?: string | null;
           gender?: string | null;
           description?: string | null;
           photo_url?: string | null;
@@ -178,6 +184,7 @@ export interface Database {
           patient_last_name: string;
           patient_whatsapp: string;
           patient_whatsapp_country: string;
+          patient_email: string | null;
           rating_token: string | null;
           reviewed: boolean;
           created_at: string;
@@ -193,6 +200,7 @@ export interface Database {
           patient_last_name: string;
           patient_whatsapp: string;
           patient_whatsapp_country?: string;
+          patient_email?: string | null;
           rating_token?: string | null;
           reviewed?: boolean;
           created_at?: string;
@@ -208,6 +216,7 @@ export interface Database {
           patient_last_name?: string;
           patient_whatsapp?: string;
           patient_whatsapp_country?: string;
+          patient_email?: string | null;
           rating_token?: string | null;
           reviewed?: boolean;
           created_at?: string;
@@ -322,6 +331,8 @@ export interface Database {
           professional_photo_url: string | null;
           professional_profession: string;
           professional_license_number: string | null;
+          professional_license_type: string | null;
+          professional_license_province: string | null;
           professional_gender: string | null;
         }[];
       };

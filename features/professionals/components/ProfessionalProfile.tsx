@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { Home } from "lucide-react";
 import { MODALITY_LABELS, PROFESSION_LABELS } from "@/features/professionals/constants";
+import { formatLicense } from "@/features/professionals/lib/license";
 import type { Professional } from "@/features/professionals/types";
 import { SlotPicker, type SlotPickerHandle } from "@/features/appointments/components/SlotPicker";
 import { BookingForm, type PatientValues } from "@/features/appointments/components/BookingForm";
@@ -18,6 +19,7 @@ import { DEFAULT_PHONE_COUNTRY } from "@/lib/whatsapp";
 const EMPTY_PATIENT_VALUES: PatientValues = {
   firstName: "",
   lastName: "",
+  email: "",
   whatsappCountry: DEFAULT_PHONE_COUNTRY,
   whatsappArea: "",
   whatsappNumber: "",
@@ -32,6 +34,7 @@ export function ProfessionalProfile({ professional }: { professional: Profession
   const slotPickerRef = useRef<SlotPickerHandle>(null);
 
   const profesion = PROFESSION_LABELS[professional.profession] ?? professional.profession;
+  const licenseLabel = formatLicense(professional);
   const modalidad = professional.modality.map((m) => MODALITY_LABELS[m] ?? m).join(" y ");
   const ubicacion = professional.modality.includes("presencial")
     ? [professional.city && professional.city !== "General" ? professional.city : null, professional.province]
@@ -54,7 +57,7 @@ export function ProfessionalProfile({ professional }: { professional: Profession
           </h1>
           <p className="text-sm text-muted-foreground">
             {profesion}
-            {professional.license_number ? ` (M.N. ${professional.license_number})` : ""}
+            {licenseLabel ? ` (${licenseLabel})` : ""}
           </p>
           {modalidad && <p className="text-sm text-muted-foreground">Atención {modalidad}</p>}
           {ubicacion && <p className="text-sm text-muted-foreground">📍 {ubicacion}</p>}
@@ -115,6 +118,7 @@ export function ProfessionalProfile({ professional }: { professional: Profession
                       startTime: selected.time,
                       firstName: values.firstName,
                       lastName: values.lastName,
+                      email: values.email,
                       whatsapp: `${values.whatsappArea}${values.whatsappNumber}`,
                       whatsappCountry: values.whatsappCountry,
                     });

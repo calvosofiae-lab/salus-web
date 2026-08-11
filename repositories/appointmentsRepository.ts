@@ -7,6 +7,7 @@ export interface BookAppointmentInput {
   startTime: string;
   firstName: string;
   lastName: string;
+  email: string;
   whatsapp: string;
   whatsappCountry: string;
 }
@@ -65,6 +66,7 @@ export async function bookAppointment(input: BookAppointmentInput): Promise<stri
     p_last_name: input.lastName,
     p_whatsapp: input.whatsapp,
     p_whatsapp_country: input.whatsappCountry,
+    p_patient_email: input.email,
   });
 
   if (error) throw error;

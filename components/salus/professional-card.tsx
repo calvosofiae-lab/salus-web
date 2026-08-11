@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Calendar, Instagram, Linkedin } from "lucide-react";
 import { MODALITY_LABELS, PROFESSION_LABELS } from "@/features/professionals/constants";
+import { formatLicense } from "@/features/professionals/lib/license";
 import { buildWhatsappLink } from "@/lib/whatsapp";
 import { buildInstagramLink, buildLinkedinLink } from "@/lib/social";
 import { getDefaultAvatar } from "@/lib/avatar";
@@ -20,8 +21,9 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
   const foto = prof.photo_url || getDefaultAvatar(prof.gender);
   const nombre = prof.full_name || "Profesional SALUS";
   const profesionLabel = PROFESSION_LABELS[prof.profession] ?? prof.profession;
+  const licenseLabel = formatLicense(prof);
   const profesion = prof.profession
-    ? `${profesionLabel} ${prof.license_number ? "(M.N. " + prof.license_number + ")" : ""}`
+    ? `${profesionLabel} ${licenseLabel ? "(" + licenseLabel + ")" : ""}`
     : "Especialista en Salud Mental";
   const modalidadLabels = prof.modality.map((m) => MODALITY_LABELS[m] ?? m);
   const modalidad =

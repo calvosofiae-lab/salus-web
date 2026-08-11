@@ -115,6 +115,7 @@ export async function updateProfessional(
   const normalized: Partial<ProfessionalInput> = { ...input };
   if (normalized.province === "") normalized.province = null;
   if (normalized.city === "") normalized.city = null;
+  if (normalized.license_province === "") normalized.license_province = null;
 
   const { error } = await supabase.from("professionals").update(normalized).eq("id", id);
   if (error) throw error;

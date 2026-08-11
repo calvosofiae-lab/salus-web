@@ -23,6 +23,8 @@ export interface ProfessionalFormValues {
   full_name: string;
   profession: string;
   license_number: string;
+  license_type: string;
+  license_province: string;
   gender: string;
   consultation_fee: string;
   description: string;

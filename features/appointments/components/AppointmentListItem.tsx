@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { CalendarClock, CheckCircle2, Loader2, MessageCircle } from "lucide-react";
+import { CalendarClock, Check, CheckCircle2, Copy, Loader2, MessageCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AppointmentStatusMenu } from "@/features/appointments/components/AppointmentStatusMenu";
@@ -35,7 +35,15 @@ export function AppointmentListItem({
   const [selectedSlot, setSelectedSlot] = useState<{ date: string; time: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rescheduleError, setRescheduleError] = useState<string | null>(null);
+  const [emailCopied, setEmailCopied] = useState(false);
   const isSubmittingRef = useRef(false);
+
+  async function handleCopyEmail() {
+    if (!appointment.patient_email) return;
+    await navigator.clipboard.writeText(appointment.patient_email);
+    setEmailCopied(true);
+    setTimeout(() => setEmailCopied(false), 2000);
+  }
 
   const surveyLink =
     appointment.status === "realizado" && appointment.rating_token
@@ -96,6 +104,30 @@ export function AppointmentListItem({
           <span className="text-xs text-muted-foreground">
             WhatsApp: {appointment.patient_whatsapp}
           </span>
+          {appointment.patient_email && (
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              Email: {appointment.patient_email}
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-6 px-1.5"
+                onClick={handleCopyEmail}
+              >
+                {emailCopied ? (
+                  <>
+                    <Check className="size-3.5" aria-hidden="true" />
+                    Copiado
+                  </>
+                ) : (
+                  <>
+                    <Copy className="size-3.5" aria-hidden="true" />
+                    Copiar
+                  </>
+                )}
+              </Button>
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <Badge variant={STATUS_VARIANT[appointment.status]}>

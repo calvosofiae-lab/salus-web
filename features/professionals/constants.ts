@@ -18,6 +18,11 @@ export const GENDER_OPTIONS = [
   { value: "hombre", label: "Hombre" },
 ] as const;
 
+export const LICENSE_TYPE_OPTIONS = [
+  { value: "nacional", label: "Matrícula Nacional" },
+  { value: "provincial", label: "Matrícula Provincial" },
+] as const;
+
 export const CONSULTATION_REASONS = [
   "Adolescentes",
   "Psicología infantil",

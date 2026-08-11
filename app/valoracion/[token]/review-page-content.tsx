@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { PROFESSION_LABELS } from "@/features/professionals/constants";
+import { formatLicense } from "@/features/professionals/lib/license";
 import { ReviewForm } from "@/features/reviews/components/ReviewForm";
 import { getDefaultAvatar } from "@/lib/avatar";
 import { SiteHeader } from "@/components/salus/site-header";
@@ -34,6 +35,11 @@ export async function ReviewPageContent({
 
   const profesionLabel =
     PROFESSION_LABELS[context.professional_profession] ?? context.professional_profession;
+  const licenseLabel = formatLicense({
+    license_number: context.professional_license_number,
+    license_type: context.professional_license_type,
+    license_province: context.professional_license_province,
+  });
   const [year, month, day] = context.appointment_date.split("-");
   const fecha = `${day}/${month}/${year}`;
   const hora = context.start_time.slice(0, 5);
@@ -57,9 +63,7 @@ export async function ReviewPageContent({
             <span className="font-medium">{context.professional_full_name}</span>
             <span className="text-sm text-muted-foreground">
               {profesionLabel}
-              {context.professional_license_number
-                ? ` (M.N. ${context.professional_license_number})`
-                : ""}
+              {licenseLabel ? ` (${licenseLabel})` : ""}
             </span>
             <span className="text-sm text-muted-foreground">
               Turno del {fecha} a las {hora}

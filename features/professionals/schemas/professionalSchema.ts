@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   COVERAGE_OPTIONS,
   GENDER_OPTIONS,
+  LICENSE_TYPE_OPTIONS,
   MODALITY_OPTIONS,
   PROFESSION_OPTIONS,
 } from "@/features/professionals/constants";
@@ -12,6 +13,7 @@ const genderValues = GENDER_OPTIONS.map((o) => o.value) as [string, ...string[]]
 const coverageValues = COVERAGE_OPTIONS.map((o) => o.value) as [string, ...string[]];
 const modalityValues = MODALITY_OPTIONS.map((o) => o.value) as [string, ...string[]];
 const phoneCountryValues = PHONE_COUNTRIES.map((c) => c.code) as [string, ...string[]];
+const licenseTypeValues = LICENSE_TYPE_OPTIONS.map((o) => o.value) as [string, ...string[]];
 
 // email/password quedan como string simples acá: se validan condicionalmente en
 // buildProfessionalFormSchema según el modo, para que el tipo inferido (ProfessionalFormSchema)
@@ -20,6 +22,8 @@ const baseShape = {
   full_name: z.string().trim().min(1, "Ingresá el nombre y apellido."),
   profession: z.enum(professionValues),
   license_number: z.string(),
+  license_type: z.enum(licenseTypeValues),
+  license_province: z.string(),
   gender: z.union([z.enum(genderValues), z.literal("")]),
   consultation_fee: z.string(),
   description: z.string(),
@@ -45,6 +49,14 @@ export function buildProfessionalFormSchema(mode: "create" | "edit") {
         code: "custom",
         path: ["whatsapp"],
         message: `Deben ser ${country.numberLength} números para ${country.label}.`,
+      });
+    }
+
+    if (values.license_type === "provincial" && values.license_province.trim() === "") {
+      ctx.addIssue({
+        code: "custom",
+        path: ["license_province"],
+        message: "Elegí la provincia de la matrícula.",
       });
     }
 

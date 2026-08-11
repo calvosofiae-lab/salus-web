@@ -138,40 +138,42 @@ export function BookingForm({
         </div>
         <div className="grid gap-1.5 sm:col-span-2">
           <Label htmlFor="whatsapp_country">WhatsApp</Label>
-          <div className="flex gap-2">
-            <select
-              id="whatsapp_country"
-              aria-label="País"
-              className={cn(selectClassName, "w-36 shrink-0 sm:w-44")}
-              value={whatsappCountry}
-              onChange={(e) => {
-                onValuesChange({ ...values, whatsappCountry: e.target.value });
-                setWhatsappError(null);
-              }}
-            >
-              {PHONE_COUNTRY_OPTIONS.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
-            <Input
-              id="whatsapp_area"
-              required
-              inputMode="numeric"
-              autoComplete="off"
-              className="w-20 shrink-0"
-              maxLength={5}
-              placeholder="Área"
-              aria-label="Código de área, sin el 0"
-              value={whatsappArea}
-              aria-invalid={!!whatsappError}
-              aria-describedby="whatsapp-hint"
-              onChange={(e) => {
-                onValuesChange({ ...values, whatsappArea: sanitizeAreaDigits(e.target.value) });
-                setWhatsappError(null);
-              }}
-            />
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
+              <select
+                id="whatsapp_country"
+                aria-label="País"
+                className={cn(selectClassName, "w-36 shrink-0 sm:w-44")}
+                value={whatsappCountry}
+                onChange={(e) => {
+                  onValuesChange({ ...values, whatsappCountry: e.target.value });
+                  setWhatsappError(null);
+                }}
+              >
+                {PHONE_COUNTRY_OPTIONS.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+              <Input
+                id="whatsapp_area"
+                required
+                inputMode="numeric"
+                autoComplete="off"
+                className="w-20 shrink-0"
+                maxLength={5}
+                placeholder="Área"
+                aria-label="Código de área, sin el 0"
+                value={whatsappArea}
+                aria-invalid={!!whatsappError}
+                aria-describedby="whatsapp-hint"
+                onChange={(e) => {
+                  onValuesChange({ ...values, whatsappArea: sanitizeAreaDigits(e.target.value) });
+                  setWhatsappError(null);
+                }}
+              />
+            </div>
             <Input
               id="whatsapp_number"
               required

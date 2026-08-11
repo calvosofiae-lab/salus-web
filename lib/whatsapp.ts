@@ -1,3 +1,5 @@
+import { getCountryCallingCode, type CountryCode } from "libphonenumber-js";
+
 // Los números se guardan como dígitos locales sin código de país (ej: "3411234567" para
 // Argentina, "666155767" para España). El país elegido determina cuántos dígitos se
 // esperan y cómo se arma el link internacional `wa.me`: código de país + prefijo de
@@ -33,7 +35,20 @@ export function isValidPhoneNumber(digits: string, countryCode: string): boolean
 }
 
 export function buildWhatsappLink(rawNumber: string, countryCode: string, message: string): string {
-  const country = getPhoneCountry(countryCode);
-  const digits = sanitizePhoneDigits(rawNumber, countryCode);
-  return `https://wa.me/${country.dialCode}${country.mobilePrefix}${digits}?text=${encodeURIComponent(message)}`;
+  const isKnownCountry = PHONE_COUNTRIES.some((c) => c.code === countryCode);
+  if (isKnownCountry) {
+    const country = getPhoneCountry(countryCode);
+    const digits = sanitizePhoneDigits(rawNumber, countryCode);
+    return `https://wa.me/${country.dialCode}${country.mobilePrefix}${digits}?text=${encodeURIComponent(message)}`;
+  }
+  // El formulario de reserva de turnos admite cualquier país (features/appointments/lib/phone.ts),
+  // no solo los de PHONE_COUNTRIES: para esos casos armamos el link con el código de
+  // llamada real del país en vez de asumir Argentina por default.
+  try {
+    const dialCode = getCountryCallingCode(countryCode as CountryCode);
+    const digits = rawNumber.replace(/\D/g, "");
+    return `https://wa.me/${dialCode}${digits}?text=${encodeURIComponent(message)}`;
+  } catch {
+    return `https://wa.me/${rawNumber.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
+  }
 }

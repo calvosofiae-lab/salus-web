@@ -9,11 +9,12 @@ import { cn } from "@/lib/utils";
 import { formatLongDate } from "@/features/appointments/lib/date";
 import { BookingStepHeading } from "@/features/appointments/components/BookingStep";
 import {
-  getPhoneCountry,
-  isValidPhoneNumber,
-  PHONE_COUNTRIES,
-  sanitizePhoneDigits,
-} from "@/lib/whatsapp";
+  getPhoneCallingCode,
+  isValidSplitPhone,
+  PHONE_COUNTRY_OPTIONS,
+  sanitizeAreaDigits,
+  sanitizeNumberDigits,
+} from "@/features/appointments/lib/phone";
 
 const selectClassName =
   "h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring";
@@ -21,8 +22,9 @@ const selectClassName =
 export interface PatientValues {
   firstName: string;
   lastName: string;
-  whatsapp: string;
   whatsappCountry: string;
+  whatsappArea: string;
+  whatsappNumber: string;
 }
 
 export function BookingForm({
@@ -48,7 +50,7 @@ export function BookingForm({
   isLoading: boolean;
   error: string | null;
 }) {
-  const { firstName, lastName, whatsapp, whatsappCountry } = values;
+  const { firstName, lastName, whatsappCountry, whatsappArea, whatsappNumber } = values;
   const [whatsappError, setWhatsappError] = useState<string | null>(null);
   // Guarda contra doble-click: `isLoading` (estado de React) puede tardar un ciclo en
   // reflejarse en el botón, y en ese margen un doble click alcanza a disparar dos reservas.
@@ -57,14 +59,13 @@ export function BookingForm({
   const isComplete =
     firstName.trim().length > 0 &&
     lastName.trim().length > 0 &&
-    isValidPhoneNumber(whatsapp, whatsappCountry);
+    isValidSplitPhone(whatsappArea, whatsappNumber, whatsappCountry);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (isSubmittingRef.current || isLoading) return;
-    if (!isValidPhoneNumber(whatsapp, whatsappCountry)) {
-      const country = getPhoneCountry(whatsappCountry);
-      setWhatsappError(`Ingresá tu WhatsApp (${country.numberLength} números para ${country.label}).`);
+    if (!isValidSplitPhone(whatsappArea, whatsappNumber, whatsappCountry)) {
+      setWhatsappError("Ingresá un WhatsApp válido para el país seleccionado.");
       return;
     }
     isSubmittingRef.current = true;
@@ -106,7 +107,7 @@ export function BookingForm({
           />
         </div>
         <div className="grid gap-1.5 sm:col-span-2">
-          <Label htmlFor="whatsapp">WhatsApp</Label>
+          <Label htmlFor="whatsapp_country">WhatsApp</Label>
           <div className="flex gap-2">
             <select
               id="whatsapp_country"
@@ -114,41 +115,51 @@ export function BookingForm({
               className={cn(selectClassName, "w-36 shrink-0 sm:w-44")}
               value={whatsappCountry}
               onChange={(e) => {
-                onValuesChange({
-                  ...values,
-                  whatsappCountry: e.target.value,
-                  whatsapp: sanitizePhoneDigits(whatsapp, e.target.value),
-                });
+                onValuesChange({ ...values, whatsappCountry: e.target.value });
                 setWhatsappError(null);
               }}
             >
-              {PHONE_COUNTRIES.map((c) => (
+              {PHONE_COUNTRY_OPTIONS.map((c) => (
                 <option key={c.code} value={c.code}>
                   {c.label}
                 </option>
               ))}
             </select>
             <Input
-              id="whatsapp"
+              id="whatsapp_area"
               required
               inputMode="numeric"
-              autoComplete="tel-national"
-              maxLength={getPhoneCountry(whatsappCountry).numberLength}
-              placeholder={whatsappCountry === "AR" ? "Ej: 3411234567" : "Ej: 666155767"}
-              value={whatsapp}
+              autoComplete="off"
+              className="w-20 shrink-0"
+              maxLength={5}
+              placeholder="Área"
+              aria-label="Código de área, sin el 0"
+              value={whatsappArea}
               aria-invalid={!!whatsappError}
               aria-describedby="whatsapp-hint"
               onChange={(e) => {
-                onValuesChange({
-                  ...values,
-                  whatsapp: sanitizePhoneDigits(e.target.value, whatsappCountry),
-                });
+                onValuesChange({ ...values, whatsappArea: sanitizeAreaDigits(e.target.value) });
+                setWhatsappError(null);
+              }}
+            />
+            <Input
+              id="whatsapp_number"
+              required
+              inputMode="numeric"
+              autoComplete="tel-local"
+              placeholder="Número"
+              aria-label="Número"
+              value={whatsappNumber}
+              aria-invalid={!!whatsappError}
+              aria-describedby="whatsapp-hint"
+              onChange={(e) => {
+                onValuesChange({ ...values, whatsappNumber: sanitizeNumberDigits(e.target.value) });
                 setWhatsappError(null);
               }}
             />
           </div>
           <p id="whatsapp-hint" className="text-xs text-muted-foreground">
-            {whatsappCountry === "AR" ? "Solo números, sin 0 ni 15." : "Solo números."}
+            Código de área sin el 0 (ej: 341) y número sin el 15.
           </p>
           {whatsappError && (
             <p role="alert" className="text-sm text-red-600">
@@ -181,16 +192,16 @@ export function BookingForm({
           )}
         </ul>
 
-        {(firstName || lastName || whatsapp) && (
+        {(firstName || lastName || whatsappArea || whatsappNumber) && (
           <>
             <div className="my-3 border-t" />
             <p className="mb-1 font-semibold text-primary">Tus datos</p>
             <p className="text-muted-foreground">
               {[firstName, lastName].filter(Boolean).join(" ") || "—"}
             </p>
-            {whatsapp && (
+            {(whatsappArea || whatsappNumber) && (
               <p className="text-muted-foreground">
-                WhatsApp: +{getPhoneCountry(whatsappCountry).dialCode} {whatsapp}
+                WhatsApp: +{getPhoneCallingCode(whatsappCountry)} {whatsappArea} {whatsappNumber}
               </p>
             )}
           </>

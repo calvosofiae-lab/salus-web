@@ -18,8 +18,9 @@ import { DEFAULT_PHONE_COUNTRY } from "@/lib/whatsapp";
 const EMPTY_PATIENT_VALUES: PatientValues = {
   firstName: "",
   lastName: "",
-  whatsapp: "",
   whatsappCountry: DEFAULT_PHONE_COUNTRY,
+  whatsappArea: "",
+  whatsappNumber: "",
 };
 
 export function ProfessionalProfile({ professional }: { professional: Professional }) {
@@ -114,7 +115,7 @@ export function ProfessionalProfile({ professional }: { professional: Profession
                       startTime: selected.time,
                       firstName: values.firstName,
                       lastName: values.lastName,
-                      whatsapp: values.whatsapp,
+                      whatsapp: `${values.whatsappArea}${values.whatsappNumber}`,
                       whatsappCountry: values.whatsappCountry,
                     });
                     if (!id) {

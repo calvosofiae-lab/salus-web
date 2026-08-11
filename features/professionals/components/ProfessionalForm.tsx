@@ -19,6 +19,7 @@ import {
 } from "@/features/professionals/constants";
 import { useProvinces } from "@/features/professionals/hooks/useProvinces";
 import { useCitiesByProvince } from "@/features/professionals/hooks/useCitiesByProvince";
+import { compressPhoto } from "@/features/professionals/lib/photo";
 import {
   DEFAULT_PHONE_COUNTRY,
   getPhoneCountry,
@@ -173,7 +174,7 @@ export function ProfessionalForm({
     return () => URL.revokeObjectURL(url);
   }, [photoFile]);
 
-  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
@@ -188,7 +189,7 @@ export function ProfessionalForm({
     }
     setPhotoError(null);
     setPhotoRemoved(false);
-    setPhotoFile(file);
+    setPhotoFile(await compressPhoto(file));
   }
 
   function handleRemovePhoto() {

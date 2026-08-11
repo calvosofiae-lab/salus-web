@@ -14,26 +14,40 @@ function translateConstraintViolation(message: string): string | null {
   return CHECK_CONSTRAINT_MESSAGES[match[1]] ?? null;
 }
 
+// SQLSTATE que Postgres asigna por default a un `raise exception 'mensaje'` que no
+// especifica su propio código -- es el que usan todos los `raise exception '<mensaje en
+// español>'` de las funciones/triggers de este proyecto (ver supabase/migrations). Sirve para
+// distinguir esos mensajes, pensados para mostrarse tal cual, de cualquier otro error de
+// Postgres/PostgREST (función ambigua, permiso denegado, columna inexistente, etc.) que es un
+// detalle interno y no debería llegar crudo a la persona que está reservando un turno.
+const RAISED_APPLICATION_ERROR_CODE = "P0001";
+
 // Los errores de supabase-js (PostgrestError, incluidos los `raise exception` de triggers/RPCs)
 // no son instancias de `Error` en la versión que usa este proyecto -- son objetos planos con
 // `message`/`details`/`hint`/`code`. `err instanceof Error` da falso para ellos, así que un
 // catch que solo chequea eso pierde el mensaje específico (ej. "Ese horario se superpone...")
 // y cae siempre al fallback genérico.
 export function getErrorMessage(err: unknown, fallback: string): string {
-  let rawMessage: string | null = null;
-  if (err instanceof Error) {
-    rawMessage = err.message;
-  } else if (
+  // Errores que el código de la app tira a mano (`throw new Error("...")`) son mensajes
+  // escritos a propósito para mostrarse -- se confía en ellos igual que antes.
+  if (err instanceof Error) return err.message;
+
+  if (
     typeof err === "object" &&
     err !== null &&
     "message" in err &&
     typeof (err as { message: unknown }).message === "string"
   ) {
-    rawMessage = (err as { message: string }).message;
+    const rawMessage = (err as { message: string }).message;
+
+    const translated = translateConstraintViolation(rawMessage);
+    if (translated) return translated;
+
+    const code = "code" in err ? (err as { code: unknown }).code : null;
+    if (code === RAISED_APPLICATION_ERROR_CODE) return rawMessage;
   }
 
-  if (rawMessage === null) return fallback;
-  return translateConstraintViolation(rawMessage) ?? rawMessage;
+  return fallback;
 }
 
 // Código SQLSTATE de Postgres para violación de constraint `unique` (independiente del

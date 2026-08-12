@@ -688,6 +688,23 @@
   line-height: 1.4;
 }
 
+.salus .prof-description-toggle {
+  display: inline;
+  background: none;
+  border: none;
+  padding: 0;
+  margin-left: 0.2rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--teal-dark);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.salus .prof-description-toggle:hover {
+  text-decoration: underline;
+}
+
 .salus .prof-price {
   font-size: 0.9rem;
   font-weight: 600;

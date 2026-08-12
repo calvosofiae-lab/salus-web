@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { Calendar, Instagram, Linkedin } from "lucide-react";
 import { MODALITY_LABELS, PROFESSION_LABELS } from "@/features/professionals/constants";
@@ -17,6 +20,16 @@ function WhatsappIcon({ size = 16 }: { size?: number }) {
   );
 }
 
+const DESCRIPTION_PREVIEW_LENGTH = 140;
+
+// Corta en el último espacio antes del límite para no partir una palabra al medio.
+function truncateDescription(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  const cut = text.slice(0, maxLength);
+  const lastSpace = cut.lastIndexOf(" ");
+  return (lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trimEnd();
+}
+
 export function ProfessionalCard({ prof }: { prof: Professional }) {
   const foto = prof.photo_url || getDefaultAvatar(prof.gender);
   const nombre = prof.full_name || "Profesional SALUS";
@@ -31,6 +44,10 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
       ? `Atención ${modalidadLabels.join(" y ")}`
       : "Atención Virtual / Presencial";
   const descripcion = prof.description || "";
+  const [expanded, setExpanded] = useState(false);
+  const isLong = descripcion.length > DESCRIPTION_PREVIEW_LENGTH;
+  const descripcionMostrada =
+    isLong && !expanded ? `${truncateDescription(descripcion, DESCRIPTION_PREVIEW_LENGTH)}…` : descripcion;
   const whatsapp = prof.whatsapp;
 
   const linkWa = whatsapp
@@ -57,7 +74,20 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
         {prof.consultation_fee != null && (
           <p className="prof-price">${prof.consultation_fee.toLocaleString("es-AR")} la sesión</p>
         )}
-        {descripcion && <p className="prof-description">{descripcion}</p>}
+        {descripcion && (
+          <p className="prof-description">
+            {descripcionMostrada}
+            {isLong && (
+              <button
+                type="button"
+                className="prof-description-toggle"
+                onClick={() => setExpanded((v) => !v)}
+              >
+                {expanded ? " Ver menos" : " Ver más"}
+              </button>
+            )}
+          </p>
+        )}
       </div>
       <div>
         <Link href={`/profesionales/${prof.id}`} className="prof-book-btn">

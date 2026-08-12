@@ -613,6 +613,73 @@
   margin-top: 1.5rem;
 }
 
+/* Carrusel de Profesionales Destacados: contenedor propio, NO reutiliza .featured-grid
+   (esa clase también la usa #resultsGrid en search-section.tsx, que ya se controla con
+   paginación y debe seguir siendo una grilla, no un carrusel). */
+.salus .featured-carousel-wrapper {
+  position: relative;
+  margin-top: 1.5rem;
+}
+
+.salus .featured-carousel {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  padding-bottom: 0.5rem;
+  scrollbar-width: none;
+}
+
+.salus .featured-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.salus .featured-carousel .prof-card {
+  /* 3 cards completas por vista en desktop (no 2 y media): el ancho real disponible del
+     carrusel es fijo (~804px, section max-width:1000px + paddings de section/section-card),
+     así que se calcula en base a ese 100% en vez de un px fijo. */
+  flex: 0 0 calc((100% - 3rem) / 3);
+  scroll-snap-align: start;
+}
+
+.salus .featured-carousel-btn {
+  position: absolute;
+  /* Centrado a la altura del precio de la sesión (padding-top + avatar + nombre + profesión
+     + rating + badge de modalidad de la .prof-card), no sobre el alto total de la card --
+     las cards son altas (texto + botones) y centrar en 50% del wrapper terminaba tapando la
+     descripción. Es una aproximación fija en px: con nombres de 2 líneas o sin rating/precio
+     puede correrse unos px, pero no vale la pena medir en JS para este detalle visual. */
+  top: 300px;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--gray-border);
+  background: var(--salus-white);
+  color: var(--navy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(27, 47, 72, 0.12);
+  transition: all 0.2s ease;
+}
+
+.salus .featured-carousel-btn:hover {
+  border-color: var(--teal);
+  color: var(--teal-dark);
+}
+
+.salus .featured-carousel-btn--prev {
+  left: -8px;
+}
+
+.salus .featured-carousel-btn--next {
+  right: -8px;
+}
+
 .salus .prof-card {
   background: var(--light-cream);
   border: 1px solid var(--gray-border);
@@ -839,6 +906,10 @@
 }
 
 @media (max-width: 768px) {
+  .salus .featured-carousel .prof-card {
+    flex-basis: 82vw;
+  }
+
   .salus header {
     flex-wrap: wrap;
     justify-content: space-between;

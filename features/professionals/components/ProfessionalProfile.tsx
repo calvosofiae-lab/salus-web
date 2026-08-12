@@ -50,6 +50,7 @@ export function ProfessionalProfile({ professional }: { professional: Profession
           src={professional.photo_url || getDefaultAvatar(professional.gender)}
           alt={professional.full_name}
           className="h-16 w-16 shrink-0 rounded-full object-cover sm:h-24 sm:w-24"
+          loading="lazy"
         />
         <div className="min-w-0">
           <h1 className="break-words text-xl font-semibold sm:text-2xl">

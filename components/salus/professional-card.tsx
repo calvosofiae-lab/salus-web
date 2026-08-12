@@ -61,7 +61,7 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
     <div className="prof-card">
       <div>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={foto} alt={nombre} className="prof-img" />
+        <img src={foto} alt={nombre} className="prof-img" loading="lazy" />
         <h3 className="prof-name">{nombre}</h3>
         <p className="prof-profession">{profesion}</p>
         {prof.average_rating !== null && (

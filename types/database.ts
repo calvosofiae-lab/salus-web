@@ -9,6 +9,8 @@
 
 export type UserRole = "admin" | "professional";
 export type AppointmentStatus = "reservado" | "realizado" | "cancelado" | "no_asistio";
+export type WhatsAppRecipientType = "patient" | "professional";
+export type WhatsAppNotificationStatus = "pending" | "sent" | "failed";
 
 export interface Database {
   public: {
@@ -286,6 +288,48 @@ export interface Database {
         };
         Relationships: [];
       };
+      whatsapp_notifications: {
+        Row: {
+          id: string;
+          appointment_id: string;
+          recipient_type: WhatsAppRecipientType;
+          recipient_phone: string;
+          notification_type: string;
+          template_name: string;
+          status: WhatsAppNotificationStatus;
+          provider_message_id: string | null;
+          error_message: string | null;
+          sent_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          appointment_id: string;
+          recipient_type: WhatsAppRecipientType;
+          recipient_phone: string;
+          notification_type: string;
+          template_name: string;
+          status?: WhatsAppNotificationStatus;
+          provider_message_id?: string | null;
+          error_message?: string | null;
+          sent_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          appointment_id?: string;
+          recipient_type?: WhatsAppRecipientType;
+          recipient_phone?: string;
+          notification_type?: string;
+          template_name?: string;
+          status?: WhatsAppNotificationStatus;
+          provider_message_id?: string | null;
+          error_message?: string | null;
+          sent_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<never, never>;
     Functions: {
@@ -340,6 +384,8 @@ export interface Database {
     Enums: {
       user_role: UserRole;
       appointment_status: AppointmentStatus;
+      whatsapp_recipient_type: WhatsAppRecipientType;
+      whatsapp_notification_status: WhatsAppNotificationStatus;
     };
     CompositeTypes: Record<never, never>;
   };

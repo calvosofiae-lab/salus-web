@@ -1,4 +1,6 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
+import type { Database } from "@/types/database";
 import type { Appointment, AppointmentStatus } from "@/features/appointments/types";
 
 export interface BookAppointmentInput {
@@ -70,5 +72,17 @@ export async function bookAppointment(input: BookAppointmentInput): Promise<stri
   });
 
   if (error) throw error;
+  return data;
+}
+
+// Para uso interno server-side (services/whatsappNotificationService.ts): recibe un
+// cliente ya armado (admin) en vez de crear uno de browser, igual que
+// getProfessionalByIdAdmin en professionalsRepository.ts.
+export async function getAppointmentByIdInternal(
+  supabase: SupabaseClient<Database>,
+  id: string,
+): Promise<Appointment | null> {
+  const { data, error } = await supabase.from("appointments").select("*").eq("id", id).single();
+  if (error) return null;
   return data;
 }

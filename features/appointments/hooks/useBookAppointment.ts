@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { bookAppointment } from "@/repositories/appointmentsRepository";
+import { notifyAppointmentBooked } from "@/services/whatsappNotificationService";
 import { getErrorMessage } from "@/lib/errors";
 
 export function useBookAppointment() {
@@ -25,6 +26,9 @@ export function useBookAppointment() {
     try {
       const id = await bookAppointment(params);
       setConfirmedId(id);
+      // La reserva ya quedó confirmada arriba: un fallo acá nunca debe afectarla.
+      // No se espera esta llamada para no extender el estado de carga.
+      notifyAppointmentBooked(id).catch(() => {});
       return id;
     } catch (err) {
       setError(getErrorMessage(err, "Ocurrió un error al reservar el turno"));

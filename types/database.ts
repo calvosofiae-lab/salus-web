@@ -9,6 +9,8 @@
 
 export type UserRole = "admin" | "professional";
 export type AppointmentStatus = "reservado" | "realizado" | "cancelado" | "no_asistio";
+export type EmailRecipientType = "patient" | "professional";
+export type EmailNotificationStatus = "pending" | "sent" | "failed";
 
 export interface Database {
   public: {
@@ -286,6 +288,45 @@ export interface Database {
         };
         Relationships: [];
       };
+      email_notifications: {
+        Row: {
+          id: string;
+          appointment_id: string;
+          recipient_type: EmailRecipientType;
+          recipient_email: string;
+          notification_type: string;
+          status: EmailNotificationStatus;
+          provider_message_id: string | null;
+          error_message: string | null;
+          sent_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          appointment_id: string;
+          recipient_type: EmailRecipientType;
+          recipient_email: string;
+          notification_type: string;
+          status?: EmailNotificationStatus;
+          provider_message_id?: string | null;
+          error_message?: string | null;
+          sent_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          appointment_id?: string;
+          recipient_type?: EmailRecipientType;
+          recipient_email?: string;
+          notification_type?: string;
+          status?: EmailNotificationStatus;
+          provider_message_id?: string | null;
+          error_message?: string | null;
+          sent_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<never, never>;
     Functions: {
@@ -340,6 +381,8 @@ export interface Database {
     Enums: {
       user_role: UserRole;
       appointment_status: AppointmentStatus;
+      email_recipient_type: EmailRecipientType;
+      email_notification_status: EmailNotificationStatus;
     };
     CompositeTypes: Record<never, never>;
   };

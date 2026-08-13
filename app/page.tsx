@@ -5,7 +5,10 @@ import { SiteHeader } from "@/components/salus/site-header";
 import { SiteHero } from "@/components/salus/site-hero";
 import { SearchSection } from "@/components/salus/search-section";
 import { FeaturedSection } from "@/components/salus/featured-section";
-import { FeaturedOfMonthBanner } from "@/features/professionals/components/FeaturedOfMonthBanner";
+// Ocultado momentáneamente a pedido del cliente (se va a volver a mostrar más adelante) --
+// no se borró el componente, solo se sacó de la home. Descomentar este import y el uso de
+// <FeaturedOfMonthBanner /> más abajo para reactivarlo.
+// import { FeaturedOfMonthBanner } from "@/features/professionals/components/FeaturedOfMonthBanner";
 import { AboutSection } from "@/components/salus/about-section";
 import { WhatWeDoSection } from "@/components/salus/what-we-do-section";
 import { ProfessionalsSection } from "@/components/salus/professionals-section";
@@ -24,7 +27,7 @@ export default function Home() {
       <SearchSection />
 
       <FeaturedSection />
-      <FeaturedOfMonthBanner />
+      {/* <FeaturedOfMonthBanner /> */}
       <AboutSection />
       <WhatWeDoSection />
       <ProfessionalsSection />

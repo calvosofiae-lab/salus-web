@@ -13,10 +13,16 @@
 -- get_available_slots, para no volver a duplicar la regla en dos lugares con el riesgo de que
 -- diverjan. book_appointment/reschedule_appointment no cambian: su `exception when
 -- unique_violation` ya atrapa violaciones de cualquier índice único de la tabla.
+--
+-- `if exists`/`if not exists`: en al menos un entorno local se encontró que este constraint
+-- (creado originalmente en 20260731082642, nunca tocado por ninguna otra migración) no
+-- existía -- probablemente una base local que divergió del historial de migraciones en algún
+-- momento no registrado. La migración no depende de esa causa: hace lo mismo dé o no dé ese
+-- constraint por sacar.
 
 alter table public.appointments
-  drop constraint appointments_professional_id_appointment_date_start_time_key;
+  drop constraint if exists appointments_professional_id_appointment_date_start_time_key;
 
-create unique index appointments_active_slot_key
+create unique index if not exists appointments_active_slot_key
   on public.appointments (professional_id, appointment_date, start_time)
   where status in ('reservado', 'realizado');

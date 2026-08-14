@@ -21,10 +21,10 @@ const DAYS = [
 const DEFAULT_START = "09:00";
 const DEFAULT_END = "18:00";
 
-// Cada media hora, de 00:00 a 23:30: son los únicos horarios que se pueden elegir.
-const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
-  const hour = String(Math.floor(i / 2)).padStart(2, "0");
-  const minute = i % 2 === 0 ? "00" : "30";
+// Cada 15 minutos, de 00:00 a 23:45: son los únicos horarios que se pueden elegir.
+const TIME_OPTIONS = Array.from({ length: 96 }, (_, i) => {
+  const hour = String(Math.floor(i / 4)).padStart(2, "0");
+  const minute = String((i % 4) * 15).padStart(2, "0");
   return `${hour}:${minute}`;
 });
 

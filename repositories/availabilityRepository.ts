@@ -180,10 +180,10 @@ export async function updateSlotDuration(
 ): Promise<void> {
   const supabase = createClient();
 
-  const { error } = await supabase
-    .from("professionals")
-    .update({ slot_duration_minutes: minutes })
-    .eq("id", professionalId);
+  const { error } = await supabase.rpc("update_slot_duration", {
+    p_professional_id: professionalId,
+    p_minutes: minutes,
+  });
 
   if (error) throw error;
 }

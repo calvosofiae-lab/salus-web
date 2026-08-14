@@ -343,6 +343,10 @@ export interface Database {
         Args: { p_professional_id: string };
         Returns: { appointment_id: string }[];
       };
+      update_slot_duration: {
+        Args: { p_professional_id: string; p_minutes: number };
+        Returns: void;
+      };
       get_day_schedule: {
         Args: { p_professional_id: string; p_date: string };
         Returns: {

@@ -20,7 +20,13 @@ function todayIso(): string {
   return `${year}-${month}-${day}`;
 }
 
-export function AvailabilityCalendar({ professionalId }: { professionalId: string }) {
+export function AvailabilityCalendar({
+  professionalId,
+  onChanged,
+}: {
+  professionalId: string;
+  onChanged?: () => void;
+}) {
   const { date, setDate, slots, status, error, isSaving, toggleSlot } =
     useAvailabilityCalendar(professionalId);
 
@@ -81,7 +87,10 @@ export function AvailabilityCalendar({ professionalId }: { professionalId: strin
                     : undefined
                 }
                 className={`rounded-md border px-2 py-1.5 text-xs font-medium transition disabled:opacity-70 disabled:cursor-not-allowed ${STATUS_STYLES[slot.status]}`}
-                onClick={() => toggleSlot(slot)}
+                onClick={async () => {
+                  await toggleSlot(slot);
+                  onChanged?.();
+                }}
               >
                 {slot.startTime.slice(0, 5)}
               </button>

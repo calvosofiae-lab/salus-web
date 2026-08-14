@@ -1,7 +1,15 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { CalendarClock, Check, CheckCircle2, Copy, Loader2, MessageCircle } from "lucide-react";
+import {
+  AlertTriangle,
+  CalendarClock,
+  Check,
+  CheckCircle2,
+  Copy,
+  Loader2,
+  MessageCircle,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AppointmentStatusMenu } from "@/features/appointments/components/AppointmentStatusMenu";
@@ -20,6 +28,7 @@ export function AppointmentListItem({
   onReschedule,
   justRescheduledTo,
   onRescheduled,
+  isOutOfSchedule,
 }: {
   appointment: Appointment;
   professionalId: string;
@@ -30,6 +39,7 @@ export function AppointmentListItem({
   // cuando necesitamos mostrar la confirmación.
   justRescheduledTo: { date: string; time: string } | null;
   onRescheduled: (slot: { date: string; time: string }) => void;
+  isOutOfSchedule?: boolean;
 }) {
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<{ date: string; time: string } | null>(null);
@@ -197,6 +207,17 @@ export function AppointmentListItem({
               Cancelar
             </Button>
           </div>
+        </div>
+      )}
+
+      {isOutOfSchedule && appointment.status === "reservado" && (
+        <div
+          role="alert"
+          className="flex items-center gap-1.5 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900"
+        >
+          <AlertTriangle className="size-3.5 shrink-0" aria-hidden="true" />
+          Este turno quedó fuera de tu disponibilidad actual. Reprogramalo o avisale al
+          paciente.
         </div>
       )}
 

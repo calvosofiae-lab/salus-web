@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMyAppointments } from "@/features/appointments/hooks/useMyAppointments";
+import { useScheduleConflicts } from "@/features/appointments/hooks/useScheduleConflicts";
 import { MAX_RANGE_DAYS, useDateRange } from "@/features/appointments/hooks/useDateRange";
 import { AppointmentListItem } from "@/features/appointments/components/AppointmentListItem";
 import { formatLongDate } from "@/features/appointments/lib/date";
@@ -16,6 +17,7 @@ export function ProfessionalCalendar({ professionalId }: { professionalId: strin
     from,
     to,
   );
+  const { conflictIds, reload: reloadConflicts } = useScheduleConflicts(professionalId);
   // Al reprogramar, el turno cambia de fecha y su fila se re-monta bajo otro encabezado de
   // día -- se guarda acá (por id) para que la confirmación sobreviva ese re-montaje.
   const [justRescheduled, setJustRescheduled] = useState<
@@ -75,13 +77,16 @@ export function ProfessionalCalendar({ professionalId }: { professionalId: strin
                   appointment={appt}
                   professionalId={professionalId}
                   onChangeStatus={(newStatus) => changeStatus(appt.id, newStatus)}
-                  onReschedule={(newDate, newStartTime) =>
-                    reschedule(appt.id, newDate, newStartTime)
-                  }
+                  onReschedule={async (newDate, newStartTime) => {
+                    const result = await reschedule(appt.id, newDate, newStartTime);
+                    if (result.success) reloadConflicts();
+                    return result;
+                  }}
                   justRescheduledTo={justRescheduled[appt.id] ?? null}
                   onRescheduled={(slot) =>
                     setJustRescheduled((prev) => ({ ...prev, [appt.id]: slot }))
                   }
+                  isOutOfSchedule={conflictIds.has(appt.id)}
                 />
               ))}
             </div>

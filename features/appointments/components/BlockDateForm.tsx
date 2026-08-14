@@ -9,7 +9,13 @@ import { Label } from "@/components/ui/label";
 import { useAvailabilityBlocks } from "@/features/appointments/hooks/useAvailabilityBlocks";
 import { formatLongDate } from "@/features/appointments/lib/date";
 
-export function BlockDateForm({ professionalId }: { professionalId: string }) {
+export function BlockDateForm({
+  professionalId,
+  onChanged,
+}: {
+  professionalId: string;
+  onChanged?: () => void;
+}) {
   const { blocks, status, error, isSaving, addBlock, removeBlock } =
     useAvailabilityBlocks(professionalId);
   const [startDate, setStartDate] = useState("");
@@ -34,6 +40,7 @@ export function BlockDateForm({ professionalId }: { professionalId: string }) {
         setStartDate("");
         setEndDate("");
         setReason("");
+        onChanged?.();
       }
     } finally {
       isSubmittingRef.current = false;
@@ -116,7 +123,10 @@ export function BlockDateForm({ professionalId }: { professionalId: string }) {
                   type="button"
                   className="inline-flex items-center gap-1 text-xs text-red-600 hover:underline disabled:opacity-50"
                   disabled={isSaving}
-                  onClick={() => removeBlock(block.id)}
+                  onClick={async () => {
+                    await removeBlock(block.id);
+                    onChanged?.();
+                  }}
                 >
                   <X className="size-3" aria-hidden="true" />
                   Quitar

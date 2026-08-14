@@ -139,7 +139,13 @@ function DayRow({
   );
 }
 
-export function WeeklyAvailabilityForm({ professionalId }: { professionalId: string }) {
+export function WeeklyAvailabilityForm({
+  professionalId,
+  onChanged,
+}: {
+  professionalId: string;
+  onChanged?: () => void;
+}) {
   const { rules, status, error, isSaving, addRule, removeRule, updateRule } =
     useAvailabilityRules(professionalId);
   const {
@@ -180,7 +186,10 @@ export function WeeklyAvailabilityForm({ professionalId }: { professionalId: str
             className={timeSelectClass}
             value={duration}
             disabled={durationStatus === "loading" || isSavingDuration}
-            onChange={(e) => changeDuration(Number(e.target.value) as 45 | 60)}
+            onChange={async (e) => {
+              const ok = await changeDuration(Number(e.target.value) as 45 | 60);
+              if (ok) onChanged?.();
+            }}
           >
             <option value={45}>45 minutos</option>
             <option value={60}>60 minutos</option>
@@ -194,9 +203,18 @@ export function WeeklyAvailabilityForm({ professionalId }: { professionalId: str
               day={day}
               rule={rules.find((r) => r.day_of_week === day.value)}
               isSaving={isSaving}
-              onActivate={(d, start, end) => addRule(d, start, end)}
-              onDeactivate={(id) => removeRule(id)}
-              onSave={(id, start, end) => updateRule(id, start, end)}
+              onActivate={async (d, start, end) => {
+                const ok = await addRule(d, start, end);
+                if (ok) onChanged?.();
+              }}
+              onDeactivate={async (id) => {
+                await removeRule(id);
+                onChanged?.();
+              }}
+              onSave={async (id, start, end) => {
+                const ok = await updateRule(id, start, end);
+                if (ok) onChanged?.();
+              }}
             />
           ))}
         </div>

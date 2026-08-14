@@ -1,8 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getOwnProfessionalCached } from "@/features/professionals/services/getOwnProfessionalCached";
-import { WeeklyAvailabilityForm } from "@/features/appointments/components/WeeklyAvailabilityForm";
-import { AvailabilityCalendar } from "@/features/appointments/components/AvailabilityCalendar";
-import { BlockDateForm } from "@/features/appointments/components/BlockDateForm";
+import { AvailabilityPageContent } from "@/features/appointments/components/AvailabilityPageContent";
 
 export default async function AvailabilityPage() {
   const supabase = await createClient();
@@ -12,11 +10,9 @@ export default async function AvailabilityPage() {
   if (!professional) return null;
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-semibold text-brand-navy">Disponibilidad</h1>
-      <WeeklyAvailabilityForm professionalId={professional.id} />
-      <AvailabilityCalendar professionalId={professional.id} />
-      <BlockDateForm professionalId={professional.id} />
+      <AvailabilityPageContent professionalId={professional.id} />
     </div>
   );
 }

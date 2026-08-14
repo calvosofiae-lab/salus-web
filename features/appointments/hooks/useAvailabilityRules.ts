@@ -5,6 +5,7 @@ import {
   createAvailabilityRule,
   deleteAvailabilityRule,
   getOwnAvailabilityRules,
+  updateAvailabilityRule,
 } from "@/repositories/availabilityRepository";
 import { getErrorMessage } from "@/lib/errors";
 import type { AvailabilityRule } from "@/features/appointments/types";
@@ -64,5 +65,20 @@ export function useAvailabilityRules(professionalId: string) {
     }
   }
 
-  return { rules, status, error, isSaving, addRule, removeRule };
+  async function updateRule(id: string, startTime: string, endTime: string) {
+    setIsSaving(true);
+    setError(null);
+    try {
+      await updateAvailabilityRule(id, startTime, endTime);
+      await load();
+      return true;
+    } catch (err) {
+      setError(getErrorMessage(err, "Ocurrió un error al actualizar el horario"));
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return { rules, status, error, isSaving, addRule, removeRule, updateRule };
 }

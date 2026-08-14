@@ -47,6 +47,24 @@ export async function deleteAvailabilityRule(id: string): Promise<void> {
   if (error) throw error;
 }
 
+export async function updateAvailabilityRule(
+  id: string,
+  startTime: string,
+  endTime: string,
+): Promise<AvailabilityRule> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from("availability_rules")
+    .update({ start_time: startTime, end_time: endTime })
+    .eq("id", id)
+    .select("*")
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 export async function getOwnAvailabilityBlocks(
   professionalId: string,
 ): Promise<AvailabilityBlock[]> {

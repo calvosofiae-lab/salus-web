@@ -60,6 +60,7 @@ export interface Database {
           average_rating: number | null;
           gender_trained: boolean | null;
           consultation_fee: number | null;
+          slot_duration_minutes: number;
           created_at: string;
         };
         Insert: {
@@ -87,6 +88,7 @@ export interface Database {
           average_rating?: number | null;
           gender_trained?: boolean | null;
           consultation_fee?: number | null;
+          slot_duration_minutes?: number;
           created_at?: string;
         };
         Update: {
@@ -114,6 +116,7 @@ export interface Database {
           average_rating?: number | null;
           gender_trained?: boolean | null;
           consultation_fee?: number | null;
+          slot_duration_minutes?: number;
           created_at?: string;
         };
         Relationships: [];
@@ -167,6 +170,33 @@ export interface Database {
           professional_id?: string;
           start_date?: string;
           end_date?: string;
+          reason?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      availability_date_blocks: {
+        Row: {
+          id: string;
+          professional_id: string;
+          date: string;
+          start_time: string;
+          reason: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          professional_id: string;
+          date: string;
+          start_time: string;
+          reason?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          professional_id?: string;
+          date?: string;
+          start_time?: string;
           reason?: string | null;
           created_at?: string;
         };
@@ -308,6 +338,10 @@ export interface Database {
       reschedule_appointment: {
         Args: { p_appointment_id: string; p_new_date: string; p_new_start_time: string };
         Returns: void;
+      };
+      get_schedule_conflicts: {
+        Args: { p_professional_id: string };
+        Returns: { appointment_id: string }[];
       };
       submit_review: {
         Args: { p_token: string; p_rating: number; p_comment: string | null };

@@ -343,6 +343,16 @@ export interface Database {
         Args: { p_professional_id: string };
         Returns: { appointment_id: string }[];
       };
+      get_day_schedule: {
+        Args: { p_professional_id: string; p_date: string };
+        Returns: {
+          start_time: string;
+          status: string;
+          appointment_id: string | null;
+          patient_first_name: string | null;
+          patient_last_name: string | null;
+        }[];
+      };
       submit_review: {
         Args: { p_token: string; p_rating: number; p_comment: string | null };
         Returns: void;

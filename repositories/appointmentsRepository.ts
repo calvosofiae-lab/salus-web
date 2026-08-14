@@ -72,3 +72,14 @@ export async function bookAppointment(input: BookAppointmentInput): Promise<stri
   if (error) throw error;
   return data;
 }
+
+export async function getScheduleConflicts(professionalId: string): Promise<string[]> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase.rpc("get_schedule_conflicts", {
+    p_professional_id: professionalId,
+  });
+
+  if (error) throw error;
+  return (data ?? []).map((row) => row.appointment_id);
+}

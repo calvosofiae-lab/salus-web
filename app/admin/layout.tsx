@@ -13,6 +13,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Link href="/admin/profesionales" className="text-muted-foreground hover:text-brand-navy">
               Profesionales
             </Link>
+            <Link href="/admin/cuenta" className="text-muted-foreground hover:text-brand-navy">
+              Mi cuenta
+            </Link>
           </nav>
           <LogoutButton />
         </div>

@@ -20,8 +20,6 @@ export interface TimeSlot {
   startTime: string;
 }
 
-export type SlotDuration = 45 | 60;
-
 // Estado de un horario puntual en el calendario de disponibilidad: verde (disponible), rojo
 // (bloqueado por el profesional) o amarillo (ya reservado).
 export type DaySlotStatus = "disponible" | "bloqueado" | "reservado";

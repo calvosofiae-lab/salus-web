@@ -60,7 +60,6 @@ export interface Database {
           average_rating: number | null;
           gender_trained: boolean | null;
           consultation_fee: number | null;
-          slot_duration_minutes: number;
           created_at: string;
         };
         Insert: {
@@ -88,7 +87,6 @@ export interface Database {
           average_rating?: number | null;
           gender_trained?: boolean | null;
           consultation_fee?: number | null;
-          slot_duration_minutes?: number;
           created_at?: string;
         };
         Update: {
@@ -116,7 +114,6 @@ export interface Database {
           average_rating?: number | null;
           gender_trained?: boolean | null;
           consultation_fee?: number | null;
-          slot_duration_minutes?: number;
           created_at?: string;
         };
         Relationships: [];
@@ -342,10 +339,6 @@ export interface Database {
       get_schedule_conflicts: {
         Args: { p_professional_id: string };
         Returns: { appointment_id: string }[];
-      };
-      update_slot_duration: {
-        Args: { p_professional_id: string; p_minutes: number };
-        Returns: void;
       };
       get_day_schedule: {
         Args: { p_professional_id: string; p_date: string };

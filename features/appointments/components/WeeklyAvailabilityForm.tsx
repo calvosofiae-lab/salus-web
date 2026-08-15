@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAvailabilityRules } from "@/features/appointments/hooks/useAvailabilityRules";
-import { useSlotDuration } from "@/features/appointments/hooks/useSlotDuration";
 import type { AvailabilityRule } from "@/features/appointments/types";
 
 // Lunes a sábado: SALUS no opera domingos.
@@ -21,10 +20,10 @@ const DAYS = [
 const DEFAULT_START = "09:00";
 const DEFAULT_END = "18:00";
 
-// Cada 15 minutos, de 00:00 a 23:45: son los únicos horarios que se pueden elegir.
-const TIME_OPTIONS = Array.from({ length: 96 }, (_, i) => {
-  const hour = String(Math.floor(i / 4)).padStart(2, "0");
-  const minute = String((i % 4) * 15).padStart(2, "0");
+// Cada media hora, de 00:00 a 23:30: son los únicos horarios que se pueden elegir.
+const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
+  const hour = String(Math.floor(i / 2)).padStart(2, "0");
+  const minute = i % 2 === 0 ? "00" : "30";
   return `${hour}:${minute}`;
 });
 
@@ -148,12 +147,6 @@ export function WeeklyAvailabilityForm({
 }) {
   const { rules, status, error, isSaving, addRule, removeRule, updateRule } =
     useAvailabilityRules(professionalId);
-  const {
-    duration,
-    status: durationStatus,
-    isSaving: isSavingDuration,
-    changeDuration,
-  } = useSlotDuration(professionalId);
 
   return (
     <Card>
@@ -176,25 +169,6 @@ export function WeeklyAvailabilityForm({
             {error}
           </p>
         )}
-
-        <div className="flex items-center gap-2 border-b pb-4">
-          <label htmlFor="slot-duration" className="text-sm font-medium text-brand-navy">
-            Duración de cada turno
-          </label>
-          <select
-            id="slot-duration"
-            className={timeSelectClass}
-            value={duration}
-            disabled={durationStatus === "loading" || isSavingDuration}
-            onChange={async (e) => {
-              const ok = await changeDuration(Number(e.target.value) as 45 | 60);
-              if (ok) onChanged?.();
-            }}
-          >
-            <option value={45}>45 minutos</option>
-            <option value={60}>60 minutos</option>
-          </select>
-        </div>
 
         <div className="flex flex-col divide-y rounded-md border">
           {DAYS.map((day) => (

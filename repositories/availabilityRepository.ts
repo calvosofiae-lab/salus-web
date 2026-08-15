@@ -7,7 +7,6 @@ import type {
   AvailabilityRule,
   AvailabilityRuleInput,
   DaySlot,
-  SlotDuration,
 } from "@/features/appointments/types";
 
 export async function getOwnAvailabilityRules(
@@ -159,33 +158,6 @@ export async function getDaySchedule(professionalId: string, date: string): Prom
           }
         : undefined,
   }));
-}
-
-export async function getSlotDuration(professionalId: string): Promise<SlotDuration> {
-  const supabase = createClient();
-
-  const { data, error } = await supabase
-    .from("professionals")
-    .select("slot_duration_minutes")
-    .eq("id", professionalId)
-    .single();
-
-  if (error) throw error;
-  return data.slot_duration_minutes as SlotDuration;
-}
-
-export async function updateSlotDuration(
-  professionalId: string,
-  minutes: SlotDuration,
-): Promise<void> {
-  const supabase = createClient();
-
-  const { error } = await supabase.rpc("update_slot_duration", {
-    p_professional_id: professionalId,
-    p_minutes: minutes,
-  });
-
-  if (error) throw error;
 }
 
 export async function getAvailableSlots(

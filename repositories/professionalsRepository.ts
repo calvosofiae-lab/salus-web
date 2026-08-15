@@ -45,11 +45,21 @@ export async function searchProfessionals(
     query = query.eq("city", filters.city);
   }
 
-  query = query.order("average_rating", { ascending: false, nullsFirst: false });
-
   const { data, error } = await query;
   if (error) throw error;
-  return data ?? [];
+  return shuffle(data ?? []);
+}
+
+// Orden aleatorio para que todos los profesionales tengan la misma oportunidad de
+// aparecer primero en el listado, igual que en la sección de destacados
+// (get_premium_professionals hace `order by random()` en la base).
+function shuffle<T>(items: T[]): T[] {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
 }
 
 export interface PaginatedProfessionals {

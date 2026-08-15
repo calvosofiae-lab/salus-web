@@ -170,7 +170,9 @@ export function AppointmentListItem({
               Reprogramar
             </Button>
           )}
-          <AppointmentStatusMenu currentStatus={appointment.status} onChange={onChangeStatus} />
+          {appointment.status === "reservado" && (
+            <AppointmentStatusMenu currentStatus={appointment.status} onChange={onChangeStatus} />
+          )}
         </div>
       </div>
 

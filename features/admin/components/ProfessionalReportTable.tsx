@@ -1,10 +1,57 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { useProfessionalReport } from "@/features/admin/hooks/useProfessionalReport";
 import { STATUS_LABELS } from "@/features/appointments/constants";
+import type { ProfessionalReportRow } from "@/features/admin/types";
+
+type SortKey = keyof ProfessionalReportRow;
+type SortDir = "asc" | "desc";
+
+const COLUMNS: { key: SortKey; label: string }[] = [
+  { key: "full_name", label: "Profesional" },
+  { key: "average_rating", label: "Rating promedio" },
+  { key: "review_count", label: "Reviews" },
+  { key: "reservado_count", label: STATUS_LABELS.reservado },
+  { key: "realizado_count", label: STATUS_LABELS.realizado },
+  { key: "cancelado_count", label: STATUS_LABELS.cancelado },
+  { key: "no_asistio_count", label: STATUS_LABELS.no_asistio },
+];
+
+// Los conteos nunca vienen null, pero average_rating sí (profesional sin reviews todavía) --
+// se ordena como el valor más bajo posible, sin importar la dirección.
+function compareValues(a: string | number | null, b: string | number | null): number {
+  if (typeof a === "string" && typeof b === "string") {
+    return a.localeCompare(b, "es");
+  }
+  const numA = typeof a === "number" ? a : -Infinity;
+  const numB = typeof b === "number" ? b : -Infinity;
+  return numA - numB;
+}
 
 export function ProfessionalReportTable() {
   const { status, rows } = useProfessionalReport();
+  const [sortKey, setSortKey] = useState<SortKey>("full_name");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  const sortedRows = useMemo(() => {
+    const copy = [...rows];
+    copy.sort((a, b) => {
+      const cmp = compareValues(a[sortKey], b[sortKey]);
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+    return copy;
+  }, [rows, sortKey, sortDir]);
+
+  function handleSort(key: SortKey) {
+    if (key === sortKey) {
+      setSortDir((dir) => (dir === "asc" ? "desc" : "asc"));
+      return;
+    }
+    setSortKey(key);
+    // Para texto tiene más sentido arrancar A-Z; para métricas, de mayor a menor.
+    setSortDir(key === "full_name" ? "asc" : "desc");
+  }
 
   if (status === "loading") {
     return <p className="text-sm text-muted-foreground">Cargando reporte...</p>;
@@ -21,17 +68,24 @@ export function ProfessionalReportTable() {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b text-left">
-            <th className="py-2 pr-4">Profesional</th>
-            <th className="py-2 pr-4">Rating promedio</th>
-            <th className="py-2 pr-4">Reviews</th>
-            <th className="py-2 pr-4">{STATUS_LABELS.reservado}</th>
-            <th className="py-2 pr-4">{STATUS_LABELS.realizado}</th>
-            <th className="py-2 pr-4">{STATUS_LABELS.cancelado}</th>
-            <th className="py-2 pr-4">{STATUS_LABELS.no_asistio}</th>
+            {COLUMNS.map((col) => (
+              <th key={col.key} className="py-2 pr-4">
+                <button
+                  type="button"
+                  className="flex items-center gap-1 font-medium hover:text-primary"
+                  onClick={() => handleSort(col.key)}
+                >
+                  {col.label}
+                  <span className="text-muted-foreground">
+                    {sortKey === col.key ? (sortDir === "asc" ? "▲" : "▼") : ""}
+                  </span>
+                </button>
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
+          {sortedRows.map((row) => (
             <tr key={row.professional_id} className="border-b">
               <td className="py-2 pr-4">{row.full_name}</td>
               <td className="py-2 pr-4">

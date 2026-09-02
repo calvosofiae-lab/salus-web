@@ -1,22 +1,23 @@
 "use client";
 
-import Link from "next/link";
-import { useFeaturedProfessionalOfMonth } from "@/features/professionals/hooks/useFeaturedProfessionalOfMonth";
+import { useFeaturedProfessionalsOfMonth } from "@/features/professionals/hooks/useFeaturedProfessionalsOfMonth";
+import { ProfessionalCard } from "@/components/salus/professional-card";
 
 export function FeaturedOfMonthBanner() {
-  const { professional, status } = useFeaturedProfessionalOfMonth();
+  const { professionals, status } = useFeaturedProfessionalsOfMonth();
 
-  if (status !== "ready" || !professional) return null;
+  if (status !== "ready" || professionals.length === 0) return null;
 
   return (
     <section>
       <div className="section-card yellow-border">
-        <h2 className="section-title">Profesional destacado del mes</h2>
-        <div className="section-content">
-          <p>
-            <Link href={`/profesionales/${professional.id}`}>{professional.full_name}</Link>
-            {" "}— calificación promedio {professional.average_rating?.toFixed(1)} / 5 este mes.
-          </p>
+        <h2 className="section-title">
+          {professionals.length > 1 ? "Profesionales destacados del mes" : "Profesional destacado del mes"}
+        </h2>
+        <div className="featured-grid">
+          {professionals.map((prof) => (
+            <ProfessionalCard key={prof.id} prof={prof} />
+          ))}
         </div>
       </div>
     </section>

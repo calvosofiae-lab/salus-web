@@ -57,6 +57,7 @@ export interface Database {
           city: string | null;
           is_active: boolean;
           is_premium: boolean;
+          is_featured_of_month: boolean;
           average_rating: number | null;
           gender_trained: boolean | null;
           consultation_fee: number | null;
@@ -84,6 +85,7 @@ export interface Database {
           city?: string | null;
           is_active?: boolean;
           is_premium?: boolean;
+          is_featured_of_month?: boolean;
           average_rating?: number | null;
           gender_trained?: boolean | null;
           consultation_fee?: number | null;
@@ -111,6 +113,7 @@ export interface Database {
           city?: string | null;
           is_active?: boolean;
           is_premium?: boolean;
+          is_featured_of_month?: boolean;
           average_rating?: number | null;
           gender_trained?: boolean | null;
           consultation_fee?: number | null;
@@ -313,13 +316,22 @@ export interface Database {
         Args: { p_token: string; p_rating: number; p_comment: string | null };
         Returns: void;
       };
-      get_featured_professional_of_month: {
-        Args: Record<string, never>;
-        Returns: string | null;
-      };
       get_premium_professionals: {
         Args: Record<string, never>;
         Returns: Database["public"]["Tables"]["professionals"]["Row"][];
+      };
+      get_professional_report: {
+        Args: Record<string, never>;
+        Returns: {
+          professional_id: string;
+          full_name: string;
+          average_rating: number | null;
+          review_count: number;
+          reservado_count: number;
+          realizado_count: number;
+          cancelado_count: number;
+          no_asistio_count: number;
+        }[];
       };
       get_review_context: {
         Args: { p_token: string };

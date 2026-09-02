@@ -29,10 +29,3 @@ export async function submitReview(
 
   if (error) throw error;
 }
-
-export async function getFeaturedProfessionalOfMonth(): Promise<string | null> {
-  const supabase = createClient();
-  const { data, error } = await supabase.rpc("get_featured_professional_of_month");
-  if (error) throw error;
-  return data;
-}

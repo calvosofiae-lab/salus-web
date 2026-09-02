@@ -6,11 +6,47 @@ import type {
   ProfessionalFilters,
   ProfessionalInput,
 } from "@/features/professionals/types";
+import type { ProfessionalReportRow } from "@/features/admin/types";
 
 export async function getFeaturedProfessionals(): Promise<Professional[]> {
   const supabase = createClient();
 
   const { data, error } = await supabase.rpc("get_premium_professionals");
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+// "Destacado del mes": selección manual del admin (hasta 2 a la vez, ver
+// enforce_featured_of_month_limit en la base), no la sección "Profesionales Destacados"
+// de arriba (esa sigue siendo por plan premium, get_premium_professionals).
+export async function getFeaturedProfessionalsOfMonth(): Promise<Professional[]> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from("professionals")
+    .select("*")
+    .eq("is_active", true)
+    .eq("is_featured_of_month", true)
+    .order("full_name");
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+// Solo lo puede tocar un admin (protect_professional_admin_fields lo revierte si no lo es);
+// el trigger enforce_featured_of_month_limit rechaza marcar un tercero si ya hay 2.
+export async function setProfessionalFeaturedOfMonth(
+  id: string,
+  value: boolean,
+): Promise<void> {
+  await updateProfessional(id, { is_featured_of_month: value });
+}
+
+export async function getProfessionalReport(): Promise<ProfessionalReportRow[]> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase.rpc("get_professional_report");
 
   if (error) throw error;
   return data ?? [];

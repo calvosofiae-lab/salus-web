@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatLongDate } from "@/features/appointments/lib/date";
 import { useAvailableSlots } from "@/features/appointments/hooks/useAvailableSlots";
+import { useNextAvailableDate } from "@/features/appointments/hooks/useNextAvailableDate";
 import { BookingStepDone, BookingStepHeading } from "@/features/appointments/components/BookingStep";
 
 function isSunday(dateStr: string) {
@@ -53,9 +54,28 @@ export const SlotPicker = forwardRef<
   const [date, setDate] = useState("");
   const [draftDate, setDraftDate] = useState("");
   const [dateError, setDateError] = useState<string | null>(null);
+  // Fuerza el remount del <Input> de fecha en modo `compact` cuando la fecha cambia por código
+  // (botón "próxima fecha disponible") en vez de por el usuario tipeando/eligiendo -- ese input
+  // es no controlado (`defaultValue`), así que un cambio programático de `date` no movería lo
+  // que se ve en pantalla sin este remount.
+  const [inputKey, setInputKey] = useState(0);
   const { slots, status, reload } = useAvailableSlots(professionalId, date || null);
+  // Se dispara solo cuando el día elegido no tiene horarios, para avisar "agenda completa" y
+  // ofrecer saltar directo a la próxima fecha con disponibilidad.
+  const { nextDate, status: nextDateStatus } = useNextAvailableDate(
+    professionalId,
+    status === "ready" && slots.length === 0 ? date : null,
+  );
 
   useImperativeHandle(ref, () => ({ reload }), [reload]);
+
+  function handleJumpToNextDate() {
+    if (!nextDate) return;
+    setDraftDate(nextDate);
+    setDateError(null);
+    setDate(nextDate);
+    setInputKey((k) => k + 1);
+  }
 
   // Modo compact: el input nunca se desmonta, así que confirmar en cada onChange es seguro.
   function handleDateChange(value: string) {
@@ -98,6 +118,7 @@ export const SlotPicker = forwardRef<
         <div className="grid gap-2 max-w-xs">
           <Label htmlFor="appointment_date">Elegí una fecha (lunes a sábado)</Label>
           <Input
+            key={inputKey}
             id="appointment_date"
             type="date"
             defaultValue={date}
@@ -111,7 +132,19 @@ export const SlotPicker = forwardRef<
         )}
         {status === "error" && <p className="text-sm text-red-500">Error al buscar horarios.</p>}
         {status === "ready" && slots.length === 0 && (
-          <p className="text-sm text-muted-foreground">No hay horarios disponibles ese día.</p>
+          <div className="flex flex-col gap-2">
+            <p className="text-sm text-muted-foreground">No hay horarios disponibles ese día.</p>
+            {nextDateStatus === "ready" &&
+              (nextDate ? (
+                <Button type="button" size="sm" variant="outline" onClick={handleJumpToNextDate}>
+                  Ver próxima fecha disponible: {formatLongDate(nextDate)}
+                </Button>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No hay turnos disponibles en los próximos meses. Agenda completa.
+                </p>
+              ))}
+          </div>
         )}
         {status === "ready" && slots.length > 0 && (
           <div className="flex flex-wrap gap-2">
@@ -200,9 +233,27 @@ export const SlotPicker = forwardRef<
                 </p>
               )}
               {status === "ready" && slots.length === 0 && (
-                <p className="text-sm text-muted-foreground">
-                  No hay horarios disponibles ese día. Probá con otra fecha.
-                </p>
+                <div className="flex flex-col gap-2">
+                  <p className="text-sm text-muted-foreground">
+                    No hay horarios disponibles ese día. Probá con otra fecha.
+                  </p>
+                  {nextDateStatus === "ready" &&
+                    (nextDate ? (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="self-start"
+                        onClick={handleJumpToNextDate}
+                      >
+                        Ver próxima fecha disponible: {formatLongDate(nextDate)}
+                      </Button>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        No hay turnos disponibles en los próximos meses. Agenda completa.
+                      </p>
+                    ))}
+                </div>
               )}
               {status === "ready" && slots.length > 0 && (
                 <div

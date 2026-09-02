@@ -51,7 +51,11 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
   const whatsapp = prof.whatsapp;
 
   const linkWa = whatsapp
-    ? buildWhatsappLink(whatsapp, prof.whatsapp_country, `Hola ${nombre}, te contacto desde SALUS`)
+    ? buildWhatsappLink(
+        whatsapp,
+        prof.whatsapp_country,
+        `Hola ${nombre}, quiero consultar por un turno con vos.`,
+      )
     : null;
   const linkInstagram = prof.instagram_url ? buildInstagramLink(prof.instagram_url) : null;
   const linkLinkedin = prof.linkedin_url ? buildLinkedinLink(prof.linkedin_url) : null;

@@ -44,6 +44,8 @@ proyecto (tarea E0-9), una vez validado que nada la referencia.
 | province | text, nullable | FK a `provinces.id` (mismo dropdown que usa el buscador público) |
 | city | text, nullable | valor de `cities.name` para la provincia elegida, o `"General"` = toda la provincia; solo relevante si `presencial` está en `modality` |
 | is_active | boolean | default true |
+| is_premium | boolean | default false; plan pago, solo lo edita un admin |
+| is_featured_of_month | boolean | default false; "destacado del mes", selección manual del admin, máximo 2 a la vez (`enforce_featured_of_month_limit`) |
 | average_rating | numeric | cacheado, recalculado desde `reviews` |
 | gender_trained | boolean, nullable | migrado de `profesionales.Capacitacion_en_genero`; no estaba en el diseño original, se agregó al migrar datos reales (E0-5) |
 | consultation_fee | numeric, nullable | precio de la sesión; se carga/edita desde `ProfessionalForm` (alta, edición admin y "Mi perfil") |
@@ -127,7 +129,7 @@ de estas tablas.
 | `update_appointment_status(appointment_id, status)` | cambia estado; dispara generación de `rating_token` |
 | `submit_review(token, rating, comment)` | valida token y registra la calificación |
 | `get_professional_rating(professional_id)` | promedio de calificaciones |
-| `get_featured_professional_of_month()` | profesional destacado según rating y volumen de reviews |
+| `get_professional_report()` | tabla por profesional (rating promedio, cantidad de reviews, turnos por estado) para el panel de admin |
 | `admin_create_professional(...)` | alta de profesional + su usuario de Supabase Auth, solo ejecutable por admin |
 
 ## Triggers

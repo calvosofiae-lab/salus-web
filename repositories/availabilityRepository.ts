@@ -93,3 +93,20 @@ export async function getAvailableSlots(
   if (error) throw error;
   return (data ?? []).map((row) => row.start_time);
 }
+
+/** Primera fecha (>= fromDate) con al menos un horario libre, o null si no hay ninguna dentro
+ * del horizonte de búsqueda por default de `get_next_available_date` (90 días). */
+export async function getNextAvailableDate(
+  professionalId: string,
+  fromDate: string,
+): Promise<string | null> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase.rpc("get_next_available_date", {
+    p_professional_id: professionalId,
+    p_from_date: fromDate,
+  });
+
+  if (error) throw error;
+  return data;
+}

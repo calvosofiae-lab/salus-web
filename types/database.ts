@@ -296,6 +296,10 @@ export interface Database {
         Args: { p_professional_id: string; p_date: string };
         Returns: { start_time: string }[];
       };
+      get_next_available_date: {
+        Args: { p_professional_id: string; p_from_date: string; p_horizon_days?: number };
+        Returns: string | null;
+      };
       book_appointment: {
         Args: {
           p_professional_id: string;

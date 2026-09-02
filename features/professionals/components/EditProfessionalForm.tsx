@@ -1,6 +1,7 @@
 "use client";
 
 import { ProfessionalForm } from "@/features/professionals/components/ProfessionalForm";
+import { ResetProfessionalPasswordForm } from "@/features/professionals/components/ResetProfessionalPasswordForm";
 import { useUpdateProfessional } from "@/features/professionals/hooks/useUpdateProfessional";
 import type { Professional } from "@/features/professionals/types";
 
@@ -8,35 +9,38 @@ export function EditProfessionalForm({ professional }: { professional: Professio
   const { update, error, isLoading } = useUpdateProfessional(professional.id);
 
   return (
-    <ProfessionalForm
-      mode="edit"
-      initialValues={{
-        full_name: professional.full_name,
-        profession: professional.profession,
-        license_number: professional.license_number ?? "",
-        license_type: professional.license_type,
-        license_province: professional.license_province ?? "",
-        gender: professional.gender ?? "",
-        consultation_fee:
-          professional.consultation_fee != null ? String(professional.consultation_fee) : "",
-        description: professional.description ?? "",
-        photo_url: professional.photo_url ?? "",
-        whatsapp: professional.whatsapp ?? "",
-        whatsapp_country: professional.whatsapp_country,
-        instagram_url: professional.instagram_url ?? "",
-        linkedin_url: professional.linkedin_url ?? "",
-        province: professional.province ?? "",
-        city: professional.city ?? "",
-        coverage: professional.coverage,
-        modality: professional.modality,
-        consultation_reasons: professional.consultation_reasons,
-      }}
-      onSubmit={async (values) => {
-        await update(values);
-      }}
-      isLoading={isLoading}
-      error={error}
-      submitLabel="Guardar cambios"
-    />
+    <div className="flex flex-col gap-6">
+      <ProfessionalForm
+        mode="edit"
+        initialValues={{
+          full_name: professional.full_name,
+          profession: professional.profession,
+          license_number: professional.license_number ?? "",
+          license_type: professional.license_type,
+          license_province: professional.license_province ?? "",
+          gender: professional.gender ?? "",
+          consultation_fee:
+            professional.consultation_fee != null ? String(professional.consultation_fee) : "",
+          description: professional.description ?? "",
+          photo_url: professional.photo_url ?? "",
+          whatsapp: professional.whatsapp ?? "",
+          whatsapp_country: professional.whatsapp_country,
+          instagram_url: professional.instagram_url ?? "",
+          linkedin_url: professional.linkedin_url ?? "",
+          province: professional.province ?? "",
+          city: professional.city ?? "",
+          coverage: professional.coverage,
+          modality: professional.modality,
+          consultation_reasons: professional.consultation_reasons,
+        }}
+        onSubmit={async (values) => {
+          await update(values);
+        }}
+        isLoading={isLoading}
+        error={error}
+        submitLabel="Guardar cambios"
+      />
+      <ResetProfessionalPasswordForm professionalId={professional.id} />
+    </div>
   );
 }

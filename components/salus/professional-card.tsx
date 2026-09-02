@@ -54,7 +54,7 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
     ? buildWhatsappLink(
         whatsapp,
         prof.whatsapp_country,
-        `Hola ${nombre}, quiero consultar por un turno con vos.`,
+        "Hola, ¿cómo estás? Encontré tu perfil en Salus y me gustaría consultar por tu disponibilidad para coordinar un turno. ¡Gracias!",
       )
     : null;
   const linkInstagram = prof.instagram_url ? buildInstagramLink(prof.instagram_url) : null;

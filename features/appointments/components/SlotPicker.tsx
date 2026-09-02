@@ -133,17 +133,22 @@ export const SlotPicker = forwardRef<
         {status === "error" && <p className="text-sm text-red-500">Error al buscar horarios.</p>}
         {status === "ready" && slots.length === 0 && (
           <div className="flex flex-col gap-2">
-            <p className="text-sm text-muted-foreground">No hay horarios disponibles ese día.</p>
-            {nextDateStatus === "ready" &&
-              (nextDate ? (
-                <Button type="button" size="sm" variant="outline" onClick={handleJumpToNextDate}>
-                  Ver próxima fecha disponible: {formatLongDate(nextDate)}
-                </Button>
-              ) : (
+            {nextDateStatus === "ready" && nextDate === null ? (
+              <p className="text-sm text-muted-foreground">
+                No hay turnos disponibles en los próximos meses. Agenda completa.
+              </p>
+            ) : (
+              <>
                 <p className="text-sm text-muted-foreground">
-                  No hay turnos disponibles en los próximos meses. Agenda completa.
+                  No hay horarios disponibles ese día.
                 </p>
-              ))}
+                {nextDateStatus === "ready" && nextDate && (
+                  <Button type="button" size="sm" variant="outline" onClick={handleJumpToNextDate}>
+                    Ver próxima fecha disponible: {formatLongDate(nextDate)}
+                  </Button>
+                )}
+              </>
+            )}
           </div>
         )}
         {status === "ready" && slots.length > 0 && (
@@ -234,25 +239,28 @@ export const SlotPicker = forwardRef<
               )}
               {status === "ready" && slots.length === 0 && (
                 <div className="flex flex-col gap-2">
-                  <p className="text-sm text-muted-foreground">
-                    No hay horarios disponibles ese día. Probá con otra fecha.
-                  </p>
-                  {nextDateStatus === "ready" &&
-                    (nextDate ? (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        className="self-start"
-                        onClick={handleJumpToNextDate}
-                      >
-                        Ver próxima fecha disponible: {formatLongDate(nextDate)}
-                      </Button>
-                    ) : (
+                  {nextDateStatus === "ready" && nextDate === null ? (
+                    <p className="text-sm text-muted-foreground">
+                      No hay turnos disponibles en los próximos meses. Agenda completa.
+                    </p>
+                  ) : (
+                    <>
                       <p className="text-sm text-muted-foreground">
-                        No hay turnos disponibles en los próximos meses. Agenda completa.
+                        No hay horarios disponibles ese día. Probá con otra fecha.
                       </p>
-                    ))}
+                      {nextDateStatus === "ready" && nextDate && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="self-start"
+                          onClick={handleJumpToNextDate}
+                        >
+                          Ver próxima fecha disponible: {formatLongDate(nextDate)}
+                        </Button>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
               {status === "ready" && slots.length > 0 && (

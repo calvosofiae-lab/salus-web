@@ -11,11 +11,37 @@ export interface PhoneCountry {
   dialCode: string;
   mobilePrefix: string;
   numberLength: number;
+  example: string;
 }
 
 export const PHONE_COUNTRIES: PhoneCountry[] = [
-  { code: "AR", label: "Argentina (+54)", dialCode: "54", mobilePrefix: "9", numberLength: 10 },
-  { code: "ES", label: "España (+34)", dialCode: "34", mobilePrefix: "", numberLength: 9 },
+  {
+    code: "AR",
+    label: "Argentina (+54)",
+    dialCode: "54",
+    mobilePrefix: "9",
+    numberLength: 10,
+    example: "3411234567",
+  },
+  {
+    code: "ES",
+    label: "España (+34)",
+    dialCode: "34",
+    mobilePrefix: "",
+    numberLength: 9,
+    example: "666155767",
+  },
+  // Los números móviles brasileños ya incluyen el 9 dentro de los 11 dígitos (2 de DDD + 9
+  // del número), a diferencia de Argentina donde ese 9 es un prefijo aparte que se agrega
+  // solo al armar el link de wa.me -- por eso acá no hace falta mobilePrefix.
+  {
+    code: "BR",
+    label: "Brasil (+55)",
+    dialCode: "55",
+    mobilePrefix: "",
+    numberLength: 11,
+    example: "85997279683",
+  },
 ];
 
 export const DEFAULT_PHONE_COUNTRY = "AR";

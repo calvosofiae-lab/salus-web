@@ -5,13 +5,14 @@ import {
   activateProfessional,
   deactivateProfessional,
   getAllProfessionalsAdmin,
+  setProfessionalFeaturedOfMonth,
   setProfessionalPremium,
 } from "@/repositories/professionalsRepository";
 import { getErrorMessage } from "@/lib/errors";
 import type { Professional } from "@/features/professionals/types";
 
 type Status = "loading" | "error" | "ready";
-type SavingAction = "activate" | "deactivate" | "premium";
+type SavingAction = "activate" | "deactivate" | "premium" | "featured_of_month";
 
 export const ADMIN_PROFESSIONALS_PAGE_SIZE = 20;
 
@@ -90,6 +91,23 @@ export function useAdminProfessionalsList() {
     }
   }
 
+  async function toggleFeaturedOfMonth(id: string, featured: boolean) {
+    setSavingId(id);
+    setSavingAction("featured_of_month");
+    setError(null);
+    try {
+      await setProfessionalFeaturedOfMonth(id, featured);
+      await load();
+    } catch (err) {
+      setError(
+        getErrorMessage(err, "Ocurrió un error al cambiar el destacado del mes del profesional"),
+      );
+    } finally {
+      setSavingId(null);
+      setSavingAction(null);
+    }
+  }
+
   const pageCount = Math.max(1, Math.ceil(totalCount / ADMIN_PROFESSIONALS_PAGE_SIZE));
 
   return {
@@ -101,6 +119,7 @@ export function useAdminProfessionalsList() {
     deactivate,
     activate,
     togglePremium,
+    toggleFeaturedOfMonth,
     reload: load,
     page,
     pageCount,

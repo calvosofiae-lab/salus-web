@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getOwnProfessionalCached } from "@/features/professionals/services/getOwnProfessionalCached";
 import { OwnProfileForm } from "@/features/professionals/components/OwnProfileForm";
+import { ChangePasswordForm } from "@/features/auth/components/ChangePasswordForm";
 
 export default async function OwnProfilePage() {
   const supabase = await createClient();
@@ -13,6 +14,7 @@ export default async function OwnProfilePage() {
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-semibold text-brand-navy">Mi perfil</h1>
       <OwnProfileForm professional={professional} />
+      <ChangePasswordForm />
     </div>
   );
 }

@@ -20,8 +20,11 @@ export async function GET(request: NextRequest) {
       // redirect user to specified redirect URL or root of app
       redirect(next);
     } else {
-      // redirect the user to an error page with some instructions
-      redirect(`/auth/error?error=${error?.message}`);
+      // Redirige a `next` con el error en vez de a /auth/error: para el caso real que usa
+      // esta ruta hoy (recupero de contraseña, next=/auth/update-password), eso reutiliza
+      // la pantalla de "link inválido o expirado" que ya tiene esa página en vez de la
+      // genérica en inglés de /auth/error.
+      redirect(`${next}?error=${encodeURIComponent(error.message)}`);
     }
   }
 

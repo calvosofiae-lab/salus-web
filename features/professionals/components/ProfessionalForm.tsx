@@ -476,7 +476,7 @@ export function ProfessionalForm({
                 inputMode="numeric"
                 autoComplete="tel-national"
                 maxLength={getPhoneCountry(whatsappCountry).numberLength}
-                placeholder={whatsappCountry === "AR" ? "Ej: 3411234567" : "Ej: 666155767"}
+                placeholder={`Ej: ${getPhoneCountry(whatsappCountry).example}`}
                 aria-invalid={!!errors.whatsapp}
                 aria-describedby="whatsapp-hint"
                 {...register("whatsapp")}

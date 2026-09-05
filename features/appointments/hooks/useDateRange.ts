@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 
-export const MAX_RANGE_DAYS = 21;
+// Sube a 31 para que el rango pueda cubrir un mes completo de una sola vez (antes tope de 21).
+export const MAX_RANGE_DAYS = 31;
 
 function toISODate(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;

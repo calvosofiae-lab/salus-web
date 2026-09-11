@@ -8,6 +8,7 @@ import { useMyAppointments } from "@/features/appointments/hooks/useMyAppointmen
 import { useScheduleConflicts } from "@/features/appointments/hooks/useScheduleConflicts";
 import { MAX_RANGE_DAYS, useDateRange } from "@/features/appointments/hooks/useDateRange";
 import { AppointmentListItem } from "@/features/appointments/components/AppointmentListItem";
+import { CreateAppointmentForm } from "@/features/appointments/components/CreateAppointmentForm";
 import { formatLongDate } from "@/features/appointments/lib/date";
 import type { Appointment } from "@/features/appointments/types";
 
@@ -17,7 +18,7 @@ const DAYS_PER_PAGE = 7;
 
 export function ProfessionalCalendar({ professionalId }: { professionalId: string }) {
   const { from, to, setFrom, setTo } = useDateRange();
-  const { appointments, status, changeStatus, reschedule } = useMyAppointments(
+  const { appointments, status, changeStatus, reschedule, reload } = useMyAppointments(
     professionalId,
     from,
     to,
@@ -51,6 +52,14 @@ export function ProfessionalCalendar({ professionalId }: { professionalId: strin
 
   return (
     <div className="flex flex-col gap-6">
+      <CreateAppointmentForm
+        professionalId={professionalId}
+        onCreated={async () => {
+          await reload();
+          await reloadConflicts();
+        }}
+      />
+
       <div className="flex flex-wrap items-end gap-4">
         <div className="grid gap-1.5">
           <Label htmlFor="range_from">Desde</Label>

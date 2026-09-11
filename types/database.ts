@@ -218,6 +218,7 @@ export interface Database {
           rating_token: string | null;
           reviewed: boolean;
           created_at: string;
+          created_by_professional: boolean;
         };
         Insert: {
           id?: string;
@@ -234,6 +235,7 @@ export interface Database {
           rating_token?: string | null;
           reviewed?: boolean;
           created_at?: string;
+          created_by_professional?: boolean;
         };
         Update: {
           id?: string;
@@ -250,6 +252,7 @@ export interface Database {
           rating_token?: string | null;
           reviewed?: boolean;
           created_at?: string;
+          created_by_professional?: boolean;
         };
         Relationships: [];
       };
@@ -342,6 +345,26 @@ export interface Database {
       reschedule_appointment: {
         Args: { p_appointment_id: string; p_new_date: string; p_new_start_time: string };
         Returns: void;
+      };
+      create_appointment_as_professional: {
+        Args: {
+          p_professional_id: string;
+          p_date: string;
+          p_start_time: string;
+          p_first_name: string;
+          p_last_name: string;
+          p_whatsapp: string;
+          p_whatsapp_country?: string;
+          p_patient_email?: string;
+          p_repeat_frequency?: string;
+          p_repeat_count?: number;
+        };
+        Returns: {
+          appointment_id: string;
+          appointment_date: string;
+          start_time: string;
+          conflict_count: number;
+        }[];
       };
       get_schedule_conflicts: {
         Args: { p_professional_id: string };

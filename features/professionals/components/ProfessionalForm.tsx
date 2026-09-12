@@ -51,6 +51,7 @@ const EMPTY_VALUES: ProfessionalFormSchema = {
   coverage: [],
   modality: [],
   consultation_reasons: [],
+  health_insurances: [],
   email: "",
   password: "",
 };
@@ -102,6 +103,71 @@ function ChipToggle({
     >
       {label}
     </button>
+  );
+}
+
+function TagList({
+  values,
+  onAdd,
+  onRemove,
+  placeholder,
+}: {
+  values: string[];
+  onAdd: (value: string) => void;
+  onRemove: (value: string) => void;
+  placeholder?: string;
+}) {
+  const [draft, setDraft] = useState("");
+
+  function handleAdd() {
+    const trimmed = draft.trim();
+    if (!trimmed || values.includes(trimmed)) {
+      setDraft("");
+      return;
+    }
+    onAdd(trimmed);
+    setDraft("");
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex gap-2">
+        <Input
+          value={draft}
+          placeholder={placeholder}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleAdd();
+            }
+          }}
+        />
+        <Button type="button" variant="outline" size="sm" onClick={handleAdd}>
+          Agregar
+        </Button>
+      </div>
+      {values.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {values.map((v) => (
+            <span
+              key={v}
+              className="flex items-center gap-1 rounded-full border border-brand-teal/40 bg-brand-teal/10 px-3 py-1 text-xs font-medium text-brand-navy"
+            >
+              {v}
+              <button
+                type="button"
+                aria-label={`Quitar ${v}`}
+                onClick={() => onRemove(v)}
+                className="text-muted-foreground hover:text-red-600"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -163,6 +229,7 @@ export function ProfessionalForm({
   const coverage = watch("coverage");
   const modality = watch("modality");
   const consultationReasons = watch("consultation_reasons");
+  const healthInsurances = watch("health_insurances");
 
   useEffect(() => {
     if (!photoFile) {
@@ -537,7 +604,13 @@ export function ProfessionalForm({
                   key={o.value}
                   label={o.label}
                   active={coverage.includes(o.value)}
-                  onClick={() => toggleArrayValue("coverage", o.value)}
+                  onClick={() => {
+                    const isRemoving = o.value === "obra_social" && coverage.includes(o.value);
+                    toggleArrayValue("coverage", o.value);
+                    if (isRemoving) {
+                      setValue("health_insurances", [], { shouldValidate: true });
+                    }
+                  }}
                 />
               ))}
             </div>
@@ -571,6 +644,31 @@ export function ProfessionalForm({
             ))}
           </div>
         </div>
+
+        {coverage.includes("obra_social") && (
+          <div className="grid gap-1.5">
+            <Label>Obras sociales que atiende</Label>
+            <p className="text-xs text-muted-foreground">
+              Escribí el nombre de cada una y presioná Agregar (o Enter).
+            </p>
+            <TagList
+              values={healthInsurances}
+              placeholder="Ej: OSDE, Swiss Medical, IOMA..."
+              onAdd={(value) =>
+                setValue("health_insurances", [...healthInsurances, value], {
+                  shouldValidate: true,
+                })
+              }
+              onRemove={(value) =>
+                setValue(
+                  "health_insurances",
+                  healthInsurances.filter((v) => v !== value),
+                  { shouldValidate: true },
+                )
+              }
+            />
+          </div>
+        )}
       </SectionCard>
 
       {mode === "create" && (

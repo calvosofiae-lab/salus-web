@@ -53,6 +53,7 @@ export interface Database {
           coverage: string[];
           modality: string[];
           consultation_reasons: string[];
+          health_insurances: string[];
           province: string | null;
           city: string | null;
           is_active: boolean;
@@ -81,6 +82,7 @@ export interface Database {
           coverage?: string[];
           modality?: string[];
           consultation_reasons?: string[];
+          health_insurances?: string[];
           province?: string | null;
           city?: string | null;
           is_active?: boolean;
@@ -109,6 +111,7 @@ export interface Database {
           coverage?: string[];
           modality?: string[];
           consultation_reasons?: string[];
+          health_insurances?: string[];
           province?: string | null;
           city?: string | null;
           is_active?: boolean;
@@ -331,6 +334,7 @@ export interface Database {
           full_name: string;
           average_rating: number | null;
           review_count: number;
+          comment_count: number;
           reservado_count: number;
           realizado_count: number;
           cancelado_count: number;

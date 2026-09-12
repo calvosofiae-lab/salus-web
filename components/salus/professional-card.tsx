@@ -21,6 +21,7 @@ function WhatsappIcon({ size = 16 }: { size?: number }) {
 }
 
 const DESCRIPTION_PREVIEW_LENGTH = 140;
+const INSURANCES_PREVIEW_COUNT = 3;
 
 // Corta en el último espacio antes del límite para no partir una palabra al medio.
 function truncateDescription(text: string, maxLength: number): string {
@@ -48,6 +49,12 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
   const isLong = descripcion.length > DESCRIPTION_PREVIEW_LENGTH;
   const descripcionMostrada =
     isLong && !expanded ? `${truncateDescription(descripcion, DESCRIPTION_PREVIEW_LENGTH)}…` : descripcion;
+  const obrasSociales = prof.health_insurances ?? [];
+  const [obrasSocialesExpanded, setObrasSocialesExpanded] = useState(false);
+  const obrasSocialesMostradas = obrasSocialesExpanded
+    ? obrasSociales
+    : obrasSociales.slice(0, INSURANCES_PREVIEW_COUNT);
+  const obrasSocialesOcultas = obrasSociales.length - obrasSocialesMostradas.length;
   const whatsapp = prof.whatsapp;
 
   const linkWa = whatsapp
@@ -77,6 +84,33 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
         <span className="prof-badge">{modalidad}</span>
         {prof.consultation_fee != null && (
           <p className="prof-price">${prof.consultation_fee.toLocaleString("es-AR")} la sesión</p>
+        )}
+        {obrasSociales.length > 0 && (
+          <div className="prof-insurances">
+            {obrasSocialesMostradas.map((obraSocial) => (
+              <span key={obraSocial} className="prof-insurance-badge">
+                {obraSocial}
+              </span>
+            ))}
+            {obrasSocialesOcultas > 0 && (
+              <button
+                type="button"
+                className="prof-insurance-toggle"
+                onClick={() => setObrasSocialesExpanded(true)}
+              >
+                +{obrasSocialesOcultas} más
+              </button>
+            )}
+            {obrasSocialesExpanded && obrasSociales.length > INSURANCES_PREVIEW_COUNT && (
+              <button
+                type="button"
+                className="prof-insurance-toggle"
+                onClick={() => setObrasSocialesExpanded(false)}
+              >
+                Ver menos
+              </button>
+            )}
+          </div>
         )}
         {descripcion && (
           <p className="prof-description">

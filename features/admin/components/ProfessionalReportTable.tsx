@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useProfessionalReport } from "@/features/admin/hooks/useProfessionalReport";
 import { STATUS_LABELS } from "@/features/appointments/constants";
 import type { ProfessionalReportRow } from "@/features/admin/types";
@@ -87,7 +88,19 @@ export function ProfessionalReportTable() {
         <tbody>
           {sortedRows.map((row) => (
             <tr key={row.professional_id} className="border-b">
-              <td className="py-2 pr-4">{row.full_name}</td>
+              <td className="py-2 pr-4">
+                {row.comment_count > 0 ? (
+                  <Link
+                    href={`/admin/reportes/${row.professional_id}`}
+                    className="font-medium text-primary hover:underline"
+                    title="Ver comentarios de las reseñas"
+                  >
+                    {row.full_name}
+                  </Link>
+                ) : (
+                  row.full_name
+                )}
+              </td>
               <td className="py-2 pr-4">
                 {row.average_rating != null ? row.average_rating.toFixed(1) : "—"}
               </td>

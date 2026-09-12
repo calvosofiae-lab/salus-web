@@ -23,6 +23,7 @@ import { EmergencyBanner } from "@/components/salus/emergency-banner";
 const RESULTS_PAGE_SIZE = 6;
 
 export function SearchSection() {
+  const [nombreApellido, setNombreApellido] = useState("");
   const [profesion, setProfesion] = useState<Profession | "">("");
   const [motivo, setMotivo] = useState("");
   const [genero, setGenero] = useState("");
@@ -50,6 +51,7 @@ export function SearchSection() {
     setPage(0);
 
     await search({
+      fullName: nombreApellido.trim() || undefined,
       profession: profesion || undefined,
       consultationReason: motivo || undefined,
       gender: genero || undefined,
@@ -89,6 +91,17 @@ export function SearchSection() {
       <div className="search-panel">
         <form id="searchForm" onSubmit={handleSubmit}>
           <div className="grid-filters">
+            <div className="filter-group">
+              <label htmlFor="nombreApellido">Nombre y apellido</label>
+              <input
+                id="nombreApellido"
+                type="text"
+                placeholder="Buscar por nombre y apellido"
+                value={nombreApellido}
+                onChange={(e) => setNombreApellido(e.target.value)}
+              />
+            </div>
+
             <div className="filter-group">
               <label htmlFor="profesion">Especialidad</label>
               <select

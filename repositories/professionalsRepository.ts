@@ -59,6 +59,9 @@ export async function searchProfessionals(
 
   let query = supabase.from("professionals").select("*").eq("is_active", true);
 
+  if (filters.fullName) {
+    query = query.ilike("full_name", `%${filters.fullName}%`);
+  }
   if (filters.profession) {
     query = query.eq("profession", filters.profession);
   }

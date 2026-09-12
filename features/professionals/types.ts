@@ -8,6 +8,7 @@ export type Coverage = "particular" | "obra_social";
 export type Modality = "virtual" | "presencial";
 
 export interface ProfessionalFilters {
+  fullName?: string;
   profession?: Profession;
   consultationReason?: string;
   gender?: string;
@@ -38,6 +39,7 @@ export interface ProfessionalFormValues {
   coverage: string[];
   modality: string[];
   consultation_reasons: string[];
+  health_insurances: string[];
 }
 
 export interface ProfessionalCreateInput extends ProfessionalFormValues {

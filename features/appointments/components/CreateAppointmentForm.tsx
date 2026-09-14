@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { AlertTriangle, CalendarPlus, Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,24 +34,36 @@ const EMPTY_VALUES = {
   repeatCount: 2,
 };
 
+export interface CreateAppointmentFormHandle {
+  // Abre el formulario pre-cargado con fecha (y opcionalmente hora) -- lo usa el panel del día
+  // para "Asignar turno" desde un horario libre puntual, sin pisar lo que el profesional ya
+  // haya tipeado si el form ya estaba abierto en otra cosa.
+  openFor(date: string, time?: string): void;
+}
+
 // Cubre B (repetición semanal/quincenal/mensual) y C (turno puntual, sin repetir, en cualquier
 // fecha/hora) con un único formulario: C es simplemente este mismo form con repeatFrequency="none".
 // A diferencia de BookingForm, la fecha/hora se tipean libremente -- no dependen de
 // get_available_slots/get_day_schedule, para poder cargar horarios fuera de la disponibilidad
 // configurada.
-export function CreateAppointmentForm({
-  professionalId,
-  onCreated,
-}: {
+export const CreateAppointmentForm = forwardRef<CreateAppointmentFormHandle, {
   professionalId: string;
   onCreated?: () => void;
-}) {
+  initialDate?: string;
+}>(function CreateAppointmentForm({ professionalId, onCreated, initialDate }, ref) {
   const [isOpen, setIsOpen] = useState(false);
-  const [values, setValues] = useState(EMPTY_VALUES);
+  const [values, setValues] = useState({ ...EMPTY_VALUES, date: initialDate ?? "" });
   const [whatsappError, setWhatsappError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const { create, error, isLoading, results, created, withConflict } = useCreateAppointment();
   const isSubmittingRef = useRef(false);
+
+  useImperativeHandle(ref, () => ({
+    openFor(date, time) {
+      setValues((v) => ({ ...v, date, time: time ?? v.time }));
+      setIsOpen(true);
+    },
+  }));
 
   const {
     firstName,
@@ -337,4 +349,4 @@ export function CreateAppointmentForm({
       </CardContent>
     </Card>
   );
-}
+});

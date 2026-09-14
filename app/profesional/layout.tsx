@@ -7,22 +7,16 @@ export default function ProfessionalLayout({ children }: { children: React.React
   return (
     <div className="min-h-screen flex flex-col">
       <header className="border-b-2 border-b-brand-teal bg-white">
-        <div className="max-w-5xl mx-auto flex items-center justify-between p-4">
+        <div className="max-w-6xl mx-auto flex items-center justify-between p-4">
           <nav className="flex items-center gap-5 text-sm font-medium">
             <Link href="/profesional" className="font-semibold text-brand-navy">
               SALUS Profesional
             </Link>
             <Link
-              href="/profesional/disponibilidad"
-              className="text-muted-foreground hover:text-brand-navy"
-            >
-              Disponibilidad
-            </Link>
-            <Link
               href="/profesional/turnos"
               className="text-muted-foreground hover:text-brand-navy"
             >
-              Mis turnos
+              Agenda
             </Link>
             <Link
               href="/profesional/perfil"
@@ -34,7 +28,7 @@ export default function ProfessionalLayout({ children }: { children: React.React
           <LogoutButton />
         </div>
       </header>
-      <main className="flex-1 max-w-5xl w-full mx-auto p-6">
+      <main className="flex-1 max-w-6xl w-full mx-auto p-6">
         <Suspense fallback={<p className="text-sm text-muted-foreground">Cargando...</p>}>
           <ProfessionalGate>{children}</ProfessionalGate>
         </Suspense>

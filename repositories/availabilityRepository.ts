@@ -160,6 +160,26 @@ export async function getDaySchedule(professionalId: string, date: string): Prom
   }));
 }
 
+// month es 0-11 (como Date), no 1-12 -- se convierte acá para llamar a la RPC (que usa
+// make_date y espera 1-12). Devuelve las fechas ISO del mes que NO tienen ningún horario
+// disponible (sin regla semanal ese día, completo de turnos, o todo bloqueado).
+export async function getMonthDatesWithoutAvailability(
+  professionalId: string,
+  year: number,
+  month: number,
+): Promise<Set<string>> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase.rpc("get_month_availability", {
+    p_professional_id: professionalId,
+    p_year: year,
+    p_month: month + 1,
+  });
+
+  if (error) throw error;
+  return new Set((data ?? []).filter((row) => !row.has_available).map((row) => row.day));
+}
+
 export async function getAvailableSlots(
   professionalId: string,
   date: string,

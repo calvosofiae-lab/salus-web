@@ -380,6 +380,13 @@ export interface Database {
           patient_last_name: string | null;
         }[];
       };
+      get_month_availability: {
+        Args: { p_professional_id: string; p_year: number; p_month: number };
+        Returns: {
+          day: string;
+          has_available: boolean;
+        }[];
+      };
       submit_review: {
         Args: { p_token: string; p_rating: number; p_comment: string | null };
         Returns: void;

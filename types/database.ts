@@ -63,6 +63,8 @@ export interface Database {
           gender_trained: boolean | null;
           consultation_fee: number | null;
           created_at: string;
+          /** Columna generada (`lower(unaccent(full_name))`); solo lectura. */
+          full_name_normalized: string;
         };
         Insert: {
           id?: string;

@@ -48,5 +48,5 @@ export function useMyAppointments(professionalId: string, from: string, to: stri
     }
   }
 
-  return { appointments, status, changeStatus, reschedule };
+  return { appointments, status, changeStatus, reschedule, reload: load };
 }

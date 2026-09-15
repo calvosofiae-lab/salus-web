@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAvailabilityRules } from "@/features/appointments/hooks/useAvailabilityRules";
+import type { AvailabilityRule } from "@/features/appointments/types";
 
 // Lunes a sábado: SALUS no opera domingos.
 const DAYS = [
@@ -16,6 +17,9 @@ const DAYS = [
   { value: 6, label: "Sábado" },
 ];
 
+const DEFAULT_START = "09:00";
+const DEFAULT_END = "18:00";
+
 // Cada media hora, de 00:00 a 23:30: son los únicos horarios que se pueden elegir.
 const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
   const hour = String(Math.floor(i / 2)).padStart(2, "0");
@@ -26,141 +30,175 @@ const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
 const timeSelectClass =
   "h-8 w-24 rounded-md border border-brand-teal/40 bg-transparent px-2 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-teal disabled:cursor-not-allowed disabled:opacity-50";
 
-export function WeeklyAvailabilityForm({ professionalId }: { professionalId: string }) {
-  const { rules, status, error, isSaving, addRule, removeRule } =
+function DayRow({
+  day,
+  rule,
+  isSaving,
+  onActivate,
+  onDeactivate,
+  onSave,
+}: {
+  day: { value: number; label: string };
+  rule: AvailabilityRule | undefined;
+  isSaving: boolean;
+  onActivate: (day: number, start: string, end: string) => void;
+  onDeactivate: (id: string) => void;
+  onSave: (id: string, start: string, end: string) => void;
+}) {
+  const [start, setStart] = useState(rule?.start_time.slice(0, 5) ?? DEFAULT_START);
+  const [end, setEnd] = useState(rule?.end_time.slice(0, 5) ?? DEFAULT_END);
+  const [rangeError, setRangeError] = useState<string | undefined>();
+
+  const dirty = rule ? start !== rule.start_time.slice(0, 5) || end !== rule.end_time.slice(0, 5) : false;
+
+  function validate(): boolean {
+    if (start >= end) {
+      setRangeError("El horario de fin debe ser posterior al de inicio.");
+      return false;
+    }
+    setRangeError(undefined);
+    return true;
+  }
+
+  function handleToggle(checked: boolean) {
+    if (checked) {
+      onActivate(day.value, start, end);
+    } else if (rule) {
+      onDeactivate(rule.id);
+    }
+  }
+
+  function handleSave() {
+    if (!rule || !validate()) return;
+    onSave(rule.id, start, end);
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-3 p-2.5">
+      <label className="flex w-32 shrink-0 items-center gap-2 text-sm font-medium text-brand-navy">
+        <Checkbox
+          checked={!!rule}
+          disabled={isSaving}
+          onCheckedChange={(checked) => handleToggle(checked === true)}
+        />
+        {day.label}
+      </label>
+      {rule ? (
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1.5">
+            <select
+              aria-label={`Hora de inicio, ${day.label}`}
+              className={timeSelectClass}
+              value={start}
+              disabled={isSaving}
+              onChange={(e) => {
+                setStart(e.target.value);
+                setRangeError(undefined);
+              }}
+            >
+              {TIME_OPTIONS.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+            <span className="text-xs text-muted-foreground">a</span>
+            <select
+              aria-label={`Hora de fin, ${day.label}`}
+              className={timeSelectClass}
+              value={end}
+              disabled={isSaving}
+              onChange={(e) => {
+                setEnd(e.target.value);
+                setRangeError(undefined);
+              }}
+            >
+              {TIME_OPTIONS.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+            {dirty && (
+              <Button type="button" size="sm" variant="outline" disabled={isSaving} onClick={handleSave}>
+                Guardar
+              </Button>
+            )}
+          </div>
+          {rangeError && (
+            <p role="alert" className="text-xs text-red-600">
+              {rangeError}
+            </p>
+          )}
+        </div>
+      ) : (
+        <span className="text-sm text-muted-foreground">Día libre</span>
+      )}
+    </div>
+  );
+}
+
+export function WeeklyAvailabilityForm({
+  professionalId,
+  onChanged,
+}: {
+  professionalId: string;
+  onChanged?: () => void;
+}) {
+  const { rules, status, error, isSaving, addRule, removeRule, updateRule } =
     useAvailabilityRules(professionalId);
-  const [draft, setDraft] = useState<Record<number, { start: string; end: string }>>({});
-  const [rangeError, setRangeError] = useState<Record<number, string | undefined>>({});
-
-  function updateDraft(day: number, field: "start" | "end", value: string) {
-    setDraft((prev) => ({ ...prev, [day]: { ...prev[day], [field]: value } }));
-    setRangeError((prev) => ({ ...prev, [day]: undefined }));
-  }
-
-  async function handleAdd(day: number) {
-    const d = draft[day];
-    if (!d?.start || !d?.end) return;
-    if (d.start >= d.end) {
-      setRangeError((prev) => ({
-        ...prev,
-        [day]: "El horario de fin debe ser posterior al de inicio.",
-      }));
-      return;
-    }
-    const [startH, startM] = d.start.split(":").map(Number);
-    const [endH, endM] = d.end.split(":").map(Number);
-    const durationMinutes = endH * 60 + endM - (startH * 60 + startM);
-    if (durationMinutes % 60 !== 0) {
-      setRangeError((prev) => ({
-        ...prev,
-        [day]:
-          "El rango debe cubrir turnos completos de 1 hora (por ejemplo, 09:00 a 10:00 o 09:30 a 11:30).",
-      }));
-      return;
-    }
-    const success = await addRule(day, d.start, d.end);
-    if (success) {
-      setDraft((prev) => ({ ...prev, [day]: { start: "", end: "" } }));
-    }
-  }
 
   return (
     <Card>
       <CardHeader className="pb-4">
         <CardTitle className="text-base text-brand-navy">Horario semanal</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Se atiende de lunes a sábado. Los cambios solo afectan turnos futuros, no
-          modifican los ya reservados.
+          Se atiende de lunes a sábado. Los cambios solo afectan turnos futuros, no modifican
+          los ya reservados.
         </p>
       </CardHeader>
-      <CardContent className="flex flex-col gap-3">
-      {status === "loading" && <p className="text-sm text-muted-foreground">Cargando...</p>}
-      {status === "error" && (
-        <p role="alert" className="text-sm text-red-600">
-          Error al cargar tu disponibilidad.
-        </p>
-      )}
-      {error && (
-        <p role="alert" className="text-sm text-red-600">
-          {error}
-        </p>
-      )}
-      <div className="flex flex-col divide-y rounded-md border">
-        {DAYS.map((day) => {
-          const dayRules = rules.filter((r) => r.day_of_week === day.value);
-          return (
-            <div key={day.value} className="flex flex-wrap items-start gap-2 p-2.5">
-              <span className="w-20 shrink-0 pt-1.5 text-sm font-medium text-brand-navy">
-                {day.label}
-              </span>
-              <div className="flex flex-wrap gap-1.5">
-                {dayRules.map((rule) => (
-                  <span
-                    key={rule.id}
-                    className="inline-flex items-center gap-1 rounded-full bg-brand-teal/15 px-2 py-0.5 text-xs text-brand-teal-dark"
-                  >
-                    {rule.start_time.slice(0, 5)}–{rule.end_time.slice(0, 5)}
-                    <button
-                      type="button"
-                      className="text-brand-teal-dark/70 hover:text-red-600 disabled:opacity-50"
-                      disabled={isSaving}
-                      onClick={() => removeRule(rule.id)}
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-              <div className="ml-auto flex flex-col items-end gap-1">
-                <div className="flex items-center gap-1.5">
-                  <select
-                    aria-label="Hora de inicio"
-                    className={timeSelectClass}
-                    value={draft[day.value]?.start ?? ""}
-                    onChange={(e) => updateDraft(day.value, "start", e.target.value)}
-                  >
-                    <option value="">--:--</option>
-                    {TIME_OPTIONS.map((t) => (
-                      <option key={t} value={t}>
-                        {t}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="text-xs text-muted-foreground">a</span>
-                  <select
-                    aria-label="Hora de fin"
-                    className={timeSelectClass}
-                    value={draft[day.value]?.end ?? ""}
-                    onChange={(e) => updateDraft(day.value, "end", e.target.value)}
-                  >
-                    <option value="">--:--</option>
-                    {TIME_OPTIONS.map((t) => (
-                      <option key={t} value={t}>
-                        {t}
-                      </option>
-                    ))}
-                  </select>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    disabled={isSaving}
-                    onClick={() => handleAdd(day.value)}
-                  >
-                    <Plus className="size-3.5" aria-hidden="true" />
-                    Agregar
-                  </Button>
-                </div>
-                {rangeError[day.value] && (
-                  <p role="alert" className="text-xs text-red-600">
-                    {rangeError[day.value]}
-                  </p>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <CardContent className="flex flex-col gap-4">
+        {status === "loading" && <p className="text-sm text-muted-foreground">Cargando...</p>}
+        {status === "error" && (
+          <p role="alert" className="text-sm text-red-600">
+            Error al cargar tu disponibilidad.
+          </p>
+        )}
+        {error && (
+          <p role="alert" className="text-sm text-red-600">
+            {error}
+          </p>
+        )}
+
+        <div className="flex flex-col divide-y rounded-md border">
+          {DAYS.map((day) => {
+            const rule = rules.find((r) => r.day_of_week === day.value);
+            return (
+              <DayRow
+                // Remonta cuando la regla real llega (pasa de undefined a su id): DayRow
+                // inicializa start/end con useState en base a `rule`, que en la carga inicial
+                // todavía es undefined (status "loading"), así que sin este remount quedaban
+                // pegados en los valores default aunque el profesional tuviera otro horario.
+                key={rule?.id ?? day.value}
+                day={day}
+                rule={rule}
+                isSaving={isSaving}
+                onActivate={async (d, start, end) => {
+                  const ok = await addRule(d, start, end);
+                  if (ok) onChanged?.();
+                }}
+                onDeactivate={async (id) => {
+                  await removeRule(id);
+                  onChanged?.();
+                }}
+                onSave={async (id, start, end) => {
+                  const ok = await updateRule(id, start, end);
+                  if (ok) onChanged?.();
+                }}
+              />
+            );
+          })}
+        </div>
       </CardContent>
     </Card>
   );

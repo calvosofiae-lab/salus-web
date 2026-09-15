@@ -12,6 +12,20 @@ export interface BookAppointmentInput {
   whatsappCountry: string;
 }
 
+export type RepeatFrequency = "none" | "weekly" | "biweekly" | "monthly";
+
+export interface CreateAppointmentAsProfessionalInput extends BookAppointmentInput {
+  repeatFrequency: RepeatFrequency;
+  repeatCount: number;
+}
+
+export interface CreatedAppointmentResult {
+  appointmentId: string;
+  appointmentDate: string;
+  startTime: string;
+  conflictCount: number;
+}
+
 export async function getAppointmentsForProfessional(
   professionalId: string,
   from: string,
@@ -71,4 +85,42 @@ export async function bookAppointment(input: BookAppointmentInput): Promise<stri
 
   if (error) throw error;
   return data;
+}
+
+export async function createAppointmentAsProfessional(
+  input: CreateAppointmentAsProfessionalInput,
+): Promise<CreatedAppointmentResult[]> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase.rpc("create_appointment_as_professional", {
+    p_professional_id: input.professionalId,
+    p_date: input.date,
+    p_start_time: input.startTime,
+    p_first_name: input.firstName,
+    p_last_name: input.lastName,
+    p_whatsapp: input.whatsapp,
+    p_whatsapp_country: input.whatsappCountry,
+    p_patient_email: input.email,
+    p_repeat_frequency: input.repeatFrequency,
+    p_repeat_count: input.repeatCount,
+  });
+
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    appointmentId: row.appointment_id,
+    appointmentDate: row.appointment_date,
+    startTime: row.start_time,
+    conflictCount: row.conflict_count,
+  }));
+}
+
+export async function getScheduleConflicts(professionalId: string): Promise<string[]> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase.rpc("get_schedule_conflicts", {
+    p_professional_id: professionalId,
+  });
+
+  if (error) throw error;
+  return (data ?? []).map((row) => row.appointment_id);
 }

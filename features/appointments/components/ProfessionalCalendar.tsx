@@ -1,136 +1,126 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useMemo, useState } from "react";
 import { useMyAppointments } from "@/features/appointments/hooks/useMyAppointments";
-import { MAX_RANGE_DAYS, useDateRange } from "@/features/appointments/hooks/useDateRange";
-import { AppointmentListItem } from "@/features/appointments/components/AppointmentListItem";
-import { formatLongDate } from "@/features/appointments/lib/date";
-import type { Appointment } from "@/features/appointments/types";
+import { useScheduleConflicts } from "@/features/appointments/hooks/useScheduleConflicts";
+import { useAvailabilityBlocks } from "@/features/appointments/hooks/useAvailabilityBlocks";
+import { useMonthAvailability } from "@/features/appointments/hooks/useMonthAvailability";
+import { ScheduleConflictsBanner } from "@/features/appointments/components/ScheduleConflictsBanner";
+import { WeeklyAvailabilityForm } from "@/features/appointments/components/WeeklyAvailabilityForm";
+import { MonthCalendar } from "@/features/appointments/components/MonthCalendar";
+import { DayPanel } from "@/features/appointments/components/DayPanel";
+import { getMonthBounds, todayIso, toISODate } from "@/features/appointments/lib/date";
+import type { Appointment, AvailabilityBlock } from "@/features/appointments/types";
 
-// Con el rango de hasta 31 días (antes 21) un mes completo puede traer bastantes días con
-// turnos; se pagina de a semanas para no tirar todo el mes en una sola pantalla.
-const DAYS_PER_PAGE = 7;
+// Expande cada bloque (rango start_date..end_date) en fechas ISO sueltas, para poder consultar
+// "¿este día está bloqueado?" con un simple Set.has() al pintar el almanaque.
+function expandBlockedDates(blocks: AvailabilityBlock[]): Set<string> {
+  const dates = new Set<string>();
+  for (const block of blocks) {
+    const [sy, sm, sd] = block.start_date.split("-").map(Number);
+    const [ey, em, ed] = block.end_date.split("-").map(Number);
+    const cursor = new Date(sy, sm - 1, sd);
+    const end = new Date(ey, em - 1, ed);
+    while (cursor <= end) {
+      dates.add(toISODate(cursor));
+      cursor.setDate(cursor.getDate() + 1);
+    }
+  }
+  return dates;
+}
 
 export function ProfessionalCalendar({ professionalId }: { professionalId: string }) {
-  const { from, to, setFrom, setTo } = useDateRange();
-  const { appointments, status, changeStatus, reschedule } = useMyAppointments(
+  const today = useMemo(() => new Date(), []);
+  const [visibleMonth, setVisibleMonth] = useState({
+    year: today.getFullYear(),
+    month: today.getMonth(),
+  });
+  const [selectedDate, setSelectedDate] = useState(todayIso());
+
+  const monthBounds = useMemo(
+    () => getMonthBounds(visibleMonth.year, visibleMonth.month),
+    [visibleMonth],
+  );
+
+  const { appointments, status, changeStatus, reschedule, reload } = useMyAppointments(
     professionalId,
-    from,
-    to,
+    monthBounds.start,
+    monthBounds.end,
   );
-  // Al reprogramar, el turno cambia de fecha y su fila se re-monta bajo otro encabezado de
-  // día -- se guarda acá (por id) para que la confirmación sobreviva ese re-montaje.
-  const [justRescheduled, setJustRescheduled] = useState<
-    Record<string, { date: string; time: string }>
-  >({});
-  const [page, setPage] = useState(0);
-
-  // Cambiar el rango de fechas puede dejar la página actual fuera de rango (ej. estar en la
-  // página 3 y acotar a un rango con una sola semana de turnos).
-  useEffect(() => {
-    setPage(0);
-  }, [from, to]);
-
-  const byDate = appointments.reduce<Record<string, Appointment[]>>((acc, appt) => {
-    (acc[appt.appointment_date] ??= []).push(appt);
-    return acc;
-  }, {});
-
-  const sortedDates = Object.entries(byDate).sort(([a], [b]) => a.localeCompare(b));
-  const pageCount = Math.max(1, Math.ceil(sortedDates.length / DAYS_PER_PAGE));
-  const currentPage = Math.min(page, pageCount - 1);
-  const paginatedDates = sortedDates.slice(
-    currentPage * DAYS_PER_PAGE,
-    currentPage * DAYS_PER_PAGE + DAYS_PER_PAGE,
+  const { conflictIds, reload: reloadConflicts } = useScheduleConflicts(professionalId);
+  const availabilityBlocks = useAvailabilityBlocks(professionalId);
+  const { datesWithoutAvailability, reload: reloadMonthAvailability } = useMonthAvailability(
+    professionalId,
+    visibleMonth.year,
+    visibleMonth.month,
   );
+
+  const appointmentCounts = useMemo(() => {
+    return appointments.reduce<Record<string, number>>((acc, appt) => {
+      acc[appt.appointment_date] = (acc[appt.appointment_date] ?? 0) + 1;
+      return acc;
+    }, {});
+  }, [appointments]);
+
+  const blockedDates = useMemo(
+    () => expandBlockedDates(availabilityBlocks.blocks),
+    [availabilityBlocks.blocks],
+  );
+
+  const dayAppointments = useMemo<Appointment[]>(
+    () => appointments.filter((appt) => appt.appointment_date === selectedDate),
+    [appointments, selectedDate],
+  );
+
+  async function handleDataChanged() {
+    await Promise.all([reload(), reloadConflicts(), reloadMonthAvailability()]);
+  }
+
+  function handleMonthChange(year: number, month: number) {
+    setVisibleMonth({ year, month });
+    // El rango de turnos cargado cambia con el mes -- si la fecha elegida quedó fuera, el panel
+    // mostraría "sin turnos" aunque los haya, porque todavía no se pidieron esos datos.
+    setSelectedDate(toISODate(new Date(year, month, 1)));
+  }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-end gap-4">
-        <div className="grid gap-1.5">
-          <Label htmlFor="range_from">Desde</Label>
-          <Input
-            id="range_from"
-            type="date"
-            value={from}
-            max={to}
-            onChange={(e) => setFrom(e.target.value)}
-          />
-        </div>
-        <div className="grid gap-1.5">
-          <Label htmlFor="range_to">Hasta</Label>
-          <Input
-            id="range_to"
-            type="date"
-            value={to}
-            min={from}
-            onChange={(e) => setTo(e.target.value)}
-          />
-        </div>
-        <p className="text-xs text-muted-foreground pb-2">
-          El rango no puede superar los {MAX_RANGE_DAYS} días.
+    <div className="flex flex-col gap-10">
+      {status === "error" && (
+        <p role="alert" className="text-sm text-red-600">
+          Error al cargar los turnos de este mes.
         </p>
+      )}
+
+      <ScheduleConflictsBanner conflictCount={conflictIds.size} status={status} />
+
+      <div className="grid gap-6 lg:grid-cols-[minmax(280px,360px)_1fr]">
+        <MonthCalendar
+          year={visibleMonth.year}
+          month={visibleMonth.month}
+          onMonthChange={handleMonthChange}
+          selectedDate={selectedDate}
+          onSelectDate={setSelectedDate}
+          appointmentCounts={appointmentCounts}
+          blockedDates={blockedDates}
+          datesWithoutAvailability={datesWithoutAvailability}
+        />
+        <DayPanel
+          professionalId={professionalId}
+          date={selectedDate}
+          dayAppointments={dayAppointments}
+          conflictIds={conflictIds}
+          changeStatus={changeStatus}
+          reschedule={reschedule}
+          onDataChanged={handleDataChanged}
+          onSelectDate={setSelectedDate}
+          dayBlocks={availabilityBlocks.blocks}
+          addDayBlock={availabilityBlocks.addBlock}
+          removeDayBlock={availabilityBlocks.removeBlock}
+          isDayBlockSaving={availabilityBlocks.isSaving}
+        />
       </div>
 
-      {status === "loading" && (
-        <p className="text-sm text-muted-foreground">Cargando turnos...</p>
-      )}
-      {status === "error" && <p className="text-sm text-red-500">Error al cargar los turnos.</p>}
-      {status === "ready" && appointments.length === 0 && (
-        <p className="text-sm text-muted-foreground">No tenés turnos en este rango de fechas.</p>
-      )}
-      {status === "ready" &&
-        paginatedDates.map(([date, items]) => (
-          <div key={date} className="flex flex-col gap-2">
-            <h3 className="text-sm font-semibold">{formatLongDate(date)}</h3>
-            <div className="flex flex-col gap-2">
-              {items.map((appt) => (
-                <AppointmentListItem
-                  key={appt.id}
-                  appointment={appt}
-                  professionalId={professionalId}
-                  onChangeStatus={(newStatus) => changeStatus(appt.id, newStatus)}
-                  onReschedule={(newDate, newStartTime) =>
-                    reschedule(appt.id, newDate, newStartTime)
-                  }
-                  justRescheduledTo={justRescheduled[appt.id] ?? null}
-                  onRescheduled={(slot) =>
-                    setJustRescheduled((prev) => ({ ...prev, [appt.id]: slot }))
-                  }
-                />
-              ))}
-            </div>
-          </div>
-        ))}
-
-      {status === "ready" && pageCount > 1 && (
-        <div className="flex items-center justify-between text-sm">
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            disabled={currentPage === 0}
-            onClick={() => setPage(Math.max(0, currentPage - 1))}
-          >
-            Anterior
-          </Button>
-          <span className="text-muted-foreground">
-            Página {currentPage + 1} de {pageCount}
-          </span>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            disabled={currentPage >= pageCount - 1}
-            onClick={() => setPage(Math.min(pageCount - 1, currentPage + 1))}
-          >
-            Siguiente
-          </Button>
-        </div>
-      )}
+      <WeeklyAvailabilityForm professionalId={professionalId} onChanged={handleDataChanged} />
     </div>
   );
 }

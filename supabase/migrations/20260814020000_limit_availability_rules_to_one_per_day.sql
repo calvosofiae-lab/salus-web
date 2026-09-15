@@ -15,6 +15,16 @@
 -- ... does not exist"). Un único statement con WITH usa siempre la misma conexión, y además
 -- todos sus CTEs comparten el mismo snapshot: tmp_day_span calcula sobre las filas originales
 -- aunque `deleted` las borre en la misma sentencia.
+--
+-- trg_prevent_overlapping_availability_rules (20260801120000) valida por fila contra el resto
+-- de la tabla, y por ese mismo snapshot compartido todavía "ve" las filas viejas de un
+-- profesional mientras se inserta su fila consolidada -- las marca como superpuestas consigo
+-- mismas y aborta. Se desactiva solo para este statement: no hace falta revalidar nada acá, el
+-- propio agrupamiento por (professional_id, day_of_week) ya garantiza como máximo una fila por
+-- profesional y día.
+
+alter table public.availability_rules
+  disable trigger trg_prevent_overlapping_availability_rules;
 
 with tmp_day_span as (
   select professional_id, day_of_week,
@@ -30,6 +40,9 @@ deleted as (
 insert into public.availability_rules (professional_id, day_of_week, start_time, end_time)
 select professional_id, day_of_week, start_time, end_time
 from tmp_day_span;
+
+alter table public.availability_rules
+  enable trigger trg_prevent_overlapping_availability_rules;
 
 alter table public.availability_rules
   add constraint availability_rules_one_per_day unique (professional_id, day_of_week);

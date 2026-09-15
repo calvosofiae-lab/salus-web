@@ -59,6 +59,11 @@ export async function searchProfessionals(
 
   let query = supabase.from("professionals").select("*").eq("is_active", true);
 
+  if (filters.fullName) {
+    // full_name_normalized = lower(unaccent(full_name)) en la base; normalizamos el término
+    // acá igual para que "Sofia" y "Sofía" encuentren lo mismo.
+    query = query.ilike("full_name_normalized", `%${normalizeForSearch(filters.fullName)}%`);
+  }
   if (filters.profession) {
     query = query.eq("profession", filters.profession);
   }
@@ -84,6 +89,15 @@ export async function searchProfessionals(
   const { data, error } = await query;
   if (error) throw error;
   return shuffle(data ?? []);
+}
+
+// Misma normalización que la columna generada full_name_normalized (lower + sin tildes),
+// para que el término de búsqueda calce con lo que quedó guardado en la base.
+function normalizeForSearch(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase();
 }
 
 // Orden aleatorio para que todos los profesionales tengan la misma oportunidad de

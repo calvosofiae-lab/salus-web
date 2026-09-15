@@ -3,6 +3,7 @@ export interface ProfessionalReportRow {
   full_name: string;
   average_rating: number | null;
   review_count: number;
+  comment_count: number;
   reservado_count: number;
   realizado_count: number;
   cancelado_count: number;

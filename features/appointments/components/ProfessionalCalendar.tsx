@@ -91,6 +91,8 @@ export function ProfessionalCalendar({ professionalId }: { professionalId: strin
         </p>
       )}
 
+      <ScheduleConflictsBanner conflictCount={conflictIds.size} status={status} />
+
       <div className="grid gap-6 lg:grid-cols-[minmax(280px,360px)_1fr]">
         <MonthCalendar
           year={visibleMonth.year}
@@ -118,7 +120,6 @@ export function ProfessionalCalendar({ professionalId }: { professionalId: strin
         />
       </div>
 
-      <ScheduleConflictsBanner conflictCount={conflictIds.size} status={status} />
       <WeeklyAvailabilityForm professionalId={professionalId} onChanged={handleDataChanged} />
     </div>
   );

@@ -64,5 +64,5 @@ export function useAvailabilityCalendar(professionalId: string) {
     }
   }
 
-  return { date, setDate, slots, status, error, isSaving, toggleSlot };
+  return { date, setDate, slots, status, error, isSaving, toggleSlot, reload: load };
 }

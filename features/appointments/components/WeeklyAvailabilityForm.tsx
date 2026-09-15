@@ -171,26 +171,33 @@ export function WeeklyAvailabilityForm({
         )}
 
         <div className="flex flex-col divide-y rounded-md border">
-          {DAYS.map((day) => (
-            <DayRow
-              key={day.value}
-              day={day}
-              rule={rules.find((r) => r.day_of_week === day.value)}
-              isSaving={isSaving}
-              onActivate={async (d, start, end) => {
-                const ok = await addRule(d, start, end);
-                if (ok) onChanged?.();
-              }}
-              onDeactivate={async (id) => {
-                await removeRule(id);
-                onChanged?.();
-              }}
-              onSave={async (id, start, end) => {
-                const ok = await updateRule(id, start, end);
-                if (ok) onChanged?.();
-              }}
-            />
-          ))}
+          {DAYS.map((day) => {
+            const rule = rules.find((r) => r.day_of_week === day.value);
+            return (
+              <DayRow
+                // Remonta cuando la regla real llega (pasa de undefined a su id): DayRow
+                // inicializa start/end con useState en base a `rule`, que en la carga inicial
+                // todavía es undefined (status "loading"), así que sin este remount quedaban
+                // pegados en los valores default aunque el profesional tuviera otro horario.
+                key={rule?.id ?? day.value}
+                day={day}
+                rule={rule}
+                isSaving={isSaving}
+                onActivate={async (d, start, end) => {
+                  const ok = await addRule(d, start, end);
+                  if (ok) onChanged?.();
+                }}
+                onDeactivate={async (id) => {
+                  await removeRule(id);
+                  onChanged?.();
+                }}
+                onSave={async (id, start, end) => {
+                  const ok = await updateRule(id, start, end);
+                  if (ok) onChanged?.();
+                }}
+              />
+            );
+          })}
         </div>
       </CardContent>
     </Card>

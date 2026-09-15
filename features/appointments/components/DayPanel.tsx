@@ -42,8 +42,16 @@ export function DayPanel({
   removeDayBlock: (id: string) => Promise<void>;
   isDayBlockSaving: boolean;
 }) {
-  const { date: scheduleDate, setDate: setScheduleDate, slots, status, error, isSaving, toggleSlot } =
-    useAvailabilityCalendar(professionalId);
+  const {
+    date: scheduleDate,
+    setDate: setScheduleDate,
+    slots,
+    status,
+    error,
+    isSaving,
+    toggleSlot,
+    reload: reloadSchedule,
+  } = useAvailabilityCalendar(professionalId);
   const createFormRef = useRef<CreateAppointmentFormHandle>(null);
   // Bloqueo de día completo: solo reconoce bloqueos de un solo día (start_date === end_date ===
   // date) creados desde este mismo botón -- si el día cae dentro de un bloqueo de varios días
@@ -76,7 +84,10 @@ export function DayPanel({
             ref={createFormRef}
             professionalId={professionalId}
             initialDate={date}
-            onCreated={onDataChanged}
+            onCreated={() => {
+              onDataChanged();
+              reloadSchedule();
+            }}
           />
           <Button
             type="button"
@@ -117,11 +128,15 @@ export function DayPanel({
                   key={appt.id}
                   appointment={appt}
                   professionalId={professionalId}
-                  onChangeStatus={(newStatus) => changeStatus(appt.id, newStatus)}
+                  onChangeStatus={async (newStatus) => {
+                    await changeStatus(appt.id, newStatus);
+                    reloadSchedule();
+                  }}
                   onReschedule={async (newDate, newStartTime) => {
                     const result = await reschedule(appt.id, newDate, newStartTime);
                     if (result.success) {
                       onDataChanged();
+                      reloadSchedule();
                       if (newDate !== date) onSelectDate(newDate);
                     }
                     return result;

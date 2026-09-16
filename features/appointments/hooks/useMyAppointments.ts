@@ -29,9 +29,20 @@ export function useMyAppointments(professionalId: string, from: string, to: stri
     load();
   }, [load]);
 
-  async function changeStatus(id: string, newStatus: AppointmentStatus) {
-    await updateAppointmentStatus(id, newStatus);
-    await load();
+  async function changeStatus(
+    id: string,
+    newStatus: AppointmentStatus,
+  ): Promise<{ success: true } | { success: false; error: string }> {
+    try {
+      await updateAppointmentStatus(id, newStatus);
+      await load();
+      return { success: true };
+    } catch (err) {
+      return {
+        success: false,
+        error: getErrorMessage(err, "No se pudo cambiar el estado del turno"),
+      };
+    }
   }
 
   async function reschedule(

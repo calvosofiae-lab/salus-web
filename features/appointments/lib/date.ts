@@ -26,6 +26,14 @@ export function getMonthBounds(year: number, month: number): { start: string; en
   };
 }
 
+// Turno cuya fecha+hora de inicio ya pasó -- decide si se puede marcar 'realizado'/'no_asistio'
+// (no tiene sentido antes de que el turno ocurra).
+export function isPastDateTime(isoDate: string, time: string): boolean {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  const [hour, minute] = time.split(":").map(Number);
+  return new Date(year, month - 1, day, hour, minute).getTime() <= Date.now();
+}
+
 export function formatMonthYear(year: number, month: number): string {
   const label = new Date(year, month, 1).toLocaleDateString("es-AR", {
     month: "long",

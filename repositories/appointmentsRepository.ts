@@ -33,10 +33,13 @@ export async function getAppointmentsForProfessional(
 ): Promise<Appointment[]> {
   const supabase = createClient();
 
+  // Los turnos cancelados se conservan en la tabla para las estadísticas (get_professional_report
+  // los sigue contando por status), pero no deben ensuciar la agenda ni el listado de turnos.
   const { data, error } = await supabase
     .from("appointments")
     .select("*")
     .eq("professional_id", professionalId)
+    .neq("status", "cancelado")
     .gte("appointment_date", from)
     .lte("appointment_date", to)
     .order("appointment_date")

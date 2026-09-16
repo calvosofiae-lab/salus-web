@@ -14,12 +14,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AppointmentStatusMenu } from "@/features/appointments/components/AppointmentStatusMenu";
 import { SlotPicker } from "@/features/appointments/components/SlotPicker";
-import { STATUS_LABELS, STATUS_VARIANT } from "@/features/appointments/constants";
-import { formatLongDate } from "@/features/appointments/lib/date";
+import { getSelectableStatuses, STATUS_LABELS, STATUS_VARIANT } from "@/features/appointments/constants";
+import { formatLongDate, isPastDateTime } from "@/features/appointments/lib/date";
 import { buildWhatsappLink } from "@/lib/whatsapp";
 import type { Appointment, AppointmentStatus } from "@/features/appointments/types";
 
-type RescheduleResult = { success: true } | { success: false; error: string };
+type ActionResult = { success: true } | { success: false; error: string };
 
 export function AppointmentListItem({
   appointment,
@@ -32,8 +32,8 @@ export function AppointmentListItem({
 }: {
   appointment: Appointment;
   professionalId: string;
-  onChangeStatus: (status: AppointmentStatus) => void;
-  onReschedule: (date: string, startTime: string) => Promise<RescheduleResult>;
+  onChangeStatus: (status: AppointmentStatus) => Promise<ActionResult>;
+  onReschedule: (date: string, startTime: string) => Promise<ActionResult>;
   // Se guarda en el padre (no acá) porque al reprogramar el turno cambia de fecha y esta
   // fila se re-monta bajo otro encabezado de día -- un estado local se perdería justo
   // cuando necesitamos mostrar la confirmación.
@@ -47,6 +47,39 @@ export function AppointmentListItem({
   const [rescheduleError, setRescheduleError] = useState<string | null>(null);
   const [emailCopied, setEmailCopied] = useState(false);
   const isSubmittingRef = useRef(false);
+  // Estado pendiente de confirmación (hoy solo 'cancelado' la pide) y el error del último
+  // intento de cambio de estado, si el trigger de estados terminales lo rechazó.
+  const [pendingStatus, setPendingStatus] = useState<AppointmentStatus | null>(null);
+  const [statusError, setStatusError] = useState<string | null>(null);
+  const [isChangingStatus, setIsChangingStatus] = useState(false);
+
+  const selectableStatuses = getSelectableStatuses(
+    appointment.status,
+    isPastDateTime(appointment.appointment_date, appointment.start_time),
+  );
+
+  async function applyStatusChange(status: AppointmentStatus) {
+    setStatusError(null);
+    setIsChangingStatus(true);
+    try {
+      const result = await onChangeStatus(status);
+      if (!result.success) setStatusError(result.error);
+      else setPendingStatus(null);
+    } finally {
+      setIsChangingStatus(false);
+    }
+  }
+
+  function handleStatusChange(status: AppointmentStatus) {
+    setStatusError(null);
+    // Cancelar oculta el turno de los listados (el dato se conserva para las estadísticas):
+    // se confirma antes de aplicarlo porque no tiene vuelta atrás desde la UI.
+    if (status === "cancelado") {
+      setPendingStatus(status);
+      return;
+    }
+    applyStatusChange(status);
+  }
 
   async function handleCopyEmail() {
     if (!appointment.patient_email) return;
@@ -170,11 +203,50 @@ export function AppointmentListItem({
               Reprogramar
             </Button>
           )}
-          {appointment.status === "reservado" && (
-            <AppointmentStatusMenu currentStatus={appointment.status} onChange={onChangeStatus} />
+          {selectableStatuses.length > 0 && (
+            <AppointmentStatusMenu options={selectableStatuses} onChange={handleStatusChange} />
           )}
         </div>
       </div>
+
+      {pendingStatus === "cancelado" && (
+        <div
+          role="alertdialog"
+          className="flex flex-col gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2"
+        >
+          <p className="flex items-center gap-1.5 text-xs text-amber-900">
+            <AlertTriangle className="size-3.5 shrink-0" aria-hidden="true" />
+            Al cancelar, este turno deja de verse en los listados (el dato se conserva para las
+            estadísticas). ¿Confirmás?
+          </p>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="destructive"
+              disabled={isChangingStatus}
+              aria-busy={isChangingStatus}
+              onClick={() => applyStatusChange("cancelado")}
+            >
+              {isChangingStatus && <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />}
+              Sí, cancelar
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={isChangingStatus}
+              onClick={() => setPendingStatus(null)}
+            >
+              No
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {statusError && (
+        <p role="alert" className="text-sm text-red-600">
+          {statusError}
+        </p>
+      )}
 
       {isRescheduling && (
         <div className="flex flex-col gap-3 rounded-md border bg-muted/30 p-3">

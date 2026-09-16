@@ -33,7 +33,10 @@ export function DayPanel({
   date: string;
   dayAppointments: Appointment[];
   conflictIds: Set<string>;
-  changeStatus: (id: string, status: AppointmentStatus) => void;
+  changeStatus: (
+    id: string,
+    status: AppointmentStatus,
+  ) => Promise<{ success: true } | { success: false; error: string }>;
   reschedule: (id: string, date: string, startTime: string) => Promise<RescheduleResult>;
   onDataChanged: () => void;
   onSelectDate: (date: string) => void;
@@ -129,8 +132,9 @@ export function DayPanel({
                   appointment={appt}
                   professionalId={professionalId}
                   onChangeStatus={async (newStatus) => {
-                    await changeStatus(appt.id, newStatus);
-                    reloadSchedule();
+                    const result = await changeStatus(appt.id, newStatus);
+                    if (result.success) reloadSchedule();
+                    return result;
                   }}
                   onReschedule={async (newDate, newStartTime) => {
                     const result = await reschedule(appt.id, newDate, newStartTime);

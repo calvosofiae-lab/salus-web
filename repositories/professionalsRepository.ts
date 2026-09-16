@@ -257,6 +257,19 @@ export async function removeProfessionalPhoto(professionalId: string): Promise<v
   await removeStalePhotos(professionalId);
 }
 
+// update_slot_duration (RPC) en vez de un update directo: además de guardar la duración,
+// recalcula el end_time de los turnos ya reservados a futuro para que queden alineados con la
+// nueva grilla (ver la migración para el detalle).
+export async function updateSlotDuration(professionalId: string, minutes: 45 | 60): Promise<void> {
+  const supabase = createClient();
+
+  const { error } = await supabase.rpc("update_slot_duration", {
+    p_professional_id: professionalId,
+    p_minutes: minutes,
+  });
+  if (error) throw error;
+}
+
 export async function getOwnProfessional(
   supabase: SupabaseClient<Database>,
 ): Promise<Professional | null> {

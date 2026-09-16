@@ -65,6 +65,7 @@ export interface Database {
           created_at: string;
           /** Columna generada (`lower(unaccent(full_name))`); solo lectura. */
           full_name_normalized: string;
+          slot_duration_minutes: number;
         };
         Insert: {
           id?: string;
@@ -94,6 +95,7 @@ export interface Database {
           gender_trained?: boolean | null;
           consultation_fee?: number | null;
           created_at?: string;
+          slot_duration_minutes?: number;
         };
         Update: {
           id?: string;
@@ -123,6 +125,7 @@ export interface Database {
           gender_trained?: boolean | null;
           consultation_fee?: number | null;
           created_at?: string;
+          slot_duration_minutes?: number;
         };
         Relationships: [];
       };
@@ -391,6 +394,10 @@ export interface Database {
           day: string;
           has_available: boolean;
         }[];
+      };
+      update_slot_duration: {
+        Args: { p_professional_id: string; p_minutes: number };
+        Returns: void;
       };
       submit_review: {
         Args: { p_token: string; p_rating: number; p_comment: string | null };

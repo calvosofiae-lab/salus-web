@@ -28,6 +28,7 @@ export function DayPanel({
   addDayBlock,
   removeDayBlock,
   isDayBlockSaving,
+  slotDurationMinutes,
 }: {
   professionalId: string;
   date: string;
@@ -44,6 +45,7 @@ export function DayPanel({
   addDayBlock: (startDate: string, endDate: string, reason: string) => Promise<boolean>;
   removeDayBlock: (id: string) => Promise<void>;
   isDayBlockSaving: boolean;
+  slotDurationMinutes: 45 | 60;
 }) {
   const {
     date: scheduleDate,
@@ -71,6 +73,14 @@ export function DayPanel({
   useEffect(() => {
     if (scheduleDate !== date) setScheduleDate(date);
   }, [date, scheduleDate, setScheduleDate]);
+
+  // get_day_schedule depende de professionals.slot_duration_minutes: si el profesional cambia
+  // la duración del turno desde SlotDurationSetting (afuera de este panel), hay que traer de
+  // nuevo la grilla del día seleccionado -- si no, queda mostrando horarios de la duración
+  // anterior hasta recargar la página entera.
+  useEffect(() => {
+    reloadSchedule();
+  }, [slotDurationMinutes, reloadSchedule]);
 
   const sortedAppointments = [...dayAppointments].sort((a, b) =>
     a.start_time.localeCompare(b.start_time),

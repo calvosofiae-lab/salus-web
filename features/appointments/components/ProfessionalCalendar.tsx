@@ -6,6 +6,7 @@ import { useScheduleConflicts } from "@/features/appointments/hooks/useScheduleC
 import { useAvailabilityBlocks } from "@/features/appointments/hooks/useAvailabilityBlocks";
 import { useMonthAvailability } from "@/features/appointments/hooks/useMonthAvailability";
 import { ScheduleConflictsBanner } from "@/features/appointments/components/ScheduleConflictsBanner";
+import { SlotDurationSetting } from "@/features/appointments/components/SlotDurationSetting";
 import { WeeklyAvailabilityForm } from "@/features/appointments/components/WeeklyAvailabilityForm";
 import { MonthCalendar } from "@/features/appointments/components/MonthCalendar";
 import { DayPanel } from "@/features/appointments/components/DayPanel";
@@ -29,13 +30,23 @@ function expandBlockedDates(blocks: AvailabilityBlock[]): Set<string> {
   return dates;
 }
 
-export function ProfessionalCalendar({ professionalId }: { professionalId: string }) {
+export function ProfessionalCalendar({
+  professionalId,
+  slotDurationMinutes: initialSlotDurationMinutes,
+}: {
+  professionalId: string;
+  slotDurationMinutes: 45 | 60;
+}) {
   const today = useMemo(() => new Date(), []);
   const [visibleMonth, setVisibleMonth] = useState({
     year: today.getFullYear(),
     month: today.getMonth(),
   });
   const [selectedDate, setSelectedDate] = useState(todayIso());
+  // Estado propio (no solo el prop inicial): SlotDurationSetting vive en este mismo árbol y
+  // necesita poder avisarle a DayPanel que la grilla de horarios cambió, para que recargue
+  // get_day_schedule en vez de seguir mostrando la duración anterior hasta un refresh manual.
+  const [slotDurationMinutes, setSlotDurationMinutes] = useState(initialSlotDurationMinutes);
 
   const monthBounds = useMemo(
     () => getMonthBounds(visibleMonth.year, visibleMonth.month),
@@ -117,8 +128,18 @@ export function ProfessionalCalendar({ professionalId }: { professionalId: strin
           addDayBlock={availabilityBlocks.addBlock}
           removeDayBlock={availabilityBlocks.removeBlock}
           isDayBlockSaving={availabilityBlocks.isSaving}
+          slotDurationMinutes={slotDurationMinutes}
         />
       </div>
+
+      <SlotDurationSetting
+        professionalId={professionalId}
+        minutes={slotDurationMinutes}
+        onChanged={(minutes) => {
+          setSlotDurationMinutes(minutes);
+          handleDataChanged();
+        }}
+      />
 
       <WeeklyAvailabilityForm professionalId={professionalId} onChanged={handleDataChanged} />
     </div>

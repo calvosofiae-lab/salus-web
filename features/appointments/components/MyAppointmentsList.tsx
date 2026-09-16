@@ -4,7 +4,9 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AppointmentListItem } from "@/features/appointments/components/AppointmentListItem";
+import { ScheduleConflictsBanner } from "@/features/appointments/components/ScheduleConflictsBanner";
 import { useMyAppointments } from "@/features/appointments/hooks/useMyAppointments";
+import { useScheduleConflicts } from "@/features/appointments/hooks/useScheduleConflicts";
 import { MAX_RANGE_DAYS, useDateRange } from "@/features/appointments/hooks/useDateRange";
 import { formatLongDate } from "@/features/appointments/lib/date";
 import type { Appointment } from "@/features/appointments/types";
@@ -19,6 +21,10 @@ export function MyAppointmentsList({ professionalId }: { professionalId: string 
     from,
     to,
   );
+  // Mismo aviso que en el calendario (ProfessionalCalendar/DayPanel): turnos reservados que
+  // quedaron fuera de la disponibilidad vigente (cambio de horario/duración, bloqueo nuevo,
+  // etc.) o superpuestos entre sí.
+  const { conflictIds, reload: reloadConflicts } = useScheduleConflicts(professionalId);
   // Igual que en DayPanel: se guarda por id para que la confirmación de "turno reprogramado"
   // sobreviva el re-render cuando el turno cambia de fecha.
   const [justRescheduled, setJustRescheduled] = useState<
@@ -60,6 +66,8 @@ export function MyAppointmentsList({ professionalId }: { professionalId: string 
         </p>
       </div>
 
+      <ScheduleConflictsBanner conflictCount={conflictIds.size} status={status} />
+
       {status === "loading" && (
         <p className="text-sm text-muted-foreground">Cargando turnos...</p>
       )}
@@ -85,14 +93,21 @@ export function MyAppointmentsList({ professionalId }: { professionalId: string 
                     key={appt.id}
                     appointment={appt}
                     professionalId={professionalId}
-                    onChangeStatus={(newStatus) => changeStatus(appt.id, newStatus)}
-                    onReschedule={(newDate, newStartTime) =>
-                      reschedule(appt.id, newDate, newStartTime)
-                    }
+                    onChangeStatus={async (newStatus) => {
+                      const result = await changeStatus(appt.id, newStatus);
+                      if (result.success) reloadConflicts();
+                      return result;
+                    }}
+                    onReschedule={async (newDate, newStartTime) => {
+                      const result = await reschedule(appt.id, newDate, newStartTime);
+                      if (result.success) reloadConflicts();
+                      return result;
+                    }}
                     justRescheduledTo={justRescheduled[appt.id] ?? null}
                     onRescheduled={(slot) =>
                       setJustRescheduled((prev) => ({ ...prev, [appt.id]: slot }))
                     }
+                    isOutOfSchedule={conflictIds.has(appt.id)}
                   />
                 ))}
             </div>

@@ -19,7 +19,7 @@ export function ScheduleConflictsBanner({
         {conflictCount === 1
           ? "Hay 1 turno reservado que quedó fuera de tu disponibilidad actual."
           : `Hay ${conflictCount} turnos reservados que quedaron fuera de tu disponibilidad actual.`}{" "}
-        Buscalos abajo en el calendario para reprogramarlos.
+        Buscalos abajo para reprogramarlos.
       </p>
     </div>
   );

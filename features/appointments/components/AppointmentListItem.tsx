@@ -138,7 +138,7 @@ export function AppointmentListItem({
 
   return (
     <div className="flex flex-col gap-3 border rounded-md px-4 py-3">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-col gap-1">
           <span className="text-sm font-medium">
             {appointment.start_time.slice(0, 5)} · {appointment.patient_first_name}{" "}
@@ -172,7 +172,7 @@ export function AppointmentListItem({
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Badge variant={STATUS_VARIANT[appointment.status]}>
             {STATUS_LABELS[appointment.status]}
           </Badge>

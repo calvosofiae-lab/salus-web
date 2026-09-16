@@ -7,8 +7,8 @@ export default function ProfessionalLayout({ children }: { children: React.React
   return (
     <div className="min-h-screen flex flex-col">
       <header className="border-b-2 border-b-brand-teal bg-white">
-        <div className="max-w-6xl mx-auto flex items-center justify-between p-4">
-          <nav className="flex items-center gap-5 text-sm font-medium">
+        <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-x-5 gap-y-2 p-4">
+          <nav className="flex flex-wrap items-center gap-5 text-sm font-medium">
             <Link href="/profesional" className="font-semibold text-brand-navy">
               SALUS Profesional
             </Link>

@@ -21,6 +21,10 @@ const csp = [
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  // Permite abrir el servidor de desarrollo desde otro dispositivo de la misma red (ej. probar
+  // en el celular) usando la IP que imprime `next dev` en "Network:". Sin esto, Next.js bloquea
+  // los recursos de dev (JS, HMR) pedidos desde un host distinto de localhost por seguridad.
+  allowedDevOrigins: isDev ? ["192.168.100.2"] : undefined,
   async headers() {
     return [
       {

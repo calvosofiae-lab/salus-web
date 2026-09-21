@@ -440,7 +440,8 @@
   letter-spacing: 0.05em;
 }
 
-.salus select {
+.salus select,
+.salus .filter-group input[type="text"] {
   width: 100%;
   padding: 0.85rem 1rem;
   border: 2px solid var(--gray-border);
@@ -452,7 +453,8 @@
   transition: all 0.25s ease;
 }
 
-.salus select:focus {
+.salus select:focus,
+.salus .filter-group input[type="text"]:focus {
   border-color: var(--teal);
   background-color: var(--salus-white);
   box-shadow: 0 0 0 4px rgba(102, 154, 139, 0.2);
@@ -746,6 +748,40 @@
   font-size: 0.85rem;
   font-weight: 600;
   margin-bottom: 1rem;
+}
+
+.salus .prof-insurances {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.6rem;
+}
+
+.salus .prof-insurance-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  background: var(--light-cream);
+  border: 1px solid var(--gray-border);
+  color: var(--text-dark);
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.salus .prof-insurance-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--teal-dark);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.salus .prof-insurance-toggle:hover {
+  text-decoration: underline;
 }
 
 .salus .prof-description {

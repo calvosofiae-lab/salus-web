@@ -18,6 +18,7 @@ export function ProfessionalsTable() {
     deactivate,
     activate,
     togglePremium,
+    toggleFeaturedOfMonth,
     page,
     pageCount,
     setPage,
@@ -53,14 +54,16 @@ export function ProfessionalsTable() {
               <th className="py-2 pr-4">Precio</th>
               <th className="py-2 pr-4">Estado</th>
               <th className="py-2 pr-4">Plan</th>
+              <th className="py-2 pr-4">Destacado del mes</th>
               <th className="py-2 pr-4" />
             </tr>
           </thead>
           <tbody>
             {professionals.map((prof) => {
               const isSaving = savingId === prof.id;
-              const isSavingAction = (action: "activate" | "deactivate" | "premium") =>
-                isSaving && savingAction === action;
+              const isSavingAction = (
+                action: "activate" | "deactivate" | "premium" | "featured_of_month",
+              ) => isSaving && savingAction === action;
               return (
                 <tr key={prof.id} className="border-b">
                   <td className="py-2 pr-4">{prof.full_name}</td>
@@ -94,6 +97,36 @@ export function ProfessionalsTable() {
                         className={prof.is_premium ? "bg-brand-yellow text-brand-navy hover:bg-brand-yellow" : ""}
                       >
                         {prof.is_premium ? "Premium" : "Estándar"}
+                      </Badge>
+                    </button>
+                  </td>
+                  <td className="py-2 pr-4">
+                    <button
+                      type="button"
+                      disabled={isSaving}
+                      onClick={() =>
+                        toggleFeaturedOfMonth(prof.id, !prof.is_featured_of_month)
+                      }
+                      title={
+                        prof.is_featured_of_month
+                          ? "Sacar de destacados del mes"
+                          : "Marcar como destacado del mes (máximo 2 a la vez)"
+                      }
+                      className="disabled:opacity-50"
+                    >
+                      <Badge
+                        variant={prof.is_featured_of_month ? "default" : "outline"}
+                        className={
+                          prof.is_featured_of_month
+                            ? "bg-brand-teal text-white hover:bg-brand-teal"
+                            : ""
+                        }
+                      >
+                        {isSavingAction("featured_of_month")
+                          ? "Guardando..."
+                          : prof.is_featured_of_month
+                            ? "Destacado"
+                            : "No destacado"}
                       </Badge>
                     </button>
                   </td>

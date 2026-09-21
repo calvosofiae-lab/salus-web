@@ -28,9 +28,11 @@ const RAISED_APPLICATION_ERROR_CODE = "P0001";
 // catch que solo chequea eso pierde el mensaje específico (ej. "Ese horario se superpone...")
 // y cae siempre al fallback genérico.
 export function getErrorMessage(err: unknown, fallback: string): string {
-  // Errores que el código de la app tira a mano (`throw new Error("...")`) son mensajes
-  // escritos a propósito para mostrarse -- se confía en ellos igual que antes.
-  if (err instanceof Error) return err.message;
+  // Los errores de Storage (StorageApiError/StorageUnknownError, ej. al subir una foto) sí son
+  // instancias de `Error`, pero su mensaje es un detalle interno de la API ("new row violates
+  // row-level security policy...") pensado para debug, no para mostrarle a la persona que subió
+  // la foto -- se tratan igual que un PostgrestError no reconocido, cae al fallback genérico.
+  if (err instanceof Error && !err.name.startsWith("Storage")) return err.message;
 
   if (
     typeof err === "object" &&

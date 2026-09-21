@@ -37,6 +37,7 @@ const baseShape = {
   coverage: z.array(z.enum(coverageValues)),
   modality: z.array(z.enum(modalityValues)),
   consultation_reasons: z.array(z.string()),
+  health_insurances: z.array(z.string()),
   email: z.string(),
   password: z.string(),
 };

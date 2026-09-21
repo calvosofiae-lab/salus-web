@@ -55,14 +55,19 @@ export interface Database {
           coverage: string[];
           modality: string[];
           consultation_reasons: string[];
+          health_insurances: string[];
           province: string | null;
           city: string | null;
           is_active: boolean;
           is_premium: boolean;
+          is_featured_of_month: boolean;
           average_rating: number | null;
           gender_trained: boolean | null;
           consultation_fee: number | null;
           created_at: string;
+          /** Columna generada (`lower(unaccent(full_name))`); solo lectura. */
+          full_name_normalized: string;
+          slot_duration_minutes: number;
         };
         Insert: {
           id?: string;
@@ -82,14 +87,17 @@ export interface Database {
           coverage?: string[];
           modality?: string[];
           consultation_reasons?: string[];
+          health_insurances?: string[];
           province?: string | null;
           city?: string | null;
           is_active?: boolean;
           is_premium?: boolean;
+          is_featured_of_month?: boolean;
           average_rating?: number | null;
           gender_trained?: boolean | null;
           consultation_fee?: number | null;
           created_at?: string;
+          slot_duration_minutes?: number;
         };
         Update: {
           id?: string;
@@ -109,14 +117,17 @@ export interface Database {
           coverage?: string[];
           modality?: string[];
           consultation_reasons?: string[];
+          health_insurances?: string[];
           province?: string | null;
           city?: string | null;
           is_active?: boolean;
           is_premium?: boolean;
+          is_featured_of_month?: boolean;
           average_rating?: number | null;
           gender_trained?: boolean | null;
           consultation_fee?: number | null;
           created_at?: string;
+          slot_duration_minutes?: number;
         };
         Relationships: [];
       };
@@ -174,6 +185,33 @@ export interface Database {
         };
         Relationships: [];
       };
+      availability_date_blocks: {
+        Row: {
+          id: string;
+          professional_id: string;
+          date: string;
+          start_time: string;
+          reason: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          professional_id: string;
+          date: string;
+          start_time: string;
+          reason?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          professional_id?: string;
+          date?: string;
+          start_time?: string;
+          reason?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       appointments: {
         Row: {
           id: string;
@@ -190,6 +228,7 @@ export interface Database {
           rating_token: string | null;
           reviewed: boolean;
           created_at: string;
+          created_by_professional: boolean;
         };
         Insert: {
           id?: string;
@@ -206,6 +245,7 @@ export interface Database {
           rating_token?: string | null;
           reviewed?: boolean;
           created_at?: string;
+          created_by_professional?: boolean;
         };
         Update: {
           id?: string;
@@ -222,6 +262,7 @@ export interface Database {
           rating_token?: string | null;
           reviewed?: boolean;
           created_at?: string;
+          created_by_professional?: boolean;
         };
         Relationships: [];
       };
@@ -334,6 +375,10 @@ export interface Database {
         Args: { p_professional_id: string; p_date: string };
         Returns: { start_time: string }[];
       };
+      get_next_available_date: {
+        Args: { p_professional_id: string; p_from_date: string; p_horizon_days?: number };
+        Returns: string | null;
+      };
       book_appointment: {
         Args: {
           p_professional_id: string;
@@ -350,17 +395,72 @@ export interface Database {
         Args: { p_appointment_id: string; p_new_date: string; p_new_start_time: string };
         Returns: void;
       };
+      create_appointment_as_professional: {
+        Args: {
+          p_professional_id: string;
+          p_date: string;
+          p_start_time: string;
+          p_first_name: string;
+          p_last_name: string;
+          p_whatsapp: string;
+          p_whatsapp_country?: string;
+          p_patient_email?: string;
+          p_repeat_frequency?: string;
+          p_repeat_count?: number;
+        };
+        Returns: {
+          appointment_id: string;
+          appointment_date: string;
+          start_time: string;
+          conflict_count: number;
+        }[];
+      };
+      get_schedule_conflicts: {
+        Args: { p_professional_id: string };
+        Returns: { appointment_id: string }[];
+      };
+      get_day_schedule: {
+        Args: { p_professional_id: string; p_date: string };
+        Returns: {
+          start_time: string;
+          status: string;
+          appointment_id: string | null;
+          patient_first_name: string | null;
+          patient_last_name: string | null;
+        }[];
+      };
+      get_month_availability: {
+        Args: { p_professional_id: string; p_year: number; p_month: number };
+        Returns: {
+          day: string;
+          has_available: boolean;
+        }[];
+      };
+      update_slot_duration: {
+        Args: { p_professional_id: string; p_minutes: number };
+        Returns: void;
+      };
       submit_review: {
         Args: { p_token: string; p_rating: number; p_comment: string | null };
         Returns: void;
       };
-      get_featured_professional_of_month: {
-        Args: Record<string, never>;
-        Returns: string | null;
-      };
       get_premium_professionals: {
         Args: Record<string, never>;
         Returns: Database["public"]["Tables"]["professionals"]["Row"][];
+      };
+      get_professional_report: {
+        Args: Record<string, never>;
+        Returns: {
+          professional_id: string;
+          full_name: string;
+          average_rating: number | null;
+          review_count: number;
+          comment_count: number;
+          reservado_count: number;
+          realizado_count: number;
+          cancelado_count: number;
+          no_asistio_count: number;
+        }[];
       };
       get_review_context: {
         Args: { p_token: string };

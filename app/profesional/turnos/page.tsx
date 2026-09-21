@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getOwnProfessionalCached } from "@/features/professionals/services/getOwnProfessionalCached";
-import { ProfessionalCalendar } from "@/features/appointments/components/ProfessionalCalendar";
+import { AppointmentsView } from "@/features/appointments/components/AppointmentsView";
 
 export default async function AppointmentsPage() {
   const supabase = await createClient();
@@ -11,8 +11,11 @@ export default async function AppointmentsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold text-brand-navy">Mis turnos</h1>
-      <ProfessionalCalendar professionalId={professional.id} />
+      <h1 className="text-2xl font-semibold text-brand-navy">Agenda</h1>
+      <AppointmentsView
+        professionalId={professional.id}
+        slotDurationMinutes={professional.slot_duration_minutes === 45 ? 45 : 60}
+      />
     </div>
   );
 }

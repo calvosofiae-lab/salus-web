@@ -8,14 +8,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { STATUS_LABELS, STATUS_OPTIONS } from "@/features/appointments/constants";
+import { STATUS_LABELS } from "@/features/appointments/constants";
 import type { AppointmentStatus } from "@/features/appointments/types";
 
 export function AppointmentStatusMenu({
-  currentStatus,
+  options,
   onChange,
 }: {
-  currentStatus: AppointmentStatus;
+  /** Estados a los que se puede pasar desde el estado actual (ver getSelectableStatuses). */
+  options: AppointmentStatus[];
   onChange: (status: AppointmentStatus) => void;
 }) {
   return (
@@ -27,12 +28,8 @@ export function AppointmentStatusMenu({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" alignOffset={-8} collisionPadding={12}>
-        {STATUS_OPTIONS.map((status) => (
-          <DropdownMenuItem
-            key={status}
-            disabled={status === currentStatus}
-            onClick={() => onChange(status)}
-          >
+        {options.map((status) => (
+          <DropdownMenuItem key={status} onClick={() => onChange(status)}>
             {STATUS_LABELS[status]}
           </DropdownMenuItem>
         ))}

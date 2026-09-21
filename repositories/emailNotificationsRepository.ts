@@ -3,6 +3,8 @@ import type { Database } from "@/types/database";
 
 export type EmailNotification = Database["public"]["Tables"]["email_notifications"]["Row"];
 export type EmailRecipientType = Database["public"]["Enums"]["email_recipient_type"];
+export type EmailNotificationType =
+  Database["public"]["Tables"]["email_notifications"]["Row"]["notification_type"];
 
 const UNIQUE_VIOLATION = "23505";
 
@@ -10,11 +12,15 @@ export interface CreatePendingEmailNotificationInput {
   appointmentId: string;
   recipientType: EmailRecipientType;
   recipientEmail: string;
-  notificationType: string;
+  notificationType: EmailNotificationType;
+  // Distingue dos ocurrencias del mismo tipo sobre el mismo turno (ver la migración
+  // 20260921000000). Solo lo usa la reprogramación, que puede repetirse; el resto lo deja
+  // sin definir y dedupea por turno+destinatario+tipo como antes.
+  eventKey?: string;
 }
 
 // Devuelve null si ya existía una fila para el mismo (appointment_id, recipient_type,
-// notification_type): esa es la garantía de idempotencia, no un error a propagar.
+// notification_type, event_key): esa es la garantía de idempotencia, no un error a propagar.
 export async function createPendingEmailNotification(
   supabase: SupabaseClient<Database>,
   input: CreatePendingEmailNotificationInput,
@@ -26,6 +32,7 @@ export async function createPendingEmailNotification(
       recipient_type: input.recipientType,
       recipient_email: input.recipientEmail,
       notification_type: input.notificationType,
+      event_key: input.eventKey ?? null,
     })
     .select("*")
     .single();

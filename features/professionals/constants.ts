@@ -27,7 +27,7 @@ export const CONSULTATION_REASONS = [
   "Adolescentes",
   "Psicología infantil",
   "Adultos general",
-  "Adultos mayores",
+  "Persona mayor",
   "Pareja",
   "Orientación vocacional",
   "Trastornos de la conducta alimentaria",
@@ -36,6 +36,10 @@ export const CONSULTATION_REASONS = [
   "Transición de género",
   "Violencia de género",
   "Neurodivergencias",
+  "Perinatal (maternidad)",
+  "Psicología deportiva",
+  "Psicooncología",
+  "Neuropsicología",
 ];
 
 export const PROFESSION_LABELS: Record<string, string> = Object.fromEntries(

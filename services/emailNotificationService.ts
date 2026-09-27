@@ -24,7 +24,7 @@ import {
   buildPatientCancelledEmail,
   buildPatientSurveyEmail,
   type EmailMessage,
-  type ProfessionalContact,
+  type ContactInfo,
 } from "@/lib/email/templates";
 import { sendTransactionalEmail } from "@/lib/email/resendClient";
 import { buildWhatsappLink } from "@/lib/whatsapp";
@@ -107,11 +107,25 @@ async function resolveProfessionalEmail(
 async function resolveProfessionalContact(
   admin: SupabaseClient<Database>,
   professional: Professional,
-): Promise<ProfessionalContact> {
+): Promise<ContactInfo> {
   return {
     email: await resolveProfessionalEmail(admin, professional),
     whatsappLink: professional.whatsapp
       ? buildWhatsappLink(professional.whatsapp, professional.whatsapp_country, WHATSAPP_CONTACT_MESSAGE)
+      : null,
+  };
+}
+
+// Análogo para que el profesional pueda escribirle al paciente desde el mail de nueva reserva.
+function resolvePatientContact(appointment: Appointment): ContactInfo {
+  return {
+    email: appointment.patient_email,
+    whatsappLink: appointment.patient_whatsapp
+      ? buildWhatsappLink(
+          appointment.patient_whatsapp,
+          appointment.patient_whatsapp_country,
+          WHATSAPP_CONTACT_MESSAGE,
+        )
       : null,
   };
 }
@@ -176,6 +190,7 @@ export async function notifyAppointmentBookedByEmail(appointmentId: string): Pro
       patientFullName,
       dateLabel,
       timeLabel,
+      patientContact: resolvePatientContact(appointment),
     }),
   });
 }

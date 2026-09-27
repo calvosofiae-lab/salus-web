@@ -6,6 +6,7 @@ import {
   type CreateAppointmentAsProfessionalInput,
   type CreatedAppointmentResult,
 } from "@/repositories/appointmentsRepository";
+import { notifyAppointmentsCreatedByProfessionalEmail } from "@/services/emailNotificationService";
 import { getErrorMessage } from "@/lib/errors";
 
 export function useCreateAppointment() {
@@ -20,6 +21,14 @@ export function useCreateAppointment() {
     try {
       const created = await createAppointmentAsProfessional(input);
       setResults(created);
+      // Los turnos ya quedaron creados arriba: un fallo del aviso nunca debe afectarlos. No se
+      // espera la llamada para no extender el estado de carga. Va la lista entera en una sola
+      // Server Action porque Next.js las despacha de a una por cliente.
+      if (created.length > 0) {
+        notifyAppointmentsCreatedByProfessionalEmail(created.map((r) => r.appointmentId)).catch(
+          () => {},
+        );
+      }
       return created;
     } catch (err) {
       setError(getErrorMessage(err, "Ocurrió un error al crear el turno"));

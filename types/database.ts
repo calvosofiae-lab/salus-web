@@ -18,7 +18,8 @@ export type EmailNotificationType =
   | "appointment_confirmation"
   | "appointment_created_by_professional"
   | "appointment_rescheduled"
-  | "appointment_cancelled";
+  | "appointment_cancelled"
+  | "appointment_survey";
 
 export interface Database {
   public: {

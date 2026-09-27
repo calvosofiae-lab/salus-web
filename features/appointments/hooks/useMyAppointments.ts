@@ -9,6 +9,7 @@ import {
 import {
   notifyAppointmentCancelledEmail,
   notifyAppointmentRescheduledEmail,
+  notifyAppointmentSurveyEmail,
 } from "@/services/emailNotificationService";
 import { getErrorMessage } from "@/lib/errors";
 import type { Appointment, AppointmentStatus } from "@/features/appointments/types";
@@ -39,11 +40,14 @@ export function useMyAppointments(professionalId: string, from: string, to: stri
   ): Promise<{ success: true } | { success: false; error: string }> {
     try {
       await updateAppointmentStatus(id, newStatus);
-      // Solo la cancelación le cambia el plan al paciente: 'realizado' y 'no_asistio' son
-      // registro interno del profesional y no ameritan un mail. El cambio ya quedó guardado,
-      // así que un fallo del aviso no se propaga ni demora el refresco de la lista.
+      // La cancelación le cambia el plan al paciente y "realizado" dispara la encuesta de
+      // satisfacción; 'no_asistio' es registro interno del profesional y no amerita un mail.
+      // El cambio ya quedó guardado, así que un fallo del aviso no se propaga ni demora el
+      // refresco de la lista.
       if (newStatus === "cancelado") {
         notifyAppointmentCancelledEmail(id).catch(() => {});
+      } else if (newStatus === "realizado") {
+        notifyAppointmentSurveyEmail(id).catch(() => {});
       }
       await load();
       return { success: true };

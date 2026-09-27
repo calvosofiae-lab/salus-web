@@ -19,6 +19,28 @@ function escapeHtml(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
+// Datos de contacto del profesional para que el paciente pueda escribirle directamente en
+// vez de tener que volver al sitio. Ambos son opcionales: el profesional puede no tener
+// cuenta de auth todavía (sin email) o no haber cargado whatsapp.
+export interface ProfessionalContact {
+  email: string | null;
+  whatsappLink: string | null;
+}
+
+function contactBlock(contact: ProfessionalContact): string {
+  if (!contact.email && !contact.whatsappLink) return "";
+
+  const parts: string[] = [];
+  if (contact.email) {
+    parts.push(`<a href="mailto:${escapeHtml(contact.email)}">${escapeHtml(contact.email)}</a>`);
+  }
+  if (contact.whatsappLink) {
+    parts.push(`<a href="${escapeHtml(contact.whatsappLink)}">WhatsApp</a>`);
+  }
+
+  return `<p>Para comunicarte con el profesional: ${parts.join(" o ")}.</p>`;
+}
+
 function wrapEmailHtml(bodyHtml: string): string {
   return `
     <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; color: #2c3e50;">
@@ -36,6 +58,7 @@ export function buildPatientConfirmationEmail(data: {
   professionalFullName: string;
   dateLabel: string;
   timeLabel: string;
+  professionalContact: ProfessionalContact;
 }): EmailMessage {
   return {
     subject: `Turno confirmado con ${data.professionalFullName}`,
@@ -45,6 +68,7 @@ export function buildPatientConfirmationEmail(data: {
         Tu turno con <strong>${escapeHtml(data.professionalFullName)}</strong> fue confirmado para el
         <strong>${escapeHtml(data.dateLabel)}</strong> a las <strong>${escapeHtml(data.timeLabel)}</strong>.
       </p>
+      ${contactBlock(data.professionalContact)}
     `),
   };
 }
@@ -76,6 +100,7 @@ export function buildPatientCreatedByProfessionalEmail(data: {
   professionalFullName: string;
   dateLabel: string;
   timeLabel: string;
+  professionalContact: ProfessionalContact;
 }): EmailMessage {
   return {
     subject: `Tenés un turno agendado con ${data.professionalFullName}`,
@@ -86,6 +111,7 @@ export function buildPatientCreatedByProfessionalEmail(data: {
         <strong>${escapeHtml(data.dateLabel)}</strong> a las <strong>${escapeHtml(data.timeLabel)}</strong>.
       </p>
       <p>Si no podés asistir, comunicate con el profesional para reprogramarlo.</p>
+      ${contactBlock(data.professionalContact)}
     `),
   };
 }
@@ -97,6 +123,7 @@ export function buildPatientRescheduledEmail(data: {
   previousTimeLabel: string;
   dateLabel: string;
   timeLabel: string;
+  professionalContact: ProfessionalContact;
 }): EmailMessage {
   return {
     subject: `Se reprogramó tu turno con ${data.professionalFullName}`,
@@ -107,7 +134,28 @@ export function buildPatientRescheduledEmail(data: {
         ${escapeHtml(data.previousDateLabel)} a las ${escapeHtml(data.previousTimeLabel)} al
         <strong>${escapeHtml(data.dateLabel)}</strong> a las <strong>${escapeHtml(data.timeLabel)}</strong>.
       </p>
-      <p>Si el nuevo horario no te sirve, comunicate con el profesional.</p>
+      <p>Si el nuevo horario no te queda cómodo, escribile al profesional y busquen juntos otra opción.</p>
+      ${contactBlock(data.professionalContact)}
+    `),
+  };
+}
+
+export function buildPatientSurveyEmail(data: {
+  patientFirstName: string;
+  professionalFullName: string;
+  surveyLink: string;
+  professionalContact: ProfessionalContact;
+}): EmailMessage {
+  return {
+    subject: `¿Cómo fue tu turno con ${data.professionalFullName}?`,
+    html: wrapEmailHtml(`
+      <p>Hola ${escapeHtml(data.patientFirstName)},</p>
+      <p>
+        Gracias por tu visita a <strong>${escapeHtml(data.professionalFullName)}</strong>. ¿Nos
+        ayudás completando esta breve encuesta de satisfacción?
+      </p>
+      <p><a href="${escapeHtml(data.surveyLink)}">Completar encuesta</a></p>
+      ${contactBlock(data.professionalContact)}
     `),
   };
 }
@@ -117,6 +165,8 @@ export function buildPatientCancelledEmail(data: {
   professionalFullName: string;
   dateLabel: string;
   timeLabel: string;
+  professionalProfileLink: string;
+  professionalContact: ProfessionalContact;
 }): EmailMessage {
   return {
     subject: `Se canceló tu turno con ${data.professionalFullName}`,
@@ -127,7 +177,11 @@ export function buildPatientCancelledEmail(data: {
         <strong>${escapeHtml(data.dateLabel)}</strong> a las <strong>${escapeHtml(data.timeLabel)}</strong> fue
         cancelado.
       </p>
-      <p>Si querés sacar otro turno, podés hacerlo desde el perfil del profesional.</p>
+      <p>
+        Si querés sacar otro turno, podés hacerlo desde
+        <a href="${escapeHtml(data.professionalProfileLink)}">el perfil del profesional</a>.
+      </p>
+      ${contactBlock(data.professionalContact)}
     `),
   };
 }

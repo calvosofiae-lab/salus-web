@@ -22,9 +22,22 @@ import {
   buildPatientCreatedByProfessionalEmail,
   buildPatientRescheduledEmail,
   buildPatientCancelledEmail,
+  buildPatientSurveyEmail,
   type EmailMessage,
+  type ProfessionalContact,
 } from "@/lib/email/templates";
 import { sendTransactionalEmail } from "@/lib/email/resendClient";
+import { buildWhatsappLink } from "@/lib/whatsapp";
+
+// Mensaje prellenado del link de wa.me: da contexto sin obligar al paciente a escribirlo.
+const WHATSAPP_CONTACT_MESSAGE = "Hola, te escribo por mi turno en SALUS";
+
+// Server Action: no hay `window` para armar el link absoluto de la encuesta (a diferencia del
+// mismo link armado client-side en AppointmentListItem.tsx para el envío manual por WhatsApp).
+// Mismo fallback que app/layout.tsx.
+function getSiteUrl(): string {
+  return process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000";
+}
 
 // create_appointment_as_professional no deja crear más de 52 turnos de una (20260905010000).
 // El mismo tope acá evita que una llamada armada a mano pida notificar una lista enorme.
@@ -89,6 +102,20 @@ async function resolveProfessionalEmail(
   return data.user?.email ?? null;
 }
 
+// Datos de contacto para que el paciente pueda escribirle al profesional directamente desde
+// el mail, sin tener que volver al sitio.
+async function resolveProfessionalContact(
+  admin: SupabaseClient<Database>,
+  professional: Professional,
+): Promise<ProfessionalContact> {
+  return {
+    email: await resolveProfessionalEmail(admin, professional),
+    whatsappLink: professional.whatsapp
+      ? buildWhatsappLink(professional.whatsapp, professional.whatsapp_country, WHATSAPP_CONTACT_MESSAGE)
+      : null,
+  };
+}
+
 // ---------------------------------------------------------------------------------------
 // Reserva pública (el paciente reserva desde el perfil del profesional)
 // ---------------------------------------------------------------------------------------
@@ -123,6 +150,7 @@ export async function notifyAppointmentBookedByEmail(appointmentId: string): Pro
   const timeLabel = timeLabelOf(appointment.start_time);
   const patientFullName =
     `${appointment.patient_first_name} ${appointment.patient_last_name}`.trim();
+  const professionalContact = await resolveProfessionalContact(admin, professional);
 
   await attemptSend(admin, {
     appointmentId,
@@ -134,13 +162,14 @@ export async function notifyAppointmentBookedByEmail(appointmentId: string): Pro
       professionalFullName: professional.full_name,
       dateLabel,
       timeLabel,
+      professionalContact,
     }),
   });
 
   await attemptSend(admin, {
     appointmentId,
     recipientType: "professional",
-    recipientEmail: await resolveProfessionalEmail(admin, professional),
+    recipientEmail: professionalContact.email,
     notificationType: "appointment_confirmation",
     message: buildProfessionalConfirmationEmail({
       professionalFullName: professional.full_name,
@@ -219,6 +248,7 @@ export async function notifyAppointmentsCreatedByProfessionalEmail(
         professionalFullName: professional.full_name,
         dateLabel: formatLongDate(appointment.appointment_date),
         timeLabel: timeLabelOf(appointment.start_time),
+        professionalContact: await resolveProfessionalContact(admin, professional),
       }),
     });
   }
@@ -254,6 +284,7 @@ export async function notifyAppointmentRescheduledEmail(
       previousTimeLabel: timeLabelOf(previousStartTime),
       dateLabel: formatLongDate(appointment.appointment_date),
       timeLabel: timeLabelOf(appointment.start_time),
+      professionalContact: await resolveProfessionalContact(admin, professional),
     }),
   });
 }
@@ -285,6 +316,40 @@ export async function notifyAppointmentCancelledEmail(appointmentId: string): Pr
       professionalFullName: professional.full_name,
       dateLabel: formatLongDate(appointment.appointment_date),
       timeLabel: timeLabelOf(appointment.start_time),
+      professionalProfileLink: `${getSiteUrl()}/profesionales/${professional.id}`,
+      professionalContact: await resolveProfessionalContact(admin, professional),
+    }),
+  });
+}
+
+// Se llama después de marcar el turno como "realizado" (generate_rating_token ya le asignó
+// el rating_token en ese update, 20260731090002). Reemplaza al envío manual por WhatsApp para
+// quien prefiera que salga solo, sin sacarle a AppointmentListItem el botón existente.
+export async function notifyAppointmentSurveyEmail(appointmentId: string): Promise<void> {
+  const context = "notifyAppointmentSurveyEmail";
+  const admin = createAdminClient();
+
+  const authorized = await loadAuthorizedAppointment(admin, appointmentId, context);
+  if (!authorized) return;
+  const { appointment, professional } = authorized;
+
+  if (appointment.status !== "realizado" || !appointment.rating_token) {
+    console.error(
+      `${context}: el turno ${appointmentId} no está realizado o no tiene rating_token.`,
+    );
+    return;
+  }
+
+  await attemptSend(admin, {
+    appointmentId,
+    recipientType: "patient",
+    recipientEmail: appointment.patient_email,
+    notificationType: "appointment_survey",
+    message: buildPatientSurveyEmail({
+      patientFirstName: appointment.patient_first_name,
+      professionalFullName: professional.full_name,
+      surveyLink: `${getSiteUrl()}/valoracion/${appointment.rating_token}`,
+      professionalContact: await resolveProfessionalContact(admin, professional),
     }),
   });
 }

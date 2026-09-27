@@ -250,7 +250,7 @@ export function buildPatientCancelledEmail(data: {
         `También podés comunicarte directamente con ${escapeHtml(professionalFirstName)} a través de su`,
         data.professionalContact,
       )}
-      <p>Esperamos que puedas encontrar pronto un nuevo horario que se adapte a vos. 💚</p>
+      <p>Esperamos que puedas encontrar pronto un nuevo horario que se adapte a vos.</p>
     `),
   };
 }

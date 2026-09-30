@@ -34,8 +34,13 @@ const WHATSAPP_CONTACT_MESSAGE = "Hola, te escribo por mi turno en SALUS";
 
 // Server Action: no hay `window` para armar el link absoluto de la encuesta (a diferencia del
 // mismo link armado client-side en AppointmentListItem.tsx para el envío manual por WhatsApp).
-// Mismo fallback que app/layout.tsx.
+// En producción usa el dominio de producción: VERCEL_URL es la URL propia de cada deploy
+// (salus-<hash>-...vercel.app), que Vercel protege con Deployment Protection y le pide login
+// al paciente. En previews sí usamos VERCEL_URL para probar contra ese deploy.
 function getSiteUrl(): string {
+  if (process.env.VERCEL_ENV === "production" && process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
   return process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000";
 }
 

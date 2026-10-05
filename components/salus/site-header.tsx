@@ -11,7 +11,7 @@ const NAV_LINKS = [
   { href: "#quienes-somos", label: "¿Quiénes somos?" },
   { href: "#que-hacemos", label: "¿Qué hacemos?" },
   { href: "#profesionales", label: "Profesionales" },
-  { href: "#pacientes", label: "Pacientes" },
+  // { href: "#pacientes", label: "Pacientes" }, // Oculta hasta redefinir la seccion.
 ];
 
 export function SiteHeader() {

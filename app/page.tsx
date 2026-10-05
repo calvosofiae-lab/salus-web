@@ -9,7 +9,8 @@ import { FeaturedOfMonthBanner } from "@/features/professionals/components/Featu
 import { AboutSection } from "@/components/salus/about-section";
 import { WhatWeDoSection } from "@/components/salus/what-we-do-section";
 import { ProfessionalsSection } from "@/components/salus/professionals-section";
-import { PatientsSection } from "@/components/salus/patients-section";
+// Oculta hasta redefinir la seccion de pacientes.
+// import { PatientsSection } from "@/components/salus/patients-section";
 import { SiteFooter } from "@/components/salus/site-footer";
 
 export default function Home() {
@@ -28,7 +29,7 @@ export default function Home() {
       <AboutSection />
       <WhatWeDoSection />
       <ProfessionalsSection />
-      <PatientsSection />
+      {/* <PatientsSection /> */}
 
       <BackgroundWave />
       <SiteFooter />

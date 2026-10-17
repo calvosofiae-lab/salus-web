@@ -769,6 +769,13 @@
   font-weight: 500;
 }
 
+.salus .prof-badges-icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--teal-dark);
+  margin-right: 0.1rem;
+}
+
 .salus .prof-insurance-toggle {
   background: none;
   border: none;

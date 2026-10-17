@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Calendar, Instagram, Linkedin } from "lucide-react";
+import { Brain, Calendar, Instagram, Linkedin, ShieldCheck, type LucideIcon } from "lucide-react";
 import { MODALITY_LABELS, PROFESSION_LABELS } from "@/features/professionals/constants";
 import { formatLicense } from "@/features/professionals/lib/license";
 import { buildWhatsappLink } from "@/lib/whatsapp";
@@ -25,8 +25,19 @@ const INSURANCES_PREVIEW_COUNT = 3;
 const ORIENTATIONS_PREVIEW_COUNT = 1;
 
 // Etiquetas con "+N más" / "Ver menos" (obras sociales, orientaciones). No renderiza nada si
-// la lista está vacía.
-function BadgeList({ values, previewCount }: { values: string[]; previewCount: number }) {
+// la lista está vacía. El ícono distingue una fila de la otra sin necesidad de un rótulo de
+// texto; `label` queda como título (tooltip) y nombre accesible.
+function BadgeList({
+  values,
+  previewCount,
+  icon: Icon,
+  label,
+}: {
+  values: string[];
+  previewCount: number;
+  icon: LucideIcon;
+  label: string;
+}) {
   const [expanded, setExpanded] = useState(false);
   if (values.length === 0) return null;
 
@@ -34,7 +45,10 @@ function BadgeList({ values, previewCount }: { values: string[]; previewCount: n
   const hidden = values.length - shown.length;
 
   return (
-    <div className="prof-insurances">
+    <div className="prof-insurances" role="group" aria-label={label}>
+      <span className="prof-badges-icon" title={label}>
+        <Icon size={15} strokeWidth={2} aria-hidden="true" />
+      </span>
       {shown.map((value) => (
         <span key={value} className="prof-insurance-badge">
           {value}
@@ -113,8 +127,18 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
         {prof.consultation_fee != null && (
           <p className="prof-price">${prof.consultation_fee.toLocaleString("es-AR")} la sesión</p>
         )}
-        <BadgeList values={orientaciones} previewCount={ORIENTATIONS_PREVIEW_COUNT} />
-        <BadgeList values={obrasSociales} previewCount={INSURANCES_PREVIEW_COUNT} />
+        <BadgeList
+          values={orientaciones}
+          previewCount={ORIENTATIONS_PREVIEW_COUNT}
+          icon={Brain}
+          label="Orientación"
+        />
+        <BadgeList
+          values={obrasSociales}
+          previewCount={INSURANCES_PREVIEW_COUNT}
+          icon={ShieldCheck}
+          label="Obras sociales"
+        />
         {descripcion && (
           <p className="prof-description">
             {descripcionMostrada}

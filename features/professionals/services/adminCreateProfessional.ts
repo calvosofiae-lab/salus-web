@@ -43,6 +43,7 @@ export async function adminCreateProfessional(input: ProfessionalCreateInput) {
       coverage: input.coverage,
       modality: input.modality,
       consultation_reasons: input.consultation_reasons,
+      health_insurances: input.health_insurances,
       orientations: input.profession === "psicologo" ? input.orientations : [],
       province: input.province || null,
       city: input.city || null,

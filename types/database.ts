@@ -22,6 +22,8 @@ export type EmailNotificationType =
   | "appointment_survey"
   | "appointment_reminder";
 
+export type ReviewCommentStatus = "pending" | "published" | "hidden";
+
 export interface Database {
   public: {
     Tables: {
@@ -73,6 +75,7 @@ export interface Database {
           is_premium: boolean;
           is_featured_of_month: boolean;
           average_rating: number | null;
+          review_count: number;
           gender_trained: boolean | null;
           consultation_fee: number | null;
           created_at: string;
@@ -287,6 +290,9 @@ export interface Database {
           rating: number;
           comment: string | null;
           created_at: string;
+          comment_status: ReviewCommentStatus;
+          /** Columna generada (`comment` no vacío); solo lectura. */
+          has_comment: boolean;
         };
         Insert: {
           id?: string;
@@ -295,6 +301,7 @@ export interface Database {
           rating: number;
           comment?: string | null;
           created_at?: string;
+          comment_status?: ReviewCommentStatus;
         };
         Update: {
           id?: string;
@@ -303,6 +310,7 @@ export interface Database {
           rating?: number;
           comment?: string | null;
           created_at?: string;
+          comment_status?: ReviewCommentStatus;
         };
         Relationships: [];
       };
@@ -456,6 +464,18 @@ export interface Database {
         Args: { p_professional_id: string; p_minutes: number };
         Returns: void;
       };
+      get_published_review_comments: {
+        Args: { p_professional_id: string };
+        Returns: { id: string; rating: number; comment: string; created_at: string }[];
+      };
+      get_admin_review_comments: {
+        Args: { p_professional_id: string };
+        Returns: Database["public"]["Tables"]["reviews"]["Row"][];
+      };
+      set_review_comment_status: {
+        Args: { p_review_id: string; p_status: ReviewCommentStatus };
+        Returns: void;
+      };
       submit_review: {
         Args: { p_token: string; p_rating: number; p_comment: string | null };
         Returns: void;
@@ -472,6 +492,7 @@ export interface Database {
           average_rating: number | null;
           review_count: number;
           comment_count: number;
+          pending_comment_count: number;
           reservado_count: number;
           realizado_count: number;
           cancelado_count: number;

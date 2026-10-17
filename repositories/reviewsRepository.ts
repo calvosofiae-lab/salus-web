@@ -1,38 +1,49 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
-import type { Database } from "@/types/database";
-import type { Review } from "@/features/reviews/types";
+import type { Database, ReviewCommentStatus } from "@/types/database";
+import type { PublishedReviewComment, Review } from "@/features/reviews/types";
 
-export async function getReviewsForProfessional(professionalId: string): Promise<Review[]> {
+// Comentarios aprobados por el admin, para el perfil público. La columna `comment` no es
+// legible para anon/authenticated (20261017010000): el texto solo sale por estas RPCs.
+export async function getPublishedReviewComments(
+  professionalId: string,
+): Promise<PublishedReviewComment[]> {
   const supabase = createClient();
 
-  const { data, error } = await supabase
-    .from("reviews")
-    .select("*")
-    .eq("professional_id", professionalId)
-    .order("created_at", { ascending: false });
+  const { data, error } = await supabase.rpc("get_published_review_comments", {
+    p_professional_id: professionalId,
+  });
 
   if (error) throw error;
   return data ?? [];
 }
 
-// Para el panel de admin: solo las reviews que tienen comentario (rating solo no alcanza para
-// mostrar nada útil acá). reviews es de lectura pública, así que no hace falta ningún chequeo de
-// admin extra -- RLS ya lo permite igual que en la vista pública del perfil.
+// Para el panel de admin: todas las reviews con comentario, en cualquier estado de moderación.
+// La RPC rechaza a quien no sea admin.
 export async function getProfessionalReviewComments(
   supabase: SupabaseClient<Database>,
   professionalId: string,
 ): Promise<Review[]> {
-  const { data, error } = await supabase
-    .from("reviews")
-    .select("*")
-    .eq("professional_id", professionalId)
-    .not("comment", "is", null)
-    .neq("comment", "")
-    .order("created_at", { ascending: false });
+  const { data, error } = await supabase.rpc("get_admin_review_comments", {
+    p_professional_id: professionalId,
+  });
 
   if (error) throw error;
   return data ?? [];
+}
+
+export async function setReviewCommentStatus(
+  reviewId: string,
+  status: ReviewCommentStatus,
+): Promise<void> {
+  const supabase = createClient();
+
+  const { error } = await supabase.rpc("set_review_comment_status", {
+    p_review_id: reviewId,
+    p_status: status,
+  });
+
+  if (error) throw error;
 }
 
 export async function submitReview(

@@ -100,6 +100,14 @@ export function ProfessionalReportTable() {
                 ) : (
                   row.full_name
                 )}
+                {row.pending_comment_count > 0 && (
+                  <span
+                    className="ml-2 rounded-full border border-brand-yellow bg-brand-yellow/15 px-2 py-0.5 text-xs font-medium text-brand-navy"
+                    title="Comentarios esperando que los revises para publicarlos"
+                  >
+                    {row.pending_comment_count} por revisar
+                  </span>
+                )}
               </td>
               <td className="py-2 pr-4">
                 {row.average_rating != null ? row.average_rating.toFixed(1) : "—"}

@@ -66,6 +66,7 @@ export interface Database {
           modality: string[];
           consultation_reasons: string[];
           health_insurances: string[];
+          orientations: string[];
           province: string | null;
           city: string | null;
           is_active: boolean;
@@ -98,6 +99,7 @@ export interface Database {
           modality?: string[];
           consultation_reasons?: string[];
           health_insurances?: string[];
+          orientations?: string[];
           province?: string | null;
           city?: string | null;
           is_active?: boolean;
@@ -128,6 +130,7 @@ export interface Database {
           modality?: string[];
           consultation_reasons?: string[];
           health_insurances?: string[];
+          orientations?: string[];
           province?: string | null;
           city?: string | null;
           is_active?: boolean;

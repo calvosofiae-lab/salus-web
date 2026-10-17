@@ -11,6 +11,8 @@ export interface ProfessionalFilters {
   fullName?: string;
   profession?: Profession;
   consultationReason?: string;
+  /** Solo se aplica junto con profession = "psicologo". */
+  orientation?: string;
   gender?: string;
   coverage?: Coverage;
   modality?: Modality;
@@ -40,6 +42,7 @@ export interface ProfessionalFormValues {
   modality: string[];
   consultation_reasons: string[];
   health_insurances: string[];
+  orientations: string[];
 }
 
 export interface ProfessionalCreateInput extends ProfessionalFormValues {

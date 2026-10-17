@@ -7,6 +7,7 @@ import {
   CONSULTATION_REASONS,
   GENDER_OPTIONS,
   MODALITY_OPTIONS,
+  ORIENTATIONS,
   PROFESSION_OPTIONS,
 } from "@/features/professionals/constants";
 import { useProfessionalSearch } from "@/features/professionals/hooks/useProfessionalSearch";
@@ -25,6 +26,7 @@ const RESULTS_PAGE_SIZE = 6;
 export function SearchSection() {
   const [nombreApellido, setNombreApellido] = useState("");
   const [profesion, setProfesion] = useState<Profession | "">("");
+  const [orientacion, setOrientacion] = useState("");
   const [motivo, setMotivo] = useState("");
   const [genero, setGenero] = useState("");
   const [cobertura, setCobertura] = useState<Coverage | "">("");
@@ -53,6 +55,7 @@ export function SearchSection() {
     await search({
       fullName: nombreApellido.trim() || undefined,
       profession: profesion || undefined,
+      orientation: profesion === "psicologo" ? orientacion || undefined : undefined,
       consultationReason: motivo || undefined,
       gender: genero || undefined,
       coverage: cobertura || undefined,
@@ -69,6 +72,13 @@ export function SearchSection() {
   function goToPage(newPage: number) {
     setPage(newPage);
     resultsTitleRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  // La orientación solo existe para psicólogos/as: al cambiar de especialidad se limpia, igual
+  // que provincia/ciudad al dejar de ser presencial.
+  function handleProfesionChange(value: Profession | "") {
+    setProfesion(value);
+    if (value !== "psicologo") setOrientacion("");
   }
 
   function handleModalidadChange(value: Modality | "") {
@@ -107,7 +117,7 @@ export function SearchSection() {
               <select
                 id="profesion"
                 value={profesion}
-                onChange={(e) => setProfesion(e.target.value as Profession | "")}
+                onChange={(e) => handleProfesionChange(e.target.value as Profession | "")}
               >
                 <option value="">Todas (Psicología y Psiquiatría)</option>
                 {PROFESSION_OPTIONS.map((o) => (
@@ -117,6 +127,24 @@ export function SearchSection() {
                 ))}
               </select>
             </div>
+
+            {profesion === "psicologo" && (
+              <div className="filter-group">
+                <label htmlFor="orientacion">Orientación</label>
+                <select
+                  id="orientacion"
+                  value={orientacion}
+                  onChange={(e) => setOrientacion(e.target.value)}
+                >
+                  <option value="">Todas las orientaciones</option>
+                  {ORIENTATIONS.map((o) => (
+                    <option key={o} value={o}>
+                      {o}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="filter-group">
               <label htmlFor="motivo">Motivo de consulta</label>

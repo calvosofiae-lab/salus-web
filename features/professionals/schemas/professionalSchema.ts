@@ -38,6 +38,7 @@ const baseShape = {
   modality: z.array(z.enum(modalityValues)),
   consultation_reasons: z.array(z.string()),
   health_insurances: z.array(z.string()),
+  orientations: z.array(z.string()),
   email: z.string(),
   password: z.string(),
 };

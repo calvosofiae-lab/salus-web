@@ -21,7 +21,38 @@ function WhatsappIcon({ size = 16 }: { size?: number }) {
 }
 
 const DESCRIPTION_PREVIEW_LENGTH = 140;
-const INSURANCES_PREVIEW_COUNT = 3;
+const BADGES_PREVIEW_COUNT = 3;
+
+// Etiquetas con "+N más" / "Ver menos" (obras sociales, orientaciones). No renderiza nada si
+// la lista está vacía.
+function BadgeList({ values, label }: { values: string[]; label?: string }) {
+  const [expanded, setExpanded] = useState(false);
+  if (values.length === 0) return null;
+
+  const shown = expanded ? values : values.slice(0, BADGES_PREVIEW_COUNT);
+  const hidden = values.length - shown.length;
+
+  return (
+    <div className="prof-insurances">
+      {label && <span className="prof-badges-label">{label}:</span>}
+      {shown.map((value) => (
+        <span key={value} className="prof-insurance-badge">
+          {value}
+        </span>
+      ))}
+      {hidden > 0 && (
+        <button type="button" className="prof-insurance-toggle" onClick={() => setExpanded(true)}>
+          +{hidden} más
+        </button>
+      )}
+      {expanded && values.length > BADGES_PREVIEW_COUNT && (
+        <button type="button" className="prof-insurance-toggle" onClick={() => setExpanded(false)}>
+          Ver menos
+        </button>
+      )}
+    </div>
+  );
+}
 
 // Corta en el último espacio antes del límite para no partir una palabra al medio.
 function truncateDescription(text: string, maxLength: number): string {
@@ -50,11 +81,8 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
   const descripcionMostrada =
     isLong && !expanded ? `${truncateDescription(descripcion, DESCRIPTION_PREVIEW_LENGTH)}…` : descripcion;
   const obrasSociales = prof.health_insurances ?? [];
-  const [obrasSocialesExpanded, setObrasSocialesExpanded] = useState(false);
-  const obrasSocialesMostradas = obrasSocialesExpanded
-    ? obrasSociales
-    : obrasSociales.slice(0, INSURANCES_PREVIEW_COUNT);
-  const obrasSocialesOcultas = obrasSociales.length - obrasSocialesMostradas.length;
+  // Solo psicólogos/as tienen orientación; el chequeo de profesión cubre datos viejos.
+  const orientaciones = prof.profession === "psicologo" ? (prof.orientations ?? []) : [];
   const whatsapp = prof.whatsapp;
 
   const linkWa = whatsapp
@@ -85,33 +113,8 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
         {prof.consultation_fee != null && (
           <p className="prof-price">${prof.consultation_fee.toLocaleString("es-AR")} la sesión</p>
         )}
-        {obrasSociales.length > 0 && (
-          <div className="prof-insurances">
-            {obrasSocialesMostradas.map((obraSocial) => (
-              <span key={obraSocial} className="prof-insurance-badge">
-                {obraSocial}
-              </span>
-            ))}
-            {obrasSocialesOcultas > 0 && (
-              <button
-                type="button"
-                className="prof-insurance-toggle"
-                onClick={() => setObrasSocialesExpanded(true)}
-              >
-                +{obrasSocialesOcultas} más
-              </button>
-            )}
-            {obrasSocialesExpanded && obrasSociales.length > INSURANCES_PREVIEW_COUNT && (
-              <button
-                type="button"
-                className="prof-insurance-toggle"
-                onClick={() => setObrasSocialesExpanded(false)}
-              >
-                Ver menos
-              </button>
-            )}
-          </div>
-        )}
+        <BadgeList values={orientaciones} label="Orientación" />
+        <BadgeList values={obrasSociales} />
         {descripcion && (
           <p className="prof-description">
             {descripcionMostrada}

@@ -71,6 +71,20 @@ export function ProfessionalProfile({ professional }: { professional: Profession
         </div>
       </div>
 
+      {professional.profession === "psicologo" && professional.orientations.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-sm font-medium">Orientación:</span>
+          {professional.orientations.map((orientation) => (
+            <span
+              key={orientation}
+              className="rounded-full border bg-muted px-2.5 py-0.5 text-xs font-medium"
+            >
+              {orientation}
+            </span>
+          ))}
+        </div>
+      )}
+
       {professional.description && <p className="text-sm">{professional.description}</p>}
 
       {confirmedId ? (

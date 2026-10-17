@@ -47,6 +47,7 @@ export function OwnProfileForm({ professional }: { professional: Professional })
           modality: professional.modality,
           consultation_reasons: professional.consultation_reasons,
           health_insurances: professional.health_insurances,
+          orientations: professional.orientations,
         }}
         onSubmit={async (values) => {
           await update(values);

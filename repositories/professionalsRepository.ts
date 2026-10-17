@@ -70,6 +70,9 @@ export async function searchProfessionals(
   if (filters.consultationReason) {
     query = query.contains("consultation_reasons", [filters.consultationReason]);
   }
+  if (filters.orientation && filters.profession === "psicologo") {
+    query = query.contains("orientations", [filters.orientation]);
+  }
   if (filters.gender) {
     query = query.ilike("gender", `%${filters.gender}%`);
   }

@@ -769,6 +769,12 @@
   font-weight: 500;
 }
 
+.salus .prof-badges-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--navy);
+}
+
 .salus .prof-insurance-toggle {
   background: none;
   border: none;

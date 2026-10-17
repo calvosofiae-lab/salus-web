@@ -44,7 +44,9 @@ function isPublicPath(pathname: string) {
     pathname === "/profesionales" ||
     pathname.startsWith("/profesionales/") ||
     pathname === "/valoracion" ||
-    pathname.startsWith("/valoracion/")
+    pathname.startsWith("/valoracion/") ||
+    // Los crons no tienen sesión: cada route handler de /api/cron/ valida CRON_SECRET.
+    pathname.startsWith("/api/cron/")
   );
 }
 

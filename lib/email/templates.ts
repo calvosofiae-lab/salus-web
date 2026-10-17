@@ -73,14 +73,14 @@ function contactSentence(lead: string, contact: ContactInfo): string {
 function wrapEmailHtml(bodyHtml: string): string {
   return `
     <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; color: #2c3e50;">
-      <h2 style="color: #1b2f48; margin-bottom: 1rem;">SALUS</h2>
+      <h2 style="color: #1b2f48; margin-bottom: 1rem;">SALUS PROFESIONALES</h2>
       ${bodyHtml}
       <p style="margin-top: 1.5rem;">
-        Salus<br>
+        Salus Profesionales<br>
         Impulsamos el encuentro más importante.
       </p>
       <p style="margin-top: 2rem; font-size: 0.85rem; color: #52606d;">
-        Este es un mensaje automático, no respondas a este email.
+        Este es un mensaje automático. Por favor, no respondas a este correo.
       </p>
     </div>
   `.trim();
@@ -191,6 +191,58 @@ export function buildPatientRescheduledEmail(data: {
         data.professionalContact,
       )}
       <p>Gracias por tu flexibilidad y por confiar en Salus.</p>
+    `),
+  };
+}
+
+// Lo manda el cron diario (no una acción del profesional), la víspera del turno.
+export function buildPatientReminderEmail(data: {
+  patientFirstName: string;
+  professionalFullName: string;
+  dateLabel: string;
+  timeLabel: string;
+  professionalContact: ContactInfo;
+}): EmailMessage {
+  const professionalFirstName = firstNameOf(data.professionalFullName);
+  // "a través de su correo electrónico o por WhatsApp" -- arma la frase según los canales que
+  // tenga cargados el profesional (no usa contactSentence porque el conector es "o por").
+  const [emailLink, whatsappLink] = [
+    data.professionalContact.email
+      ? `su <a href="mailto:${escapeHtml(data.professionalContact.email)}">correo electrónico</a>`
+      : null,
+    data.professionalContact.whatsappLink
+      ? `<a href="${escapeHtml(data.professionalContact.whatsappLink)}">WhatsApp</a>`
+      : null,
+  ];
+  const channels =
+    emailLink && whatsappLink
+      ? `a través de ${emailLink} o por ${whatsappLink}`
+      : emailLink
+        ? `a través de ${emailLink}`
+        : whatsappLink
+          ? `por ${whatsappLink}`
+          : null;
+
+  return {
+    subject: `Mañana tenés turno con ${data.professionalFullName}`,
+    html: wrapEmailHtml(`
+      <p>¡Hola, ${escapeHtml(data.patientFirstName)}! 🤍</p>
+      <p>Te recordamos que mañana tenés un encuentro programado con tu profesional.</p>
+      <p>
+        📅 Día: <strong>${escapeHtml(data.dateLabel)}</strong><br>
+        🕐 Horario: <strong>${escapeHtml(data.timeLabel)}</strong><br>
+        🩺 Profesional: <strong>${escapeHtml(data.professionalFullName)}</strong>
+      </p>
+      <p>
+        Si no vas a poder asistir, te pedimos que le avises con anticipación para que pueda
+        ofrecer ese horario a otra persona.
+      </p>
+      ${
+        channels
+          ? `<p>Podés comunicarte directamente con ${escapeHtml(professionalFirstName)} ${channels}.</p>`
+          : ""
+      }
+      <p>Gracias por elegir Salus y confiar en nuestra red de profesionales.</p>
     `),
   };
 }

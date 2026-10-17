@@ -25,7 +25,7 @@ const BADGES_PREVIEW_COUNT = 3;
 
 // Etiquetas con "+N más" / "Ver menos" (obras sociales, orientaciones). No renderiza nada si
 // la lista está vacía.
-function BadgeList({ values, label }: { values: string[]; label?: string }) {
+function BadgeList({ values }: { values: string[] }) {
   const [expanded, setExpanded] = useState(false);
   if (values.length === 0) return null;
 
@@ -34,7 +34,6 @@ function BadgeList({ values, label }: { values: string[]; label?: string }) {
 
   return (
     <div className="prof-insurances">
-      {label && <span className="prof-badges-label">{label}:</span>}
       {shown.map((value) => (
         <span key={value} className="prof-insurance-badge">
           {value}
@@ -113,7 +112,7 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
         {prof.consultation_fee != null && (
           <p className="prof-price">${prof.consultation_fee.toLocaleString("es-AR")} la sesión</p>
         )}
-        <BadgeList values={orientaciones} label="Orientación" />
+        <BadgeList values={orientaciones} />
         <BadgeList values={obrasSociales} />
         {descripcion && (
           <p className="prof-description">

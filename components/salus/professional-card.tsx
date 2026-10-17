@@ -21,27 +21,24 @@ function WhatsappIcon({ size = 16 }: { size?: number }) {
 }
 
 const DESCRIPTION_PREVIEW_LENGTH = 140;
-const INSURANCES_PREVIEW_COUNT = 3;
-const ORIENTATIONS_PREVIEW_COUNT = 1;
+const BADGES_PREVIEW_COUNT = 1;
 
 // Etiquetas con "+N más" / "Ver menos" (obras sociales, orientaciones). No renderiza nada si
 // la lista está vacía. El ícono distingue una fila de la otra sin necesidad de un rótulo de
 // texto; `label` queda como título (tooltip) y nombre accesible.
 function BadgeList({
   values,
-  previewCount,
   icon: Icon,
   label,
 }: {
   values: string[];
-  previewCount: number;
   icon: LucideIcon;
   label: string;
 }) {
   const [expanded, setExpanded] = useState(false);
   if (values.length === 0) return null;
 
-  const shown = expanded ? values : values.slice(0, previewCount);
+  const shown = expanded ? values : values.slice(0, BADGES_PREVIEW_COUNT);
   const hidden = values.length - shown.length;
 
   return (
@@ -59,7 +56,7 @@ function BadgeList({
           +{hidden} más
         </button>
       )}
-      {expanded && values.length > previewCount && (
+      {expanded && values.length > BADGES_PREVIEW_COUNT && (
         <button type="button" className="prof-insurance-toggle" onClick={() => setExpanded(false)}>
           Ver menos
         </button>
@@ -129,13 +126,11 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
         )}
         <BadgeList
           values={orientaciones}
-          previewCount={ORIENTATIONS_PREVIEW_COUNT}
           icon={Brain}
           label="Orientación"
         />
         <BadgeList
           values={obrasSociales}
-          previewCount={INSURANCES_PREVIEW_COUNT}
           icon={ShieldCheck}
           label="Obras sociales"
         />

@@ -41,3 +41,18 @@ export function formatMonthYear(year: number, month: number): string {
   });
   return capitalize(label);
 }
+
+// Los turnos se cargan en hora de Argentina, pero el server (Vercel) corre en UTC: a partir de
+// las 21:00 de Argentina, todayIso() en el server ya devuelve el día siguiente. Lo que corre
+// sin un navegador detrás (el cron de recordatorios) usa estas en vez de todayIso().
+const ARGENTINA_TIME_ZONE = "America/Argentina/Buenos_Aires";
+
+// en-CA formatea como YYYY-MM-DD.
+export function isoDateInArgentina(date: Date): string {
+  return date.toLocaleDateString("en-CA", { timeZone: ARGENTINA_TIME_ZONE });
+}
+
+export function addDaysIso(isoDate: string, days: number): string {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
+}

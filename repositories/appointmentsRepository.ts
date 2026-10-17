@@ -141,3 +141,20 @@ export async function getAppointmentByIdInternal(
   if (error) return null;
   return data;
 }
+
+// Turnos todavía vigentes de un día puntual, para el recordatorio de la víspera (cron). Recibe
+// el cliente admin: corre sin sesión, desde app/api/cron/appointment-reminders/route.ts.
+export async function getReservedAppointmentsForDate(
+  supabase: SupabaseClient<Database>,
+  date: string,
+): Promise<Appointment[]> {
+  const { data, error } = await supabase
+    .from("appointments")
+    .select("*")
+    .eq("appointment_date", date)
+    .eq("status", "reservado")
+    .not("patient_email", "is", null)
+    .order("start_time");
+  if (error) throw error;
+  return data;
+}

@@ -8,13 +8,6 @@ import { getAppointmentByIdInternal } from "@/repositories/appointmentsRepositor
 import { getProfessionalByIdAdmin } from "@/repositories/professionalsRepository";
 import type { Appointment } from "@/features/appointments/types";
 import type { Professional } from "@/features/professionals/types";
-import {
-  createPendingEmailNotification,
-  markEmailNotificationSent,
-  markEmailNotificationFailed,
-  type EmailRecipientType,
-  type EmailNotificationType,
-} from "@/repositories/emailNotificationsRepository";
 import { formatLongDate } from "@/features/appointments/lib/date";
 import {
   buildPatientConfirmationEmail,
@@ -23,14 +16,15 @@ import {
   buildPatientRescheduledEmail,
   buildPatientCancelledEmail,
   buildPatientSurveyEmail,
-  type EmailMessage,
   type ContactInfo,
 } from "@/lib/email/templates";
-import { sendTransactionalEmail } from "@/lib/email/resendClient";
 import { buildWhatsappLink } from "@/lib/whatsapp";
-
-// Mensaje prellenado del link de wa.me: da contexto sin obligar al paciente a escribirlo.
-const WHATSAPP_CONTACT_MESSAGE = "Hola, te escribo por mi turno en SALUS";
+import {
+  attemptSend,
+  timeLabelOf,
+  resolveProfessionalContact,
+  WHATSAPP_CONTACT_MESSAGE,
+} from "@/services/emailDelivery";
 
 // Server Action: no hay `window` para armar el link absoluto de la encuesta (a diferencia del
 // mismo link armado client-side en AppointmentListItem.tsx para el envío manual por WhatsApp).
@@ -48,80 +42,8 @@ function getSiteUrl(): string {
 // El mismo tope acá evita que una llamada armada a mano pida notificar una lista enorme.
 const MAX_APPOINTMENTS_PER_CALL = 52;
 
-interface AttemptSendInput {
-  appointmentId: string;
-  recipientType: EmailRecipientType;
-  recipientEmail: string | null;
-  notificationType: EmailNotificationType;
-  eventKey?: string;
-  message: EmailMessage;
-}
-
-// Nunca lanza: un fallo acá no debe poder afectar la operación sobre el turno, que ya quedó
-// hecha en la base antes de que esta función se llame. Los errores quedan registrados en
-// email_notifications (status='failed') y en consola.
-async function attemptSend(
-  admin: SupabaseClient<Database>,
-  input: AttemptSendInput,
-): Promise<void> {
-  if (!input.recipientEmail) return; // turnos viejos sin email, o profesional sin cuenta de auth
-
-  const pending = await createPendingEmailNotification(admin, {
-    appointmentId: input.appointmentId,
-    recipientType: input.recipientType,
-    recipientEmail: input.recipientEmail,
-    notificationType: input.notificationType,
-    eventKey: input.eventKey,
-  });
-  if (!pending) return; // ya se había procesado esta notificación (idempotencia)
-
-  try {
-    const { providerMessageId } = await sendTransactionalEmail({
-      to: input.recipientEmail,
-      subject: input.message.subject,
-      html: input.message.html,
-    });
-    await markEmailNotificationSent(admin, pending.id, providerMessageId);
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
-    await markEmailNotificationFailed(admin, pending.id, errorMessage);
-    console.error(
-      `emailNotificationService: fallo al enviar ${input.notificationType} (${input.recipientType}) del turno ${input.appointmentId}: ${errorMessage}`,
-    );
-  }
-}
-
-function timeLabelOf(startTime: string): string {
-  return startTime.slice(0, 5);
-}
-
-// El profesional no tiene columna de email propia: su email es el de su cuenta de auth,
-// vinculada por profile_id. Si todavía no completó el alta de cuenta (profile_id null), no hay
-// a quién mandarle -- attemptSend lo salta.
-async function resolveProfessionalEmail(
-  admin: SupabaseClient<Database>,
-  professional: Professional,
-): Promise<string | null> {
-  if (!professional.profile_id) return null;
-  const { data } = await admin.auth.admin.getUserById(professional.profile_id);
-  return data.user?.email ?? null;
-}
-
-// Datos de contacto para que el paciente pueda escribirle al profesional directamente desde
-// el mail, sin tener que volver al sitio.
-async function resolveProfessionalContact(
-  admin: SupabaseClient<Database>,
-  professional: Professional,
-): Promise<ContactInfo> {
-  return {
-    email: await resolveProfessionalEmail(admin, professional),
-    whatsappLink: professional.whatsapp
-      ? buildWhatsappLink(professional.whatsapp, professional.whatsapp_country, WHATSAPP_CONTACT_MESSAGE)
-      : null,
-  };
-}
-
-// Análogo para que el profesional pueda escribirle al paciente desde el mail de nueva reserva.
+// Análogo a resolveProfessionalContact (emailDelivery.ts), para que el profesional pueda
+// escribirle al paciente desde el mail de nueva reserva.
 function resolvePatientContact(appointment: Appointment): ContactInfo {
   return {
     email: appointment.patient_email,

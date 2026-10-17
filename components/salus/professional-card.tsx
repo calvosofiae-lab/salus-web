@@ -21,15 +21,16 @@ function WhatsappIcon({ size = 16 }: { size?: number }) {
 }
 
 const DESCRIPTION_PREVIEW_LENGTH = 140;
-const BADGES_PREVIEW_COUNT = 3;
+const INSURANCES_PREVIEW_COUNT = 3;
+const ORIENTATIONS_PREVIEW_COUNT = 1;
 
 // Etiquetas con "+N más" / "Ver menos" (obras sociales, orientaciones). No renderiza nada si
 // la lista está vacía.
-function BadgeList({ values }: { values: string[] }) {
+function BadgeList({ values, previewCount }: { values: string[]; previewCount: number }) {
   const [expanded, setExpanded] = useState(false);
   if (values.length === 0) return null;
 
-  const shown = expanded ? values : values.slice(0, BADGES_PREVIEW_COUNT);
+  const shown = expanded ? values : values.slice(0, previewCount);
   const hidden = values.length - shown.length;
 
   return (
@@ -44,7 +45,7 @@ function BadgeList({ values }: { values: string[] }) {
           +{hidden} más
         </button>
       )}
-      {expanded && values.length > BADGES_PREVIEW_COUNT && (
+      {expanded && values.length > previewCount && (
         <button type="button" className="prof-insurance-toggle" onClick={() => setExpanded(false)}>
           Ver menos
         </button>
@@ -112,8 +113,8 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
         {prof.consultation_fee != null && (
           <p className="prof-price">${prof.consultation_fee.toLocaleString("es-AR")} la sesión</p>
         )}
-        <BadgeList values={orientaciones} />
-        <BadgeList values={obrasSociales} />
+        <BadgeList values={orientaciones} previewCount={ORIENTATIONS_PREVIEW_COUNT} />
+        <BadgeList values={obrasSociales} previewCount={INSURANCES_PREVIEW_COUNT} />
         {descripcion && (
           <p className="prof-description">
             {descripcionMostrada}

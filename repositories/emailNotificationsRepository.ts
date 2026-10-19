@@ -67,3 +67,49 @@ export async function markEmailNotificationFailed(
     .eq("id", id);
   if (error) throw error;
 }
+
+export interface PatientMonthlySurveyInput {
+  appointmentId: string;
+  professionalId: string;
+  patientEmail: string;
+  appointmentDate: string; // YYYY-MM-DD
+}
+
+// Encuesta de satisfacción: como mucho una por mes calendario por paciente y profesional, la
+// del primer turno realizado del mes. Si el paciente se atiende varias veces en el mes, las
+// demás serían redundantes. Al paciente lo identifica el email (no hay cuenta de paciente).
+// Un envío fallido no cuenta, así que el próximo turno del mes vuelve a intentarlo.
+export async function hasPatientSurveyInMonth(
+  supabase: SupabaseClient<Database>,
+  input: PatientMonthlySurveyInput,
+): Promise<boolean> {
+  const [year, month] = input.appointmentDate.split("-").map(Number);
+  const monthStart = `${year}-${String(month).padStart(2, "0")}-01`;
+  const nextMonthStart =
+    month === 12 ? `${year + 1}-01-01` : `${year}-${String(month + 1).padStart(2, "0")}-01`;
+
+  const { data: appointments, error: appointmentsError } = await supabase
+    .from("appointments")
+    .select("id, patient_email")
+    .eq("professional_id", input.professionalId)
+    .gte("appointment_date", monthStart)
+    .lt("appointment_date", nextMonthStart)
+    .neq("id", input.appointmentId);
+  if (appointmentsError) throw appointmentsError;
+
+  const patientEmail = input.patientEmail.trim().toLowerCase();
+  const sameMonthIds = (appointments ?? [])
+    .filter((a) => a.patient_email?.trim().toLowerCase() === patientEmail)
+    .map((a) => a.id);
+  if (sameMonthIds.length === 0) return false;
+
+  const { count, error } = await supabase
+    .from("email_notifications")
+    .select("id", { count: "exact", head: true })
+    .in("appointment_id", sameMonthIds)
+    .eq("recipient_type", "patient")
+    .eq("notification_type", "appointment_survey")
+    .in("status", ["pending", "sent"]);
+  if (error) throw error;
+  return (count ?? 0) > 0;
+}

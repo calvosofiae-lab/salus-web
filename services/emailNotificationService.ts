@@ -19,6 +19,7 @@ import {
   type ContactInfo,
 } from "@/lib/email/templates";
 import { buildWhatsappLink } from "@/lib/whatsapp";
+import { hasPatientSurveyInMonth } from "@/repositories/emailNotificationsRepository";
 import {
   attemptSend,
   timeLabelOf,
@@ -267,6 +268,7 @@ export async function notifyAppointmentCancelledEmail(appointmentId: string): Pr
 // Se llama después de marcar el turno como "realizado" (generate_rating_token ya le asignó
 // el rating_token en ese update, 20260731090002). Reemplaza al envío manual por WhatsApp para
 // quien prefiera que salga solo, sin sacarle a AppointmentListItem el botón existente.
+// Sale solo en el primer turno realizado del mes con cada profesional (hasPatientSurveyInMonth).
 export async function notifyAppointmentSurveyEmail(appointmentId: string): Promise<void> {
   const context = "notifyAppointmentSurveyEmail";
   const admin = createAdminClient();
@@ -279,6 +281,21 @@ export async function notifyAppointmentSurveyEmail(appointmentId: string): Promi
     console.error(
       `${context}: el turno ${appointmentId} no está realizado o no tiene rating_token.`,
     );
+    return;
+  }
+
+  if (!appointment.patient_email) return;
+  try {
+    const alreadySurveyed = await hasPatientSurveyInMonth(admin, {
+      appointmentId,
+      professionalId: appointment.professional_id,
+      patientEmail: appointment.patient_email,
+      appointmentDate: appointment.appointment_date,
+    });
+    if (alreadySurveyed) return;
+  } catch (err) {
+    // Ante la duda no se manda: una encuesta de menos es mejor que una repetida.
+    console.error(`${context}: no se pudo revisar si ya hubo encuesta este mes:`, err);
     return;
   }
 

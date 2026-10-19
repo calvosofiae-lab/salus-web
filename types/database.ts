@@ -293,6 +293,7 @@ export interface Database {
           comment_status: ReviewCommentStatus;
           /** Columna generada (`comment` no vacío); solo lectura. */
           has_comment: boolean;
+          comment_publication_authorized: boolean;
         };
         Insert: {
           id?: string;
@@ -302,6 +303,7 @@ export interface Database {
           comment?: string | null;
           created_at?: string;
           comment_status?: ReviewCommentStatus;
+          comment_publication_authorized?: boolean;
         };
         Update: {
           id?: string;
@@ -311,6 +313,7 @@ export interface Database {
           comment?: string | null;
           created_at?: string;
           comment_status?: ReviewCommentStatus;
+          comment_publication_authorized?: boolean;
         };
         Relationships: [];
       };
@@ -477,7 +480,12 @@ export interface Database {
         Returns: void;
       };
       submit_review: {
-        Args: { p_token: string; p_rating: number; p_comment: string | null };
+        Args: {
+          p_token: string;
+          p_rating: number;
+          p_comment: string | null;
+          p_publication_authorized?: boolean;
+        };
         Returns: void;
       };
       get_premium_professionals: {

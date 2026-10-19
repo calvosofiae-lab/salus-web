@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { CircleCheck, CircleX, Eye, EyeOff, Loader2 } from "lucide-react";
 import { setReviewCommentStatus } from "@/repositories/reviewsRepository";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -29,7 +29,8 @@ function formatReviewDate(createdAt: string): string {
 }
 
 // Los comentarios no se publican en el perfil del profesional hasta que el admin los aprueba
-// (20261017010000). Pendientes primero, para que lo que falta revisar quede arriba.
+// (20261017010000), y solo si el paciente autorizó la publicación (20261019000000).
+// Pendientes primero, para que lo que falta revisar quede arriba.
 export function ProfessionalReviewComments({ reviews: initialReviews }: { reviews: Review[] }) {
   const [reviews, setReviews] = useState(initialReviews);
   const [savingId, setSavingId] = useState<string | null>(null);
@@ -86,6 +87,17 @@ export function ProfessionalReviewComments({ reviews: initialReviews }: { review
                   >
                     {STATUS_LABELS[review.comment_status]}
                   </span>
+                  {review.comment_publication_authorized ? (
+                    <span className="flex items-center gap-1 text-xs text-emerald-800">
+                      <CircleCheck className="size-3.5" aria-hidden="true" />
+                      Autorizó la publicación
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <CircleX className="size-3.5" aria-hidden="true" />
+                      No autorizó la publicación
+                    </span>
+                  )}
                 </div>
                 <span className="text-xs text-muted-foreground">
                   {formatReviewDate(review.created_at)}
@@ -96,7 +108,12 @@ export function ProfessionalReviewComments({ reviews: initialReviews }: { review
                 {review.comment_status !== "published" && (
                   <Button
                     size="sm"
-                    disabled={isSaving}
+                    disabled={isSaving || !review.comment_publication_authorized}
+                    title={
+                      review.comment_publication_authorized
+                        ? undefined
+                        : "El paciente no autorizó la publicación de este comentario"
+                    }
                     onClick={() => changeStatus(review.id, "published")}
                   >
                     {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Eye className="size-4" />}

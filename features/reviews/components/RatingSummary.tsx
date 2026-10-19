@@ -1,5 +1,3 @@
-import { formatReviewCount } from "@/features/reviews/lib/format";
-
 // Con 0 reseñas no se muestra nada: el profesional nuevo arranca con 5 estrellas por defecto
 // (20260807030000), y mostrarlas lo dejaba por encima de uno con reseñas reales.
 export function RatingSummary({
@@ -13,7 +11,7 @@ export function RatingSummary({
 
   return (
     <p className="text-sm text-muted-foreground">
-      ⭐ {averageRating.toFixed(1)} / 5 · {formatReviewCount(reviewCount)}
+      ⭐ {averageRating.toFixed(1)} / 5
     </p>
   );
 }

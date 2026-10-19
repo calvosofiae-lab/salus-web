@@ -8,7 +8,6 @@ import { formatLicense } from "@/features/professionals/lib/license";
 import { buildWhatsappLink } from "@/lib/whatsapp";
 import { buildInstagramLink, buildLinkedinLink } from "@/lib/social";
 import { getDefaultAvatar } from "@/lib/avatar";
-import { formatReviewCount } from "@/features/reviews/lib/format";
 import type { Professional } from "@/features/professionals/types";
 
 // lucide-react no tiene el logo de WhatsApp (solo íconos de chat genéricos, que se confunden
@@ -121,7 +120,6 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
           <p className="prof-rating">
             <span className="prof-rating-star">★</span>
             {prof.average_rating.toFixed(1)}/5
-            <span className="prof-rating-count">({formatReviewCount(prof.review_count)})</span>
           </p>
         )}
         <span className="prof-badge">{modalidad}</span>

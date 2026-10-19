@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Home, Loader2, Send, Star } from "lucide-react";
+import { CheckCircle2, Home, Info, Loader2, Send, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useSubmitReview } from "@/features/reviews/hooks/useSubmitReview";
@@ -123,11 +123,24 @@ export function ReviewForm({ token }: { token: string }) {
           className={textareaClassName}
           value={comment}
           onChange={(e) => setComment(e.target.value)}
+          aria-describedby="comment-notice"
         />
-        <p className="text-xs text-muted-foreground">
-          Tu comentario puede publicarse de forma anónima en el perfil del profesional, después de
-          que lo revise el equipo de Salus.
-        </p>
+        <div
+          id="comment-notice"
+          className="flex gap-2.5 rounded-lg border border-brand-teal/30 bg-brand-teal/5 p-3 text-xs text-muted-foreground"
+        >
+          <Info className="mt-px size-4 shrink-0 text-brand-teal" aria-hidden="true" />
+          <div className="flex flex-col gap-1.5">
+            <p className="font-medium text-primary">Sobre tu comentario</p>
+            <p>
+              Podemos publicarlo de forma anónima en el perfil del profesional y en Salus, para
+              ayudar a otros pacientes a elegir. Antes de publicarlo lo revisa nuestro equipo. No
+              publicamos comentarios con insultos, contenido ofensivo o discriminatorio, ni datos
+              personales o de salud que permitan identificarte a vos o a otras personas.
+            </p>
+            <p>Tu puntaje cuenta siempre, se publique o no el comentario.</p>
+          </div>
+        </div>
       </div>
       {error && (
         <p role="alert" className="text-sm text-red-600">

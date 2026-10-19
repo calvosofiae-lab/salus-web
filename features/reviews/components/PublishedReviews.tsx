@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Info } from "lucide-react";
 import { getPublishedReviewComments } from "@/repositories/reviewsRepository";
 import type { PublishedReviewComment } from "@/features/reviews/types";
 
@@ -61,6 +62,17 @@ export function PublishedReviews({ professionalId }: { professionalId: string })
           Ver más experiencias
         </button>
       )}
+      <div className="flex gap-2.5 rounded-lg border border-brand-teal/30 bg-brand-teal/5 p-3 text-xs text-muted-foreground">
+        <Info className="mt-px size-4 shrink-0 text-brand-teal" aria-hidden="true" />
+        <div className="flex flex-col gap-1.5">
+          <p className="font-medium text-primary">Sobre las experiencias publicadas</p>
+          <p>
+            Los comentarios corresponden a experiencias compartidas por personas usuarias de Salus
+            que autorizaron su publicación anónima. El contenido está sujeto a revisión para
+            resguardar la privacidad de las personas.
+          </p>
+        </div>
+      </div>
     </section>
   );
 }

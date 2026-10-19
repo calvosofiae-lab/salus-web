@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Home, Loader2, Send, Star } from "lucide-react";
+import { CheckCircle2, Home, Info, Loader2, Send, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useSubmitReview } from "@/features/reviews/hooks/useSubmitReview";
 
@@ -52,6 +53,7 @@ export function ReviewForm({ token }: { token: string }) {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState("");
+  const [publicationAuthorized, setPublicationAuthorized] = useState(false);
   const [ratingError, setRatingError] = useState(false);
   const { submit, error, success, isLoading } = useSubmitReview();
   const isSubmittingRef = useRef(false);
@@ -69,7 +71,7 @@ export function ReviewForm({ token }: { token: string }) {
     }
     isSubmittingRef.current = true;
     try {
-      await submit(token, rating, comment);
+      await submit(token, rating, comment, publicationAuthorized);
     } finally {
       isSubmittingRef.current = false;
     }
@@ -124,10 +126,31 @@ export function ReviewForm({ token }: { token: string }) {
           value={comment}
           onChange={(e) => setComment(e.target.value)}
         />
-        <p className="text-xs text-muted-foreground">
-          Tu comentario puede publicarse de forma anónima en el perfil del profesional, después de
-          que lo revise el equipo de Salus.
-        </p>
+        <div className="flex gap-2.5 rounded-lg border border-brand-teal/30 bg-brand-teal/5 p-3 text-xs text-muted-foreground">
+          <Info className="mt-px size-4 shrink-0 text-brand-teal" aria-hidden="true" />
+          <div className="flex flex-col gap-2">
+            <p id="publication-consent-question" className="font-medium text-primary">
+              ¿Autorizás que tu comentario se publique de forma anónima en el perfil del
+              profesional?
+            </p>
+            <p id="publication-consent-description">
+              Tu experiencia puede ayudar a otras personas a conocer distintas perspectivas y
+              elegir un profesional con mayor información. Esta autorización es opcional y no
+              afecta tu acceso a la plataforma ni tu atención profesional.
+            </p>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="publication-consent"
+                checked={publicationAuthorized}
+                onCheckedChange={(checked) => setPublicationAuthorized(checked === true)}
+                aria-describedby="publication-consent-question publication-consent-description"
+              />
+              <Label htmlFor="publication-consent" className="text-sm font-normal text-primary">
+                Sí, autorizo
+              </Label>
+            </div>
+          </div>
+        </div>
       </div>
       {error && (
         <p role="alert" className="text-sm text-red-600">

@@ -50,6 +50,7 @@ export async function submitReview(
   token: string,
   rating: number,
   comment: string,
+  publicationAuthorized: boolean,
 ): Promise<void> {
   const supabase = createClient();
 
@@ -57,6 +58,7 @@ export async function submitReview(
     p_token: token,
     p_rating: rating,
     p_comment: comment || null,
+    p_publication_authorized: publicationAuthorized,
   });
 
   if (error) throw error;

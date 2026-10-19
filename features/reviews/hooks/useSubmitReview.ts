@@ -9,12 +9,17 @@ export function useSubmitReview() {
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  async function submit(token: string, rating: number, comment: string) {
+  async function submit(
+    token: string,
+    rating: number,
+    comment: string,
+    publicationAuthorized: boolean,
+  ) {
     setIsLoading(true);
     setError(null);
 
     try {
-      await submitReview(token, rating, comment);
+      await submitReview(token, rating, comment, publicationAuthorized);
       setSuccess(true);
     } catch (err) {
       setError(getErrorMessage(err, "Ocurrió un error al enviar tu calificación"));

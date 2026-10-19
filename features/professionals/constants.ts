@@ -42,6 +42,16 @@ export const CONSULTATION_REASONS = [
   "Neuropsicología",
 ];
 
+// Orientaciones terapéuticas: solo aplican a psicólogos/as (ver migración 20261017000000).
+export const ORIENTATIONS = [
+  "Psicoanálisis",
+  "Cognitivo conductual",
+  "Conductual contextual",
+  "Sistémica",
+  "Gestalt",
+  "Psicología integrativa",
+];
+
 export const PROFESSION_LABELS: Record<string, string> = Object.fromEntries(
   PROFESSION_OPTIONS.map((o) => [o.value, o.label]),
 );

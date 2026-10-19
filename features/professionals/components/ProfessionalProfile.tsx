@@ -11,6 +11,7 @@ import { BookingForm, type PatientValues } from "@/features/appointments/compone
 import { BookingConfirmation } from "@/features/appointments/components/BookingConfirmation";
 import { useBookAppointment } from "@/features/appointments/hooks/useBookAppointment";
 import { RatingSummary } from "@/features/reviews/components/RatingSummary";
+import { PublishedReviews } from "@/features/reviews/components/PublishedReviews";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getDefaultAvatar } from "@/lib/avatar";
@@ -67,9 +68,26 @@ export function ProfessionalProfile({ professional }: { professional: Profession
               Precio de la sesión: ${professional.consultation_fee.toLocaleString("es-AR")}
             </p>
           )}
-          <RatingSummary averageRating={professional.average_rating} />
+          <RatingSummary
+            averageRating={professional.average_rating}
+            reviewCount={professional.review_count}
+          />
         </div>
       </div>
+
+      {professional.profession === "psicologo" && professional.orientations.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-sm font-medium">Orientación:</span>
+          {professional.orientations.map((orientation) => (
+            <span
+              key={orientation}
+              className="rounded-full border bg-muted px-2.5 py-0.5 text-xs font-medium"
+            >
+              {orientation}
+            </span>
+          ))}
+        </div>
+      )}
 
       {professional.description && <p className="text-sm">{professional.description}</p>}
 
@@ -142,6 +160,8 @@ export function ProfessionalProfile({ professional }: { professional: Profession
           </Button>
         </div>
       )}
+
+      <PublishedReviews professionalId={professional.id} />
     </div>
   );
 }

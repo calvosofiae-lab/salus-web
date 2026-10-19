@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Calendar, Instagram, Linkedin } from "lucide-react";
+import { Brain, Calendar, Instagram, Linkedin, ShieldCheck, type LucideIcon } from "lucide-react";
 import { MODALITY_LABELS, PROFESSION_LABELS } from "@/features/professionals/constants";
 import { formatLicense } from "@/features/professionals/lib/license";
 import { buildWhatsappLink } from "@/lib/whatsapp";
@@ -21,7 +21,49 @@ function WhatsappIcon({ size = 16 }: { size?: number }) {
 }
 
 const DESCRIPTION_PREVIEW_LENGTH = 140;
-const INSURANCES_PREVIEW_COUNT = 3;
+const BADGES_PREVIEW_COUNT = 1;
+
+// Etiquetas con "+N más" / "Ver menos" (obras sociales, orientaciones). No renderiza nada si
+// la lista está vacía. El ícono distingue una fila de la otra sin necesidad de un rótulo de
+// texto; `label` queda como título (tooltip) y nombre accesible.
+function BadgeList({
+  values,
+  icon: Icon,
+  label,
+}: {
+  values: string[];
+  icon: LucideIcon;
+  label: string;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  if (values.length === 0) return null;
+
+  const shown = expanded ? values : values.slice(0, BADGES_PREVIEW_COUNT);
+  const hidden = values.length - shown.length;
+
+  return (
+    <div className="prof-insurances" role="group" aria-label={label}>
+      <span className="prof-badges-icon" title={label}>
+        <Icon size={15} strokeWidth={2} aria-hidden="true" />
+      </span>
+      {shown.map((value) => (
+        <span key={value} className="prof-insurance-badge">
+          {value}
+        </span>
+      ))}
+      {hidden > 0 && (
+        <button type="button" className="prof-insurance-toggle" onClick={() => setExpanded(true)}>
+          +{hidden} más
+        </button>
+      )}
+      {expanded && values.length > BADGES_PREVIEW_COUNT && (
+        <button type="button" className="prof-insurance-toggle" onClick={() => setExpanded(false)}>
+          Ver menos
+        </button>
+      )}
+    </div>
+  );
+}
 
 // Corta en el último espacio antes del límite para no partir una palabra al medio.
 function truncateDescription(text: string, maxLength: number): string {
@@ -50,11 +92,8 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
   const descripcionMostrada =
     isLong && !expanded ? `${truncateDescription(descripcion, DESCRIPTION_PREVIEW_LENGTH)}…` : descripcion;
   const obrasSociales = prof.health_insurances ?? [];
-  const [obrasSocialesExpanded, setObrasSocialesExpanded] = useState(false);
-  const obrasSocialesMostradas = obrasSocialesExpanded
-    ? obrasSociales
-    : obrasSociales.slice(0, INSURANCES_PREVIEW_COUNT);
-  const obrasSocialesOcultas = obrasSociales.length - obrasSocialesMostradas.length;
+  // Solo psicólogos/as tienen orientación; el chequeo de profesión cubre datos viejos.
+  const orientaciones = prof.profession === "psicologo" ? (prof.orientations ?? []) : [];
   const whatsapp = prof.whatsapp;
 
   const linkWa = whatsapp
@@ -75,7 +114,9 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
         <img src={foto} alt={nombre} className="prof-img" loading="lazy" />
         <h3 className="prof-name">{nombre}</h3>
         <p className="prof-profession">{profesion}</p>
-        {prof.average_rating !== null && (
+        {/* Sin reseñas no se muestra puntaje: el 5 por defecto (20260807030000) dejaba a un
+            profesional nuevo por encima de uno con reseñas reales. */}
+        {prof.average_rating !== null && prof.review_count > 0 && (
           <p className="prof-rating">
             <span className="prof-rating-star">★</span>
             {prof.average_rating.toFixed(1)}/5
@@ -85,33 +126,16 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
         {prof.consultation_fee != null && (
           <p className="prof-price">${prof.consultation_fee.toLocaleString("es-AR")} la sesión</p>
         )}
-        {obrasSociales.length > 0 && (
-          <div className="prof-insurances">
-            {obrasSocialesMostradas.map((obraSocial) => (
-              <span key={obraSocial} className="prof-insurance-badge">
-                {obraSocial}
-              </span>
-            ))}
-            {obrasSocialesOcultas > 0 && (
-              <button
-                type="button"
-                className="prof-insurance-toggle"
-                onClick={() => setObrasSocialesExpanded(true)}
-              >
-                +{obrasSocialesOcultas} más
-              </button>
-            )}
-            {obrasSocialesExpanded && obrasSociales.length > INSURANCES_PREVIEW_COUNT && (
-              <button
-                type="button"
-                className="prof-insurance-toggle"
-                onClick={() => setObrasSocialesExpanded(false)}
-              >
-                Ver menos
-              </button>
-            )}
-          </div>
-        )}
+        <BadgeList
+          values={orientaciones}
+          icon={Brain}
+          label="Orientación"
+        />
+        <BadgeList
+          values={obrasSociales}
+          icon={ShieldCheck}
+          label="Obras sociales"
+        />
         {descripcion && (
           <p className="prof-description">
             {descripcionMostrada}

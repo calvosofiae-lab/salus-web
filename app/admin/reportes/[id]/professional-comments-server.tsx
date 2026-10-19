@@ -24,7 +24,10 @@ export async function ProfessionalCommentsServer({
         <h1 className="text-2xl font-semibold text-brand-navy">
           Comentarios de {professional.full_name}
         </h1>
-        <p className="text-sm text-muted-foreground">Reseñas de pacientes con comentario.</p>
+        <p className="text-sm text-muted-foreground">
+          Reseñas de pacientes con comentario. Solo los publicados se muestran en el perfil del
+          profesional, de forma anónima.
+        </p>
       </div>
       <ProfessionalReviewComments reviews={reviews} />
     </div>

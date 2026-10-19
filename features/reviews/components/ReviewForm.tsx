@@ -124,6 +124,10 @@ export function ReviewForm({ token }: { token: string }) {
           value={comment}
           onChange={(e) => setComment(e.target.value)}
         />
+        <p className="text-xs text-muted-foreground">
+          Tu comentario puede publicarse de forma anónima en el perfil del profesional, después de
+          que lo revise el equipo de Salus.
+        </p>
       </div>
       {error && (
         <p role="alert" className="text-sm text-red-600">

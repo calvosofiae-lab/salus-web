@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import {
   CONSULTATION_REASONS,
+  ORIENTATIONS,
   COVERAGE_OPTIONS,
   GENDER_OPTIONS,
   LICENSE_TYPE_OPTIONS,
@@ -52,6 +53,7 @@ const EMPTY_VALUES: ProfessionalFormSchema = {
   modality: [],
   consultation_reasons: [],
   health_insurances: [],
+  orientations: [],
   email: "",
   password: "",
 };
@@ -230,6 +232,8 @@ export function ProfessionalForm({
   const modality = watch("modality");
   const consultationReasons = watch("consultation_reasons");
   const healthInsurances = watch("health_insurances");
+  const profession = watch("profession");
+  const orientations = watch("orientations");
 
   useEffect(() => {
     if (!photoFile) {
@@ -267,7 +271,7 @@ export function ProfessionalForm({
   }
 
   function toggleArrayValue(
-    field: "coverage" | "modality" | "consultation_reasons",
+    field: "coverage" | "modality" | "consultation_reasons" | "orientations",
     value: string,
   ) {
     const current = getValues(field);
@@ -275,7 +279,7 @@ export function ProfessionalForm({
       ? current.filter((v) => v !== value)
       : [...current, value];
     // RHF tipa setValue por path literal; con un field de tipo unión no distribuye el tipo
-    // automáticamente aunque los 3 campos sean todos string[].
+    // automáticamente aunque los 4 campos sean todos string[].
     setValue(field, next as never, { shouldValidate: true });
   }
 
@@ -326,7 +330,19 @@ export function ProfessionalForm({
 
           <div className="grid gap-1.5">
             <Label htmlFor="profession">Profesión</Label>
-            <select id="profession" className={fieldClassName} {...register("profession")}>
+            <select
+              id="profession"
+              className={fieldClassName}
+              {...register("profession", {
+                // Las orientaciones solo aplican a psicólogos/as: al pasar a otra profesión se
+                // vacían para no guardar (ni mostrar en la card) datos que ya no corresponden.
+                onChange: (e) => {
+                  if (e.target.value !== "psicologo") {
+                    setValue("orientations", [], { shouldValidate: true });
+                  }
+                },
+              })}
+            >
               {PROFESSION_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
@@ -644,6 +660,22 @@ export function ProfessionalForm({
             ))}
           </div>
         </div>
+
+        {profession === "psicologo" && (
+          <div className="grid gap-1.5">
+            <Label>Orientación</Label>
+            <div className="flex flex-wrap gap-2">
+              {ORIENTATIONS.map((orientation) => (
+                <ChipToggle
+                  key={orientation}
+                  label={orientation}
+                  active={orientations.includes(orientation)}
+                  onClick={() => toggleArrayValue("orientations", orientation)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
         {coverage.includes("obra_social") && (
           <div className="grid gap-1.5">

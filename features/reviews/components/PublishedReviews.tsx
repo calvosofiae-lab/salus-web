@@ -32,7 +32,7 @@ export function PublishedReviews({ professionalId }: { professionalId: string })
 
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-lg font-semibold text-primary">Opiniones de pacientes</h2>
+      <h2 className="text-lg font-semibold text-primary">Experiencia de pacientes</h2>
       <ul className="flex flex-col divide-y rounded-md border">
         {reviews.slice(0, visible).map((review) => (
           <li key={review.id} className="flex flex-col gap-1 px-4 py-3">
@@ -58,7 +58,7 @@ export function PublishedReviews({ professionalId }: { professionalId: string })
           className="self-start text-sm font-medium text-primary hover:underline"
           onClick={() => setVisible((v) => v + PAGE_SIZE)}
         >
-          Ver más opiniones
+          Ver más experiencias
         </button>
       )}
     </section>

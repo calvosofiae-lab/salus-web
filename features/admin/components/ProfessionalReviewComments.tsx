@@ -29,8 +29,9 @@ function formatReviewDate(createdAt: string): string {
 }
 
 // Los comentarios no se publican en el perfil del profesional hasta que el admin los aprueba
-// (20261017010000), y solo si el paciente autorizó la publicación (20261019000000).
-// Pendientes primero, para que lo que falta revisar quede arriba.
+// (20261017010000). La autorización del paciente (20261019000000) se muestra para que el admin
+// la tenga en cuenta, pero no bloquea la publicación. Pendientes primero, para que lo que falta
+// revisar quede arriba.
 export function ProfessionalReviewComments({ reviews: initialReviews }: { reviews: Review[] }) {
   const [reviews, setReviews] = useState(initialReviews);
   const [savingId, setSavingId] = useState<string | null>(null);
@@ -108,12 +109,7 @@ export function ProfessionalReviewComments({ reviews: initialReviews }: { review
                 {review.comment_status !== "published" && (
                   <Button
                     size="sm"
-                    disabled={isSaving || !review.comment_publication_authorized}
-                    title={
-                      review.comment_publication_authorized
-                        ? undefined
-                        : "El paciente no autorizó la publicación de este comentario"
-                    }
+                    disabled={isSaving}
                     onClick={() => changeStatus(review.id, "published")}
                   >
                     {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Eye className="size-4" />}

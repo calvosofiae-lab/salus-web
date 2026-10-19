@@ -10,7 +10,7 @@ import {
   type EmailRecipientType,
   type EmailNotificationType,
 } from "@/repositories/emailNotificationsRepository";
-import type { EmailMessage, ContactInfo } from "@/lib/email/templates";
+import { htmlToPlainText, type EmailMessage, type ContactInfo } from "@/lib/email/templates";
 import { sendTransactionalEmail } from "@/lib/email/resendClient";
 import { buildWhatsappLink } from "@/lib/whatsapp";
 
@@ -57,6 +57,8 @@ export async function attemptSend(
       to: input.recipientEmail,
       subject: input.message.subject,
       html: input.message.html,
+      text: htmlToPlainText(input.message.html),
+      replyTo: input.message.replyTo,
     });
     await markEmailNotificationSent(admin, pending.id, providerMessageId);
     return true;

@@ -6,6 +6,10 @@
 export interface EmailMessage {
   subject: string;
   html: string;
+  // Email de la otra parte del turno (paciente o profesional): si quien recibe el mail lo
+  // responde, la respuesta le llega directo a esa persona en vez de a no-reply, que no tiene
+  // casilla. Falta cuando la otra parte no tiene email cargado.
+  replyTo?: string;
 }
 
 // Nombres de paciente y profesional son texto cargado por usuarios: van escapados antes de
@@ -70,7 +74,12 @@ function contactSentence(lead: string, contact: ContactInfo): string {
   return `<p>${lead} ${links.join(" o ")}.</p>`;
 }
 
-function wrapEmailHtml(bodyHtml: string): string {
+// Si el mail tiene replyTo, el pie dice a quién le llega la respuesta en vez de pedir que no
+// se responda.
+function wrapEmailHtml(bodyHtml: string, replyToFirstName?: string): string {
+  const footer = replyToFirstName
+    ? `Si respondés este correo, tu respuesta le llega directamente a ${escapeHtml(replyToFirstName)}.`
+    : "Este es un mensaje automático. Por favor, no respondas a este correo.";
   return `
     <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; color: #2c3e50;">
       <h2 style="color: #1b2f48; margin-bottom: 1rem;">SALUS PROFESIONALES</h2>
@@ -80,7 +89,7 @@ function wrapEmailHtml(bodyHtml: string): string {
         Impulsamos el encuentro más importante.
       </p>
       <p style="margin-top: 2rem; font-size: 0.85rem; color: #52606d;">
-        Este es un mensaje automático. Por favor, no respondas a este correo.
+        ${footer}
       </p>
     </div>
   `.trim();
@@ -96,7 +105,9 @@ export function buildPatientConfirmationEmail(data: {
   const professionalFirstName = firstNameOf(data.professionalFullName);
   return {
     subject: `Turno confirmado con ${data.professionalFullName}`,
-    html: wrapEmailHtml(`
+    replyTo: data.professionalContact.email ?? undefined,
+    html: wrapEmailHtml(
+      `
       <p>Hola, ${escapeHtml(data.patientFirstName)}:</p>
       <p>¡Tu turno está confirmado!</p>
       <p>
@@ -109,7 +120,9 @@ export function buildPatientConfirmationEmail(data: {
       )}
       <p>Te esperamos y esperamos que tengas una muy buena experiencia.</p>
       <p>Gracias por confiar en Salus para acompañarte en este proceso.</p>
-    `),
+    `,
+      data.professionalContact.email ? professionalFirstName : undefined,
+    ),
   };
 }
 
@@ -124,7 +137,9 @@ export function buildProfessionalConfirmationEmail(data: {
   const patientFirstName = firstNameOf(data.patientFullName);
   return {
     subject: `Nueva reserva de ${data.patientFullName}`,
-    html: wrapEmailHtml(`
+    replyTo: data.patientContact.email ?? undefined,
+    html: wrapEmailHtml(
+      `
       <p>Hola, ${escapeHtml(professionalFirstName)}:</p>
       <p>¡Tenés una reserva nueva!</p>
       <p>
@@ -137,7 +152,9 @@ export function buildProfessionalConfirmationEmail(data: {
       )}
       <p>Te deseamos un muy buen encuentro.</p>
       <p>Gracias por ser parte de Salus.</p>
-    `),
+    `,
+      data.patientContact.email ? patientFirstName : undefined,
+    ),
   };
 }
 
@@ -154,7 +171,9 @@ export function buildPatientCreatedByProfessionalEmail(data: {
 }): EmailMessage {
   return {
     subject: `Tenés un turno agendado con ${data.professionalFullName}`,
-    html: wrapEmailHtml(`
+    replyTo: data.professionalContact.email ?? undefined,
+    html: wrapEmailHtml(
+      `
       <p>Hola ${escapeHtml(data.patientFirstName)},</p>
       <p>
         <strong>${escapeHtml(data.professionalFullName)}</strong> te agendó un turno para el
@@ -162,7 +181,9 @@ export function buildPatientCreatedByProfessionalEmail(data: {
       </p>
       <p>Si no podés asistir, comunicate con el profesional para reprogramarlo.</p>
       ${contactBlock(data.professionalContact)}
-    `),
+    `,
+      data.professionalContact.email ? firstNameOf(data.professionalFullName) : undefined,
+    ),
   };
 }
 
@@ -178,7 +199,9 @@ export function buildPatientRescheduledEmail(data: {
   const professionalFirstName = firstNameOf(data.professionalFullName);
   return {
     subject: `Se reprogramó tu turno con ${data.professionalFullName}`,
-    html: wrapEmailHtml(`
+    replyTo: data.professionalContact.email ?? undefined,
+    html: wrapEmailHtml(
+      `
       <p>Hola, ${escapeHtml(data.patientFirstName)}:</p>
       <p>¡Tu turno fue reprogramado!</p>
       <p>
@@ -191,7 +214,9 @@ export function buildPatientRescheduledEmail(data: {
         data.professionalContact,
       )}
       <p>Gracias por tu flexibilidad y por confiar en Salus.</p>
-    `),
+    `,
+      data.professionalContact.email ? professionalFirstName : undefined,
+    ),
   };
 }
 
@@ -225,7 +250,9 @@ export function buildPatientReminderEmail(data: {
 
   return {
     subject: `Mañana tenés turno con ${data.professionalFullName}`,
-    html: wrapEmailHtml(`
+    replyTo: data.professionalContact.email ?? undefined,
+    html: wrapEmailHtml(
+      `
       <p>¡Hola, ${escapeHtml(data.patientFirstName)}! 🤍</p>
       <p>Te recordamos que mañana tenés un encuentro programado con tu profesional.</p>
       <p>
@@ -243,7 +270,9 @@ export function buildPatientReminderEmail(data: {
           : ""
       }
       <p>Gracias por elegir Salus y confiar en nuestra red de profesionales.</p>
-    `),
+    `,
+      data.professionalContact.email ? professionalFirstName : undefined,
+    ),
   };
 }
 
@@ -256,7 +285,9 @@ export function buildPatientSurveyEmail(data: {
   const professionalFirstName = firstNameOf(data.professionalFullName);
   return {
     subject: `¿Cómo fue tu turno con ${data.professionalFullName}?`,
-    html: wrapEmailHtml(`
+    replyTo: data.professionalContact.email ?? undefined,
+    html: wrapEmailHtml(
+      `
       <p>Hola ${escapeHtml(data.patientFirstName)},</p>
       <p>
         Esperamos que hayas tenido una buena experiencia en tu encuentro con
@@ -273,7 +304,9 @@ export function buildPatientSurveyEmail(data: {
         data.professionalContact,
       )}
       <p>Gracias por confiar en Salus.</p>
-    `),
+    `,
+      data.professionalContact.email ? professionalFirstName : undefined,
+    ),
   };
 }
 
@@ -288,7 +321,9 @@ export function buildPatientCancelledEmail(data: {
   const professionalFirstName = firstNameOf(data.professionalFullName);
   return {
     subject: `Se canceló tu turno con ${data.professionalFullName}`,
-    html: wrapEmailHtml(`
+    replyTo: data.professionalContact.email ?? undefined,
+    html: wrapEmailHtml(
+      `
       <p>Hola, ${escapeHtml(data.patientFirstName)}:</p>
       <p>
         Queremos informarte que tu turno con <strong>${escapeHtml(data.professionalFullName)}</strong>,
@@ -303,6 +338,27 @@ export function buildPatientCancelledEmail(data: {
         data.professionalContact,
       )}
       <p>Esperamos que puedas encontrar pronto un nuevo horario que se adapte a vos.</p>
-    `),
+    `,
+      data.professionalContact.email ? professionalFirstName : undefined,
+    ),
   };
+}
+
+// Versión en texto plano del mismo mail. Los filtros de spam penalizan los mails que traen solo
+// HTML, y armarla a partir del HTML evita mantener dos copias de cada template.
+export function htmlToPlainText(html: string): string {
+  return html
+    .replace(/<a [^>]*href="mailto:([^"]*)"[^>]*>(.*?)<\/a>/g, "$2 ($1)")
+    .replace(/<a [^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/g, "$2 ($1)")
+    .replace(/<br\s*\/?>\s*/g, "\n")
+    .replace(/<\/(p|h2)>/g, "\n\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&")
+    .replace(/[ \t]+/g, " ")
+    .replace(/ *\n */g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }

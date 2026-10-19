@@ -9,6 +9,8 @@ export interface SendTransactionalEmailInput {
   to: string;
   subject: string;
   html: string;
+  text: string;
+  replyTo?: string;
 }
 
 export interface SendTransactionalEmailResult {
@@ -36,6 +38,8 @@ export async function sendTransactionalEmail(
       to: [input.to],
       subject: input.subject,
       html: input.html,
+      text: input.text,
+      ...(input.replyTo ? { reply_to: input.replyTo } : {}),
     }),
   });
 

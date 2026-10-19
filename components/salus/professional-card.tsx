@@ -115,13 +115,13 @@ export function ProfessionalCard({ prof }: { prof: Professional }) {
         <img src={foto} alt={nombre} className="prof-img" loading="lazy" />
         <h3 className="prof-name">{nombre}</h3>
         <p className="prof-profession">{profesion}</p>
-        {prof.average_rating !== null && (
+        {/* Sin reseñas no se muestra puntaje: el 5 por defecto (20260807030000) dejaba a un
+            profesional nuevo por encima de uno con reseñas reales. */}
+        {prof.average_rating !== null && prof.review_count > 0 && (
           <p className="prof-rating">
             <span className="prof-rating-star">★</span>
             {prof.average_rating.toFixed(1)}/5
-            {prof.review_count > 0 && (
-              <span className="prof-rating-count">({formatReviewCount(prof.review_count)})</span>
-            )}
+            <span className="prof-rating-count">({formatReviewCount(prof.review_count)})</span>
           </p>
         )}
         <span className="prof-badge">{modalidad}</span>

@@ -4,24 +4,13 @@ import Link from "next/link";
 import { Eye, Pencil, UserCheck, UserX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  useAdminProfessionalsList,
-  type ActiveFilter,
-} from "@/features/professionals/hooks/useAdminProfessionalsList";
+import { useAdminProfessionalsList } from "@/features/professionals/hooks/useAdminProfessionalsList";
 import { PROFESSION_LABELS } from "@/features/professionals/constants";
 import type { Professional } from "@/features/professionals/types";
-
-const ACTIVE_FILTER_OPTIONS: { value: ActiveFilter; label: string }[] = [
-  { value: "all", label: "Todos" },
-  { value: "active", label: "Activos" },
-  { value: "inactive", label: "Inactivos" },
-];
-
-const EMPTY_MESSAGES: Record<ActiveFilter, string> = {
-  all: "No hay profesionales cargados todavía.",
-  active: "No hay profesionales activos.",
-  inactive: "No hay profesionales inactivos.",
-};
+import {
+  ACTIVE_FILTER_EMPTY_MESSAGES,
+  ActiveFilterButtons,
+} from "@/features/admin/components/ActiveFilterButtons";
 
 export function ProfessionalsTable() {
   const {
@@ -49,21 +38,7 @@ export function ProfessionalsTable() {
     deactivate(prof.id);
   }
 
-  const filterButtons = (
-    <div className="flex gap-2">
-      {ACTIVE_FILTER_OPTIONS.map((option) => (
-        <Button
-          key={option.value}
-          type="button"
-          size="sm"
-          variant={activeFilter === option.value ? "default" : "outline"}
-          onClick={() => setActiveFilter(option.value)}
-        >
-          {option.label}
-        </Button>
-      ))}
-    </div>
-  );
+  const filterButtons = <ActiveFilterButtons value={activeFilter} onChange={setActiveFilter} />;
 
   if (status === "loading") {
     return (
@@ -85,7 +60,7 @@ export function ProfessionalsTable() {
     return (
       <div className="flex flex-col gap-3">
         {filterButtons}
-        <p className="text-sm text-muted-foreground">{EMPTY_MESSAGES[activeFilter]}</p>
+        <p className="text-sm text-muted-foreground">{ACTIVE_FILTER_EMPTY_MESSAGES[activeFilter]}</p>
       </div>
     );
   }

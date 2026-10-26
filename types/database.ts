@@ -497,6 +497,7 @@ export interface Database {
         Returns: {
           professional_id: string;
           full_name: string;
+          is_active: boolean;
           average_rating: number | null;
           review_count: number;
           comment_count: number;

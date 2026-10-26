@@ -7,6 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { useAdminProfessionalsList } from "@/features/professionals/hooks/useAdminProfessionalsList";
 import { PROFESSION_LABELS } from "@/features/professionals/constants";
 import type { Professional } from "@/features/professionals/types";
+import {
+  ACTIVE_FILTER_EMPTY_MESSAGES,
+  ActiveFilterButtons,
+} from "@/features/admin/components/ActiveFilterButtons";
 
 export function ProfessionalsTable() {
   const {
@@ -22,6 +26,8 @@ export function ProfessionalsTable() {
     page,
     pageCount,
     setPage,
+    activeFilter,
+    setActiveFilter,
   } = useAdminProfessionalsList();
 
   function handleDeactivate(prof: Professional) {
@@ -32,18 +38,36 @@ export function ProfessionalsTable() {
     deactivate(prof.id);
   }
 
+  const filterButtons = <ActiveFilterButtons value={activeFilter} onChange={setActiveFilter} />;
+
   if (status === "loading") {
-    return <p className="text-sm text-muted-foreground">Cargando profesionales...</p>;
+    return (
+      <div className="flex flex-col gap-3">
+        {filterButtons}
+        <p className="text-sm text-muted-foreground">Cargando profesionales...</p>
+      </div>
+    );
   }
   if (status === "error") {
-    return <p className="text-sm text-red-500">Error al cargar los profesionales.</p>;
+    return (
+      <div className="flex flex-col gap-3">
+        {filterButtons}
+        <p className="text-sm text-red-500">Error al cargar los profesionales.</p>
+      </div>
+    );
   }
   if (professionals.length === 0) {
-    return <p className="text-sm text-muted-foreground">No hay profesionales cargados todavía.</p>;
+    return (
+      <div className="flex flex-col gap-3">
+        {filterButtons}
+        <p className="text-sm text-muted-foreground">{ACTIVE_FILTER_EMPTY_MESSAGES[activeFilter]}</p>
+      </div>
+    );
   }
 
   return (
     <div className="flex flex-col gap-3">
+      {filterButtons}
       {error && <p className="text-sm text-red-500">{error}</p>}
       <div className="overflow-x-auto">
         <table className="w-full text-sm">

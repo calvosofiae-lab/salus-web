@@ -13,6 +13,7 @@ import type { Professional } from "@/features/professionals/types";
 
 type Status = "loading" | "error" | "ready";
 type SavingAction = "activate" | "deactivate" | "premium" | "featured_of_month";
+export type ActiveFilter = "all" | "active" | "inactive";
 
 export const ADMIN_PROFESSIONALS_PAGE_SIZE = 20;
 
@@ -21,6 +22,7 @@ export function useAdminProfessionalsList() {
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(0);
+  const [activeFilter, setActiveFilterState] = useState<ActiveFilter>("all");
   const [error, setError] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
   // Las tres acciones (activar/desactivar/cambiar plan) comparten savingId para
@@ -32,7 +34,11 @@ export function useAdminProfessionalsList() {
   const load = useCallback(async () => {
     setStatus("loading");
     try {
-      const { data, count } = await getAllProfessionalsAdmin(page, ADMIN_PROFESSIONALS_PAGE_SIZE);
+      const { data, count } = await getAllProfessionalsAdmin(
+        page,
+        ADMIN_PROFESSIONALS_PAGE_SIZE,
+        activeFilter === "all" ? undefined : activeFilter === "active",
+      );
       setProfessionals(data);
       setTotalCount(count);
       setStatus("ready");
@@ -40,11 +46,18 @@ export function useAdminProfessionalsList() {
       console.error("Error al cargar profesionales:", err);
       setStatus("error");
     }
-  }, [page]);
+  }, [page, activeFilter]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  // Al cambiar el filtro se vuelve a la primera página: la actual puede no existir con el
+  // nuevo total.
+  function setActiveFilter(filter: ActiveFilter) {
+    setActiveFilterState(filter);
+    setPage(0);
+  }
 
   async function deactivate(id: string) {
     setSavingId(id);
@@ -124,5 +137,7 @@ export function useAdminProfessionalsList() {
     page,
     pageCount,
     setPage,
+    activeFilter,
+    setActiveFilter,
   };
 }

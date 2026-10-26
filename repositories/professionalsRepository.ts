@@ -123,17 +123,17 @@ export interface PaginatedProfessionals {
 export async function getAllProfessionalsAdmin(
   page: number,
   pageSize: number,
+  isActive?: boolean,
 ): Promise<PaginatedProfessionals> {
   const supabase = createClient();
 
   const from = page * pageSize;
   const to = from + pageSize - 1;
 
-  const { data, error, count } = await supabase
-    .from("professionals")
-    .select("*", { count: "exact" })
-    .order("full_name")
-    .range(from, to);
+  let query = supabase.from("professionals").select("*", { count: "exact" });
+  if (isActive !== undefined) query = query.eq("is_active", isActive);
+
+  const { data, error, count } = await query.order("full_name").range(from, to);
 
   if (error) throw error;
   return { data: data ?? [], count: count ?? 0 };

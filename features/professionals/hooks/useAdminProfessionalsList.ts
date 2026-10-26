@@ -22,7 +22,7 @@ export function useAdminProfessionalsList() {
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(0);
-  const [activeFilter, setActiveFilterState] = useState<ActiveFilter>("all");
+  const [activeFilter, setActiveFilterState] = useState<ActiveFilter>("active");
   const [error, setError] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
   // Las tres acciones (activar/desactivar/cambiar plan) comparten savingId para

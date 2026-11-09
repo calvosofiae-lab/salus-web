@@ -9,6 +9,7 @@ import {
   setProfessionalPremium,
 } from "@/repositories/professionalsRepository";
 import { getErrorMessage } from "@/lib/errors";
+import { notifyProfessionalDeactivatedEmail } from "@/services/professionalFarewellEmailService";
 import type { Professional } from "@/features/professionals/types";
 
 type Status = "loading" | "error" | "ready";
@@ -65,6 +66,10 @@ export function useAdminProfessionalsList() {
     setError(null);
     try {
       await deactivateProfessional(id);
+      // Sin await: el mail de despedida no debe demorar ni romper la baja, que ya quedó hecha.
+      notifyProfessionalDeactivatedEmail(id).catch((err) =>
+        console.error("Error enviando el mail de despedida:", err),
+      );
       await load();
     } catch (err) {
       setError(getErrorMessage(err, "Ocurrió un error al dar de baja al profesional"));

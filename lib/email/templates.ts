@@ -344,6 +344,35 @@ export function buildPatientCancelledEmail(data: {
   };
 }
 
+// Va al profesional cuando el admin lo da de baja (no tiene turno asociado). La encuesta de
+// salida se suma acá cuando esté lista.
+export function buildProfessionalFarewellEmail(data: {
+  professionalFullName: string;
+}): EmailMessage {
+  const professionalFirstName = firstNameOf(data.professionalFullName);
+  return {
+    subject: "Gracias por haber sido parte de Salus",
+    html: wrapEmailHtml(`
+      <p>Hola, ${escapeHtml(professionalFirstName)}:</p>
+      <p>
+        Te escribimos para confirmarte que tu perfil en Salus fue dado de baja. A partir de ahora
+        ya no aparece en la búsqueda de profesionales y no vas a recibir nuevas reservas a
+        través de la plataforma.
+      </p>
+      <p>
+        Queremos agradecerte de corazón por el tiempo que compartiste con nosotrxs y por cada
+        encuentro que hiciste posible. Construir una red de profesionales de confianza es posible
+        gracias a personas como vos.
+      </p>
+      <p>
+        Si en algún momento querés volver a sumarte, las puertas de Salus van a estar siempre
+        abiertas.
+      </p>
+      <p>Te deseamos lo mejor en esta nueva etapa.</p>
+    `),
+  };
+}
+
 // Versión en texto plano del mismo mail. Los filtros de spam penalizan los mails que traen solo
 // HTML, y armarla a partir del HTML evita mantener dos copias de cada template.
 export function htmlToPlainText(html: string): string {

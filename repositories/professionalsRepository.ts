@@ -139,6 +139,32 @@ export async function getAllProfessionalsAdmin(
   return { data: data ?? [], count: count ?? 0 };
 }
 
+export interface ProfessionalActiveCounts {
+  all: number;
+  active: number;
+  inactive: number;
+}
+
+// Totales para los botones de filtro del panel de admin. Solo cuenta (head: true), no trae filas.
+export async function getProfessionalActiveCountsAdmin(): Promise<ProfessionalActiveCounts> {
+  const supabase = createClient();
+
+  const [active, inactive] = await Promise.all(
+    [true, false].map((isActive) =>
+      supabase
+        .from("professionals")
+        .select("id", { count: "exact", head: true })
+        .eq("is_active", isActive),
+    ),
+  );
+
+  if (active.error) throw active.error;
+  if (inactive.error) throw inactive.error;
+  const activeCount = active.count ?? 0;
+  const inactiveCount = inactive.count ?? 0;
+  return { all: activeCount + inactiveCount, active: activeCount, inactive: inactiveCount };
+}
+
 export async function getProfessionalByIdAdmin(
   supabase: SupabaseClient<Database>,
   id: string,

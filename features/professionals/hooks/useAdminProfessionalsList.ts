@@ -5,6 +5,8 @@ import {
   activateProfessional,
   deactivateProfessional,
   getAllProfessionalsAdmin,
+  getProfessionalActiveCountsAdmin,
+  type ProfessionalActiveCounts,
   setProfessionalFeaturedOfMonth,
   setProfessionalPremium,
 } from "@/repositories/professionalsRepository";
@@ -25,6 +27,8 @@ export function useAdminProfessionalsList() {
   const [page, setPage] = useState(0);
   const [activeFilter, setActiveFilterState] = useState<ActiveFilter>("active");
   const [error, setError] = useState<string | null>(null);
+  // null mientras carga o si falló: los botones se muestran sin número antes que con uno viejo.
+  const [counts, setCounts] = useState<ProfessionalActiveCounts | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
   // Las tres acciones (activar/desactivar/cambiar plan) comparten savingId para
   // deshabilitar los botones de la fila mientras cualquiera esté en curso, pero cada botón
@@ -49,6 +53,20 @@ export function useAdminProfessionalsList() {
     }
   }, [page, activeFilter]);
 
+  // Aparte de load: un fallo en los totales no debe dejar el listado en error.
+  const loadCounts = useCallback(async () => {
+    try {
+      setCounts(await getProfessionalActiveCountsAdmin());
+    } catch (err) {
+      console.error("Error al cargar los totales de profesionales:", err);
+      setCounts(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadCounts();
+  }, [loadCounts]);
+
   useEffect(() => {
     load();
   }, [load]);
@@ -66,6 +84,7 @@ export function useAdminProfessionalsList() {
     setError(null);
     try {
       await deactivateProfessional(id);
+      loadCounts();
       // Sin await: el mail de despedida no debe demorar ni romper la baja, que ya quedó hecha.
       notifyProfessionalDeactivatedEmail(id).catch((err) =>
         console.error("Error enviando el mail de despedida:", err),
@@ -85,6 +104,7 @@ export function useAdminProfessionalsList() {
     setError(null);
     try {
       await activateProfessional(id);
+      loadCounts();
       await load();
     } catch (err) {
       setError(getErrorMessage(err, "Ocurrió un error al reactivar al profesional"));
@@ -144,5 +164,6 @@ export function useAdminProfessionalsList() {
     setPage,
     activeFilter,
     setActiveFilter,
+    counts,
   };
 }

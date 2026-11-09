@@ -18,9 +18,11 @@ export const ACTIVE_FILTER_EMPTY_MESSAGES: Record<ActiveFilter, string> = {
 interface ActiveFilterButtonsProps {
   value: ActiveFilter;
   onChange: (value: ActiveFilter) => void;
+  // Opcional: si se pasa, cada botón muestra su total ("Activos (12)").
+  counts?: Record<ActiveFilter, number> | null;
 }
 
-export function ActiveFilterButtons({ value, onChange }: ActiveFilterButtonsProps) {
+export function ActiveFilterButtons({ value, onChange, counts }: ActiveFilterButtonsProps) {
   return (
     <div className="flex gap-2">
       {ACTIVE_FILTER_OPTIONS.map((option) => (
@@ -32,6 +34,7 @@ export function ActiveFilterButtons({ value, onChange }: ActiveFilterButtonsProp
           onClick={() => onChange(option.value)}
         >
           {option.label}
+          {counts && ` (${counts[option.value]})`}
         </Button>
       ))}
     </div>

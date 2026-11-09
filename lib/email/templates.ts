@@ -344,6 +344,43 @@ export function buildPatientCancelledEmail(data: {
   };
 }
 
+// Encuesta de salida (Google Forms, armada por fuera de la app).
+const PROFESSIONAL_EXIT_SURVEY_URL =
+  "https://docs.google.com/forms/d/e/1FAIpQLScoyd7A7--96eoozPHR8lbMWKpB-eijP-_E7K4Q08SUhShqyg/viewform?usp=header";
+
+// Va al profesional cuando el admin lo da de baja (no tiene turno asociado).
+export function buildProfessionalFarewellEmail(data: {
+  professionalFullName: string;
+}): EmailMessage {
+  const professionalFirstName = firstNameOf(data.professionalFullName);
+  return {
+    subject: "Gracias por haber sido parte de Salus",
+    html: wrapEmailHtml(`
+      <p>Hola, ${escapeHtml(professionalFirstName)}:</p>
+      <p>
+        Te escribimos para confirmarte que tu perfil en Salus fue dado de baja. A partir de ahora
+        ya no aparece en la búsqueda de profesionales y no vas a recibir nuevas reservas a
+        través de la plataforma.
+      </p>
+      <p>
+        Queremos agradecerte de corazón por el tiempo que compartiste con nosotrxs y por cada
+        encuentro que hiciste posible. Construir una red de profesionales de confianza es posible
+        gracias a personas como vos.
+      </p>
+      <p>
+        Si en algún momento querés volver a sumarte, las puertas de Salus van a estar siempre
+        abiertas.
+      </p>
+      <p>
+        Nos ayudaría mucho conocer tu experiencia para seguir mejorando. Si tenés unos minutos,
+        te invitamos a completar esta breve encuesta:
+      </p>
+      <p><a href="${PROFESSIONAL_EXIT_SURVEY_URL}">Completar encuesta</a></p>
+      <p>Te deseamos lo mejor en esta nueva etapa.</p>
+    `),
+  };
+}
+
 // Versión en texto plano del mismo mail. Los filtros de spam penalizan los mails que traen solo
 // HTML, y armarla a partir del HTML evita mantener dos copias de cada template.
 export function htmlToPlainText(html: string): string {

@@ -28,6 +28,7 @@ export function ProfessionalsTable() {
     setPage,
     activeFilter,
     setActiveFilter,
+    counts,
   } = useAdminProfessionalsList();
 
   function handleDeactivate(prof: Professional) {
@@ -38,7 +39,9 @@ export function ProfessionalsTable() {
     deactivate(prof.id);
   }
 
-  const filterButtons = <ActiveFilterButtons value={activeFilter} onChange={setActiveFilter} />;
+  const filterButtons = (
+    <ActiveFilterButtons value={activeFilter} onChange={setActiveFilter} counts={counts} />
+  );
 
   if (status === "loading") {
     return (

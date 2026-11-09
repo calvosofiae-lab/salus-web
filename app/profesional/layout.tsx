@@ -24,6 +24,12 @@ export default function ProfessionalLayout({ children }: { children: React.React
             >
               Mi perfil
             </Link>
+            <Link
+              href="/profesional/reportes"
+              className="text-muted-foreground hover:text-brand-navy"
+            >
+              Reportes
+            </Link>
           </nav>
           <LogoutButton />
         </div>

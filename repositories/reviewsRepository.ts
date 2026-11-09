@@ -18,6 +18,20 @@ export async function getPublishedReviewComments(
   return data ?? [];
 }
 
+// Misma RPC, del lado del servidor: la usa la pantalla de reportes del profesional, que ve sus
+// propios comentarios exactamente como salen en el perfil público (solo los que aprobó el admin).
+export async function getPublishedReviewCommentsServer(
+  supabase: SupabaseClient<Database>,
+  professionalId: string,
+): Promise<PublishedReviewComment[]> {
+  const { data, error } = await supabase.rpc("get_published_review_comments", {
+    p_professional_id: professionalId,
+  });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
 // Para el panel de admin: todas las reviews con comentario, en cualquier estado de moderación.
 // La RPC rechaza a quien no sea admin.
 export async function getProfessionalReviewComments(

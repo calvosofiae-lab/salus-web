@@ -344,8 +344,11 @@ export function buildPatientCancelledEmail(data: {
   };
 }
 
-// Va al profesional cuando el admin lo da de baja (no tiene turno asociado). La encuesta de
-// salida se suma acá cuando esté lista.
+// Encuesta de salida (Google Forms, armada por fuera de la app).
+const PROFESSIONAL_EXIT_SURVEY_URL =
+  "https://docs.google.com/forms/d/e/1FAIpQLScoyd7A7--96eoozPHR8lbMWKpB-eijP-_E7K4Q08SUhShqyg/viewform?usp=header";
+
+// Va al profesional cuando el admin lo da de baja (no tiene turno asociado).
 export function buildProfessionalFarewellEmail(data: {
   professionalFullName: string;
 }): EmailMessage {
@@ -368,6 +371,11 @@ export function buildProfessionalFarewellEmail(data: {
         Si en algún momento querés volver a sumarte, las puertas de Salus van a estar siempre
         abiertas.
       </p>
+      <p>
+        Nos ayudaría mucho conocer tu experiencia para seguir mejorando. Si tenés unos minutos,
+        te invitamos a completar esta breve encuesta:
+      </p>
+      <p><a href="${PROFESSIONAL_EXIT_SURVEY_URL}">Completar encuesta</a></p>
       <p>Te deseamos lo mejor en esta nueva etapa.</p>
     `),
   };

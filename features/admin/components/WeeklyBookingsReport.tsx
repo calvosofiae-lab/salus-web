@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useWeeklyBookingsReport } from "@/features/admin/hooks/useWeeklyBookingsReport";
 import type { ActiveFilter } from "@/features/professionals/hooks/useAdminProfessionalsList";
@@ -45,8 +45,23 @@ function formatDay(dateIso: string, withYear = false): string {
   return withYear ? `${day}/${month}/${year}` : `${day}/${month}`;
 }
 
+// "Hoy" se lee recién en el navegador (useEffect): si se calcula durante el render, el build
+// falla al prerenderizar /admin/reportes (Next no permite `new Date()` en el prerender de un
+// Client Component, porque quedaría congelada la fecha del build).
 export function WeeklyBookingsReport() {
-  const [currentMonday] = useState(currentMondayIso);
+  const [currentMonday, setCurrentMonday] = useState<string | null>(null);
+
+  useEffect(() => {
+    setCurrentMonday(currentMondayIso());
+  }, []);
+
+  if (!currentMonday) {
+    return <p className="text-sm text-muted-foreground">Cargando reporte...</p>;
+  }
+  return <WeeklyBookingsReportRange currentMonday={currentMonday} />;
+}
+
+function WeeklyBookingsReportRange({ currentMonday }: { currentMonday: string }) {
   // Rango inicial: las 3 semanas anteriores y la actual.
   const defaultStart = addDaysIso(currentMonday, -7 * (RANGE_WEEKS - 1));
   const [startWeek, setStartWeek] = useState(defaultStart);

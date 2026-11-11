@@ -507,7 +507,7 @@ export interface Database {
         Returns: Database["public"]["Tables"]["professionals"]["Row"][];
       };
       get_weekly_bookings_report: {
-        Args: { p_weeks?: number };
+        Args: { p_start: string; p_weeks?: number };
         Returns: {
           professional_id: string;
           full_name: string;

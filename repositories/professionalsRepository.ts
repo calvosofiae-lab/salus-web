@@ -77,10 +77,17 @@ export async function searchProfessionals(
   return data ?? [];
 }
 
-export async function getWeeklyBookingsReport(weeks: number): Promise<WeeklyBookingsRow[]> {
+// startWeek: lunes de la primera semana del rango, "YYYY-MM-DD".
+export async function getWeeklyBookingsReport(
+  startWeek: string,
+  weeks: number,
+): Promise<WeeklyBookingsRow[]> {
   const supabase = createClient();
 
-  const { data, error } = await supabase.rpc("get_weekly_bookings_report", { p_weeks: weeks });
+  const { data, error } = await supabase.rpc("get_weekly_bookings_report", {
+    p_start: startWeek,
+    p_weeks: weeks,
+  });
 
   if (error) throw error;
   return data ?? [];

@@ -9,13 +9,14 @@ import {
   ActiveFilterButtons,
 } from "@/features/admin/components/ActiveFilterButtons";
 
-const WEEK_OPTIONS = [4, 8, 12] as const;
+// Cantidad de semanas visibles; las flechas avanzan o retroceden de a un rango entero.
+const RANGE_WEEKS = 4;
 
 interface ProfessionalWeeks {
   professionalId: string;
   fullName: string;
   isActive: boolean;
-  // Mismo orden que `weeks` (de la más vieja a la actual).
+  // Mismo orden que `weeks` (de la más vieja a la más nueva).
   counts: number[];
   web: number[];
   agenda: number[];
@@ -23,39 +24,63 @@ interface ProfessionalWeeks {
   total: number;
 }
 
-// week_start viene como "YYYY-MM-DD" (lunes). Se arma la fecha a mano para no depender de la
-// zona horaria del navegador.
-function formatWeek(weekStart: string): string {
-  const [, month, day] = weekStart.split("-");
-  return `${day}/${month}`;
+// Las fechas se manejan como "YYYY-MM-DD" y se operan en UTC al mediodía para no depender de la
+// zona horaria del navegador; "hoy" se toma en hora de Argentina, igual que en la base.
+function addDaysIso(dateIso: string, days: number): string {
+  const d = new Date(`${dateIso}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+function currentMondayIso(): string {
+  const today = new Date().toLocaleDateString("en-CA", {
+    timeZone: "America/Argentina/Buenos_Aires",
+  });
+  const weekday = new Date(`${today}T12:00:00Z`).getUTCDay();
+  return addDaysIso(today, -((weekday + 6) % 7));
+}
+
+function formatDay(dateIso: string, withYear = false): string {
+  const [year, month, day] = dateIso.split("-");
+  return withYear ? `${day}/${month}/${year}` : `${day}/${month}`;
 }
 
 export function WeeklyBookingsReport() {
-  const [weekCount, setWeekCount] = useState<number>(8);
+  const [currentMonday] = useState(currentMondayIso);
+  // Rango inicial: las 3 semanas anteriores y la actual.
+  const defaultStart = addDaysIso(currentMonday, -7 * (RANGE_WEEKS - 1));
+  const [startWeek, setStartWeek] = useState(defaultStart);
   const [activeFilter, setActiveFilter] = useState<ActiveFilter>("active");
-  const { status, rows } = useWeeklyBookingsReport(weekCount);
+  const { status, rows } = useWeeklyBookingsReport(startWeek, RANGE_WEEKS);
 
-  const { weeks, professionals } = useMemo(() => {
-    const weekSet = Array.from(new Set(rows.map((r) => r.week_start))).sort();
-    const weekIndex = new Map(weekSet.map((w, i) => [w, i]));
+  const weeks = useMemo(
+    () => Array.from({ length: RANGE_WEEKS }, (_, i) => addDaysIso(startWeek, 7 * i)),
+    [startWeek],
+  );
+  const rangeEnd = addDaysIso(startWeek, 7 * RANGE_WEEKS - 1);
+
+  const professionals = useMemo(() => {
+    const weekIndex = new Map(weeks.map((w, i) => [w, i]));
     const byProfessional = new Map<string, ProfessionalWeeks>();
 
     for (const row of rows) {
+      const i = weekIndex.get(row.week_start);
+      // Filas de un rango anterior mientras carga el nuevo: se ignoran.
+      if (i === undefined) continue;
       let entry = byProfessional.get(row.professional_id);
       if (!entry) {
         entry = {
           professionalId: row.professional_id,
           fullName: row.full_name,
           isActive: row.is_active,
-          counts: weekSet.map(() => 0),
-          web: weekSet.map(() => 0),
-          agenda: weekSet.map(() => 0),
-          cancelled: weekSet.map(() => 0),
+          counts: weeks.map(() => 0),
+          web: weeks.map(() => 0),
+          agenda: weeks.map(() => 0),
+          cancelled: weeks.map(() => 0),
           total: 0,
         };
         byProfessional.set(row.professional_id, entry);
       }
-      const i = weekIndex.get(row.week_start)!;
       entry.counts[i] = row.session_count;
       entry.web[i] = row.web_count;
       entry.agenda[i] = row.agenda_count;
@@ -64,39 +89,48 @@ export function WeeklyBookingsReport() {
     }
 
     // Los que menos sesiones tienen primero: son los que hay que mirar.
-    const list = Array.from(byProfessional.values())
+    return Array.from(byProfessional.values())
       .filter((p) => activeFilter === "all" || p.isActive === (activeFilter === "active"))
       .sort((a, b) => a.total - b.total || a.fullName.localeCompare(b.fullName, "es"));
-
-    return { weeks: weekSet, professionals: list };
-  }, [rows, activeFilter]);
+  }, [rows, weeks, activeFilter]);
 
   const withoutSessions = professionals.filter((p) => p.total === 0).length;
-  // Semanas seguidas sin sesiones contando hacia atrás desde la actual.
-  function weeksWithoutSessions(counts: number[]): number {
-    let n = 0;
-    for (let i = counts.length - 1; i >= 0 && counts[i] === 0; i--) n++;
-    return n;
-  }
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <ActiveFilterButtons value={activeFilter} onChange={setActiveFilter} />
-        <div className="flex items-center gap-2 text-sm">
-          <span className="text-muted-foreground">Últimas</span>
-          {WEEK_OPTIONS.map((n) => (
-            <Button
-              key={n}
-              type="button"
-              size="sm"
-              variant={weekCount === n ? "default" : "outline"}
-              onClick={() => setWeekCount(n)}
-            >
-              {n}
-            </Button>
-          ))}
-          <span className="text-muted-foreground">semanas</span>
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => setStartWeek((s) => addDaysIso(s, -7 * RANGE_WEEKS))}
+            aria-label="4 semanas anteriores"
+          >
+            ‹ Anteriores
+          </Button>
+          <span className="min-w-[11rem] text-center font-medium">
+            {formatDay(startWeek)} – {formatDay(rangeEnd, true)}
+          </span>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => setStartWeek((s) => addDaysIso(s, 7 * RANGE_WEEKS))}
+            aria-label="4 semanas siguientes"
+          >
+            Siguientes ›
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            disabled={startWeek === defaultStart}
+            onClick={() => setStartWeek(defaultStart)}
+          >
+            Esta semana
+          </Button>
         </div>
       </div>
 
@@ -113,12 +147,12 @@ export function WeeklyBookingsReport() {
         <>
           <p className="text-sm">
             {withoutSessions === 0 ? (
-              "Todos los profesionales tuvieron al menos una sesión en el período."
+              "Todos los profesionales tienen al menos una sesión en estas semanas."
             ) : (
               <>
                 <span className="font-semibold text-red-600">{withoutSessions}</span>{" "}
-                {withoutSessions === 1 ? "profesional sin" : "profesionales sin"} sesiones en las
-                últimas {weekCount} semanas.
+                {withoutSessions === 1 ? "profesional sin" : "profesionales sin"} sesiones en
+                estas semanas.
               </>
             )}
           </p>
@@ -127,69 +161,69 @@ export function WeeklyBookingsReport() {
               <thead>
                 <tr className="border-b text-left">
                   <th className="py-2 pr-4 font-medium">Profesional</th>
-                  {weeks.map((w, i) => (
-                    <th
-                      key={w}
-                      className="py-2 px-2 text-center font-medium whitespace-nowrap"
-                      title={`Semana del lunes ${formatWeek(w)}`}
-                    >
-                      {i === weeks.length - 1 ? "Esta sem." : formatWeek(w)}
-                    </th>
-                  ))}
+                  {weeks.map((w) => {
+                    const isCurrent = w === currentMonday;
+                    const isFuture = w > currentMonday;
+                    return (
+                      <th
+                        key={w}
+                        className={`py-2 px-2 text-center font-medium whitespace-nowrap ${
+                          isCurrent ? "bg-brand-teal/10" : ""
+                        } ${isFuture ? "text-muted-foreground" : ""}`}
+                        title={`Semana del lunes ${formatDay(w, true)}${
+                          isFuture ? " (turnos agendados)" : ""
+                        }`}
+                      >
+                        {isCurrent ? "Esta sem." : formatDay(w)}
+                      </th>
+                    );
+                  })}
                   <th className="py-2 pl-2 text-center font-medium">Total</th>
                 </tr>
               </thead>
               <tbody>
-                {professionals.map((p) => {
-                  const idleWeeks = weeksWithoutSessions(p.counts);
-                  return (
-                    <tr key={p.professionalId} className="border-b">
-                      <td className="py-2 pr-4">
-                        {p.fullName}
-                        {idleWeeks >= 2 && (
-                          <span
-                            className="ml-2 rounded-full border border-red-300 bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 whitespace-nowrap"
-                            title="Semanas seguidas sin sesiones, contando la actual"
-                          >
-                            {idleWeeks === weeks.length
-                              ? "sin sesiones"
-                              : `${idleWeeks} sem. sin sesiones`}
-                          </span>
-                        )}
-                      </td>
-                      {p.counts.map((count, i) => (
-                        <td
-                          key={weeks[i]}
-                          className={`py-2 px-2 text-center ${
-                            count === 0 ? "text-muted-foreground/50" : "font-medium"
-                          }`}
-                          title={
-                            `${p.web[i]} reservadas por pacientes en la web, ` +
-                            `${p.agenda[i]} cargadas por el profesional` +
-                            (p.cancelled[i] > 0 ? `, ${p.cancelled[i]} canceladas aparte` : "")
-                          }
-                        >
-                          {count}
-                        </td>
-                      ))}
+                {professionals.map((p) => (
+                  <tr key={p.professionalId} className="border-b">
+                    <td className="py-2 pr-4">
+                      {p.fullName}
+                      {p.total === 0 && (
+                        <span className="ml-2 rounded-full border border-red-300 bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 whitespace-nowrap">
+                          sin sesiones
+                        </span>
+                      )}
+                    </td>
+                    {p.counts.map((count, i) => (
                       <td
-                        className={`py-2 pl-2 text-center font-semibold ${
-                          p.total === 0 ? "text-red-600" : ""
-                        }`}
+                        key={weeks[i]}
+                        className={`py-2 px-2 text-center ${
+                          weeks[i] === currentMonday ? "bg-brand-teal/10" : ""
+                        } ${count === 0 ? "text-muted-foreground/50" : "font-medium"}`}
+                        title={
+                          `${p.web[i]} reservadas por pacientes en la web, ` +
+                          `${p.agenda[i]} cargadas por el profesional` +
+                          (p.cancelled[i] > 0 ? `, ${p.cancelled[i]} canceladas aparte` : "")
+                        }
                       >
-                        {p.total}
+                        {count}
                       </td>
-                    </tr>
-                  );
-                })}
+                    ))}
+                    <td
+                      className={`py-2 pl-2 text-center font-semibold ${
+                        p.total === 0 ? "text-red-600" : ""
+                      }`}
+                    >
+                      {p.total}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
           <p className="text-xs text-muted-foreground">
             Sesiones no canceladas por semana (lunes a domingo) según la fecha del turno: tanto las
             que reservan los pacientes desde la web como las que carga el profesional en su agenda.
-            La semana actual incluye los turnos que todavía no pasaron. Pasá el mouse por una celda
-            para ver el detalle por origen y las canceladas.
+            Las semanas futuras muestran los turnos ya agendados. Pasá el mouse por una celda para
+            ver el detalle por origen y las canceladas.
           </p>
         </>
       )}

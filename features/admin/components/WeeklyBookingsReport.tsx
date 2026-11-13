@@ -8,6 +8,13 @@ import {
   ACTIVE_FILTER_EMPTY_MESSAGES,
   ActiveFilterButtons,
 } from "@/features/admin/components/ActiveFilterButtons";
+import { exportWeeklyBookingsPdf } from "@/features/admin/lib/exportWeeklyBookingsPdf";
+
+const ACTIVE_FILTER_PDF_LABELS: Record<ActiveFilter, string> = {
+  all: "todos",
+  active: "activos",
+  inactive: "inactivos",
+};
 
 // Cantidad de semanas visibles; las flechas avanzan o retroceden de a un rango entero.
 const RANGE_WEEKS = 4;
@@ -110,6 +117,25 @@ function WeeklyBookingsReportRange({ currentMonday }: { currentMonday: string })
   }, [rows, weeks, activeFilter]);
 
   const withoutSessions = professionals.filter((p) => p.total === 0).length;
+  const [exporting, setExporting] = useState(false);
+
+  async function handleExportPdf() {
+    setExporting(true);
+    try {
+      await exportWeeklyBookingsPdf({
+        weekLabels: weeks.map((w) => (w === currentMonday ? "Esta sem." : formatDay(w))),
+        currentWeekIndex: weeks.indexOf(currentMonday),
+        rangeLabel: `${formatDay(startWeek, true)} – ${formatDay(rangeEnd, true)}`,
+        filterLabel: ACTIVE_FILTER_PDF_LABELS[activeFilter],
+        professionals,
+        fileName: `sesiones-por-semana-${startWeek}-a-${rangeEnd}.pdf`,
+      });
+    } catch (err) {
+      console.error("Error al exportar el reporte semanal a PDF:", err);
+    } finally {
+      setExporting(false);
+    }
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -145,6 +171,15 @@ function WeeklyBookingsReportRange({ currentMonday }: { currentMonday: string })
             onClick={() => setStartWeek(defaultStart)}
           >
             Esta semana
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={status !== "ready" || professionals.length === 0 || exporting}
+            onClick={handleExportPdf}
+          >
+            {exporting ? "Exportando..." : "Exportar PDF"}
           </Button>
         </div>
       </div>

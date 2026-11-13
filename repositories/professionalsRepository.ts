@@ -6,7 +6,7 @@ import type {
   ProfessionalFilters,
   ProfessionalInput,
 } from "@/features/professionals/types";
-import type { ProfessionalReportRow } from "@/features/admin/types";
+import type { ProfessionalReportRow, WeeklyBookingsRow } from "@/features/admin/types";
 
 export async function getFeaturedProfessionals(): Promise<Professional[]> {
   const supabase = createClient();
@@ -57,62 +57,40 @@ export async function searchProfessionals(
 ): Promise<Professional[]> {
   const supabase = createClient();
 
-  let query = supabase.from("professionals").select("*").eq("is_active", true);
+  // El filtrado y el orden los hace la base (search_professionals): el orden es aleatorio pero
+  // ponderado para que los profesionales con menos turnos recientes salgan más seguido arriba.
+  // Se resuelve allá porque los turnos no son visibles para anon (RLS); ver la migración
+  // 20261111000000_create_search_professionals_function para el detalle.
+  const { data, error } = await supabase.rpc("search_professionals", {
+    p_full_name: filters.fullName?.trim() || null,
+    p_profession: filters.profession || null,
+    p_consultation_reason: filters.consultationReason || null,
+    p_orientation: filters.orientation || null,
+    p_gender: filters.gender || null,
+    p_coverage: filters.coverage || null,
+    p_modality: filters.modality || null,
+    p_province: filters.province || null,
+    p_city: filters.city || null,
+  });
 
-  if (filters.fullName) {
-    // full_name_normalized = lower(unaccent(full_name)) en la base; normalizamos el término
-    // acá igual para que "Sofia" y "Sofía" encuentren lo mismo.
-    query = query.ilike("full_name_normalized", `%${normalizeForSearch(filters.fullName)}%`);
-  }
-  if (filters.profession) {
-    query = query.eq("profession", filters.profession);
-  }
-  if (filters.consultationReason) {
-    query = query.contains("consultation_reasons", [filters.consultationReason]);
-  }
-  if (filters.orientation && filters.profession === "psicologo") {
-    query = query.contains("orientations", [filters.orientation]);
-  }
-  if (filters.gender) {
-    query = query.ilike("gender", `%${filters.gender}%`);
-  }
-  if (filters.coverage) {
-    query = query.contains("coverage", [filters.coverage]);
-  }
-  if (filters.modality) {
-    query = query.contains("modality", [filters.modality]);
-  }
-  if (filters.province) {
-    query = query.eq("province", filters.province);
-  }
-  if (filters.city && filters.city !== "General") {
-    query = query.eq("city", filters.city);
-  }
-
-  const { data, error } = await query;
   if (error) throw error;
-  return shuffle(data ?? []);
+  return data ?? [];
 }
 
-// Misma normalización que la columna generada full_name_normalized (lower + sin tildes),
-// para que el término de búsqueda calce con lo que quedó guardado en la base.
-function normalizeForSearch(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase();
-}
+// startWeek: lunes de la primera semana del rango, "YYYY-MM-DD".
+export async function getWeeklyBookingsReport(
+  startWeek: string,
+  weeks: number,
+): Promise<WeeklyBookingsRow[]> {
+  const supabase = createClient();
 
-// Orden aleatorio para que todos los profesionales tengan la misma oportunidad de
-// aparecer primero en el listado, igual que en la sección de destacados
-// (get_premium_professionals hace `order by random()` en la base).
-function shuffle<T>(items: T[]): T[] {
-  const result = [...items];
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
+  const { data, error } = await supabase.rpc("get_weekly_bookings_report", {
+    p_start: startWeek,
+    p_weeks: weeks,
+  });
+
+  if (error) throw error;
+  return data ?? [];
 }
 
 export interface PaginatedProfessionals {

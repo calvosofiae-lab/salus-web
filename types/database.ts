@@ -492,6 +492,33 @@ export interface Database {
         Args: Record<string, never>;
         Returns: Database["public"]["Tables"]["professionals"]["Row"][];
       };
+      search_professionals: {
+        Args: {
+          p_full_name?: string | null;
+          p_profession?: string | null;
+          p_consultation_reason?: string | null;
+          p_orientation?: string | null;
+          p_gender?: string | null;
+          p_coverage?: string | null;
+          p_modality?: string | null;
+          p_province?: string | null;
+          p_city?: string | null;
+        };
+        Returns: Database["public"]["Tables"]["professionals"]["Row"][];
+      };
+      get_weekly_bookings_report: {
+        Args: { p_start: string; p_weeks?: number };
+        Returns: {
+          professional_id: string;
+          full_name: string;
+          is_active: boolean;
+          week_start: string;
+          session_count: number;
+          web_count: number;
+          agenda_count: number;
+          cancelled_count: number;
+        }[];
+      };
       get_professional_report: {
         Args: Record<string, never>;
         Returns: {

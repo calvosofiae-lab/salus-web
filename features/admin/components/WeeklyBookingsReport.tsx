@@ -206,11 +206,17 @@ function WeeklyBookingsReportRange({ currentMonday }: { currentMonday: string })
               </>
             )}
           </p>
-          <div className="overflow-x-auto">
+          {/* La tabla scrollea dentro de su propio contenedor (alto máximo) para que el encabezado
+              quede fijo arriba al bajar. Con sticky contra la página no funcionaría: el
+              overflow-x-auto (necesario en mobile) convierte al div en el contenedor de scroll. */}
+          <div className="max-h-[70vh] overflow-auto">
             <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-left">
-                  <th className="py-2 pr-4 font-medium">Profesional</th>
+              {/* Fondos opacos en los th para que las filas no se vean por detrás al scrollear.
+                  El borde inferior va como sombra: con border-collapse el border-b del tr no
+                  acompaña al encabezado sticky. */}
+              <thead className="sticky top-0 z-10 [&_th]:shadow-[inset_0_-1px_0_hsl(var(--border))]">
+                <tr className="text-left">
+                  <th className="bg-white py-2 pr-4 font-medium">Profesional</th>
                   {weeks.map((w) => {
                     const isCurrent = w === currentMonday;
                     const isFuture = w > currentMonday;
@@ -218,7 +224,9 @@ function WeeklyBookingsReportRange({ currentMonday }: { currentMonday: string })
                       <th
                         key={w}
                         className={`py-2 px-2 text-center font-medium whitespace-nowrap ${
-                          isCurrent ? "bg-brand-teal/10" : ""
+                          // #f0f5f3 = brand-teal al 10% sobre blanco, igual que las celdas de la
+                          // semana actual pero opaco.
+                          isCurrent ? "bg-[#f0f5f3]" : "bg-white"
                         } ${isFuture ? "text-muted-foreground" : ""}`}
                         title={`Semana del lunes ${formatDay(w, true)}${
                           isFuture ? " (turnos agendados)" : ""
@@ -228,7 +236,7 @@ function WeeklyBookingsReportRange({ currentMonday }: { currentMonday: string })
                       </th>
                     );
                   })}
-                  <th className="py-2 pl-2 text-center font-medium">Total</th>
+                  <th className="bg-white py-2 pl-2 text-center font-medium">Total</th>
                 </tr>
               </thead>
               <tbody>

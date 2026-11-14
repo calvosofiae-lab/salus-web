@@ -21,12 +21,13 @@ import {
 import { useProvinces } from "@/features/professionals/hooks/useProvinces";
 import { useCitiesByProvince } from "@/features/professionals/hooks/useCitiesByProvince";
 import { compressPhoto } from "@/features/professionals/lib/photo";
+import { DEFAULT_PHONE_COUNTRY } from "@/lib/whatsapp";
 import {
-  DEFAULT_PHONE_COUNTRY,
-  getPhoneCountry,
-  PHONE_COUNTRIES,
-  sanitizePhoneDigits,
-} from "@/lib/whatsapp";
+  PHONE_COUNTRY_OPTIONS,
+  sanitizeAreaDigits,
+  sanitizeNumberDigits,
+  splitPhoneDigits,
+} from "@/features/appointments/lib/phone";
 import {
   buildProfessionalFormSchema,
   type ProfessionalFormSchema,
@@ -43,8 +44,9 @@ const EMPTY_VALUES: ProfessionalFormSchema = {
   consultation_fee: "",
   description: "",
   photo_url: "",
-  whatsapp: "",
   whatsapp_country: DEFAULT_PHONE_COUNTRY,
+  whatsapp_area: "",
+  whatsapp_number: "",
   instagram_url: "",
   linkedin_url: "",
   province: "",
@@ -75,6 +77,15 @@ interface ProfessionalFormProps {
   isLoading: boolean;
   error: string | null;
   submitLabel: string;
+}
+
+// En la base el WhatsApp se guarda como un solo string de dígitos (área + número); el formulario
+// lo muestra separado, igual que la reserva de turnos del paciente.
+function toFormValues(initialValues?: Partial<ProfessionalFormValues>): ProfessionalFormSchema {
+  const { whatsapp, ...rest } = initialValues ?? {};
+  const values = { ...EMPTY_VALUES, ...rest };
+  const { area, number } = splitPhoneDigits(whatsapp ?? "", values.whatsapp_country);
+  return { ...values, whatsapp_area: area, whatsapp_number: number };
 }
 
 const fieldClassName =
@@ -208,10 +219,11 @@ export function ProfessionalForm({
     setValue,
     getValues,
     reset,
+    trigger,
     formState: { errors },
   } = useForm<ProfessionalFormSchema>({
     resolver: zodResolver(buildProfessionalFormSchema(mode)),
-    defaultValues: { ...EMPTY_VALUES, ...initialValues },
+    defaultValues: toFormValues(initialValues),
   });
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -223,7 +235,6 @@ export function ProfessionalForm({
   const isSubmittingRef = useRef(false);
 
   const photoUrl = watch("photo_url");
-  const whatsappCountry = watch("whatsapp_country");
   const licenseType = watch("license_type");
   const licenseProvince = watch("license_province");
   const province = watch("province");
@@ -286,7 +297,9 @@ export function ProfessionalForm({
   const { provinces } = useProvinces();
   const { cities: ciudadesDisponibles, status: citiesStatus } = useCitiesByProvince(province);
 
-  const onValid = handleFormSubmit(async ({ email, password, ...values }) => {
+  const onValid = handleFormSubmit(async (formValues) => {
+    const { email, password, whatsapp_area, whatsapp_number, ...rest } = formValues;
+    const values = { ...rest, whatsapp: `${whatsapp_area}${whatsapp_number}` };
     if (isSubmittingRef.current || isLoading) return;
     isSubmittingRef.current = true;
     try {
@@ -534,48 +547,67 @@ export function ProfessionalForm({
           </div>
 
           <div className="grid gap-1.5">
-            <Label htmlFor="whatsapp">WhatsApp</Label>
-            <div className="flex gap-2">
-              <select
-                id="whatsapp_country"
-                aria-label="País"
-                className={cn(fieldClassName, "w-40 shrink-0")}
-                {...register("whatsapp_country")}
-                onChange={(e) => {
-                  setValue("whatsapp_country", e.target.value);
-                  setValue("whatsapp", sanitizePhoneDigits(getValues("whatsapp"), e.target.value), {
-                    shouldValidate: true,
-                  });
-                }}
-              >
-                {PHONE_COUNTRIES.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
+            <Label htmlFor="whatsapp_country">WhatsApp</Label>
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2">
+                <select
+                  id="whatsapp_country"
+                  aria-label="País"
+                  className={cn(fieldClassName, "w-36 shrink-0 sm:w-44")}
+                  {...register("whatsapp_country", {
+                    onChange: () => {
+                      if (getValues("whatsapp_area") || getValues("whatsapp_number")) {
+                        trigger("whatsapp_number");
+                      }
+                    },
+                  })}
+                >
+                  {PHONE_COUNTRY_OPTIONS.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+                <Input
+                  id="whatsapp_area"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  className="w-20 shrink-0"
+                  maxLength={5}
+                  placeholder="Área"
+                  aria-label="Código de área, sin el 0"
+                  aria-invalid={!!errors.whatsapp_number}
+                  aria-describedby="whatsapp-hint"
+                  {...register("whatsapp_area")}
+                  onChange={(e) =>
+                    setValue("whatsapp_area", sanitizeAreaDigits(e.target.value), {
+                      shouldValidate: !!errors.whatsapp_number,
+                    })
+                  }
+                />
+              </div>
               <Input
-                id="whatsapp"
+                id="whatsapp_number"
                 inputMode="numeric"
-                autoComplete="tel-national"
-                maxLength={getPhoneCountry(whatsappCountry).numberLength}
-                placeholder={`Ej: ${getPhoneCountry(whatsappCountry).example}`}
-                aria-invalid={!!errors.whatsapp}
+                autoComplete="tel-local"
+                placeholder="Número"
+                aria-label="Número"
+                aria-invalid={!!errors.whatsapp_number}
                 aria-describedby="whatsapp-hint"
-                {...register("whatsapp")}
+                {...register("whatsapp_number")}
                 onChange={(e) =>
-                  setValue("whatsapp", sanitizePhoneDigits(e.target.value, whatsappCountry), {
-                    shouldValidate: true,
+                  setValue("whatsapp_number", sanitizeNumberDigits(e.target.value), {
+                    shouldValidate: !!errors.whatsapp_number,
                   })
                 }
               />
             </div>
             <p id="whatsapp-hint" className="text-xs text-muted-foreground">
-              {whatsappCountry === "AR" ? "Solo números, sin 0 ni 15." : "Solo números."}
+              Código de área sin el 0 (ej: 341) y número sin el 15.
             </p>
-            {errors.whatsapp && (
+            {errors.whatsapp_number && (
               <p role="alert" className="text-xs text-red-600">
-                {errors.whatsapp.message}
+                {errors.whatsapp_number.message}
               </p>
             )}
           </div>

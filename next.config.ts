@@ -25,6 +25,14 @@ const nextConfig: NextConfig = {
   // en el celular) usando la IP que imprime `next dev` en "Network:". Sin esto, Next.js bloquea
   // los recursos de dev (JS, HMR) pedidos desde un host distinto de localhost por seguridad.
   allowedDevOrigins: isDev ? ["192.168.100.2"] : undefined,
+  // Fotos de profesionales (Supabase Storage) a través del optimizador de imágenes: así la
+  // pantalla de Publicidad las pide al mismo dominio para meterlas en el PNG de la historia, sin
+  // depender del CORS ni del connect-src del CSP.
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/public/**" },
+    ],
+  },
   async headers() {
     return [
       {

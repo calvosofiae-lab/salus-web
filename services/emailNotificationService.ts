@@ -19,6 +19,7 @@ import {
   type ContactInfo,
 } from "@/lib/email/templates";
 import { buildWhatsappLink } from "@/lib/whatsapp";
+import { getSiteUrl } from "@/lib/siteUrl";
 import { hasPatientSurveyInMonth } from "@/repositories/emailNotificationsRepository";
 import {
   attemptSend,
@@ -32,13 +33,6 @@ import {
 // En producción usa el dominio de producción: VERCEL_URL es la URL propia de cada deploy
 // (salus-<hash>-...vercel.app), que Vercel protege con Deployment Protection y le pide login
 // al paciente. En previews sí usamos VERCEL_URL para probar contra ese deploy.
-function getSiteUrl(): string {
-  if (process.env.VERCEL_ENV === "production" && process.env.VERCEL_PROJECT_PRODUCTION_URL) {
-    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
-  }
-  return process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000";
-}
-
 // create_appointment_as_professional no deja crear más de 52 turnos de una (20260905010000).
 // El mismo tope acá evita que una llamada armada a mano pida notificar una lista enorme.
 const MAX_APPOINTMENTS_PER_CALL = 52;

@@ -6,13 +6,12 @@ import {
   MODALITY_OPTIONS,
   PROFESSION_OPTIONS,
 } from "@/features/professionals/constants";
-import { getPhoneCountry, isValidPhoneNumber, PHONE_COUNTRIES } from "@/lib/whatsapp";
+import { isPhoneCountry, isValidSplitPhone } from "@/features/appointments/lib/phone";
 
 const professionValues = PROFESSION_OPTIONS.map((o) => o.value) as [string, ...string[]];
 const genderValues = GENDER_OPTIONS.map((o) => o.value) as [string, ...string[]];
 const coverageValues = COVERAGE_OPTIONS.map((o) => o.value) as [string, ...string[]];
 const modalityValues = MODALITY_OPTIONS.map((o) => o.value) as [string, ...string[]];
-const phoneCountryValues = PHONE_COUNTRIES.map((c) => c.code) as [string, ...string[]];
 const licenseTypeValues = LICENSE_TYPE_OPTIONS.map((o) => o.value) as [string, ...string[]];
 
 // email/password quedan como string simples acá: se validan condicionalmente en
@@ -28,8 +27,11 @@ const baseShape = {
   consultation_fee: z.string(),
   description: z.string(),
   photo_url: z.string(),
-  whatsapp: z.string(),
-  whatsapp_country: z.enum(phoneCountryValues),
+  // El WhatsApp se carga igual que en la reserva de turnos del paciente: cualquier país,
+  // código de área y número por separado. Al enviar se guardan juntos en `whatsapp`.
+  whatsapp_country: z.string().refine(isPhoneCountry, "Elegí un país válido."),
+  whatsapp_area: z.string(),
+  whatsapp_number: z.string(),
   instagram_url: z.string(),
   linkedin_url: z.string(),
   province: z.string(),
@@ -45,12 +47,16 @@ const baseShape = {
 
 export function buildProfessionalFormSchema(mode: "create" | "edit") {
   return z.object(baseShape).superRefine((values, ctx) => {
-    if (values.whatsapp !== "" && !isValidPhoneNumber(values.whatsapp, values.whatsapp_country)) {
-      const country = getPhoneCountry(values.whatsapp_country);
+    // El WhatsApp del profesional es opcional: solo se valida si se completó algo.
+    const hasWhatsapp = values.whatsapp_area !== "" || values.whatsapp_number !== "";
+    if (
+      hasWhatsapp &&
+      !isValidSplitPhone(values.whatsapp_area, values.whatsapp_number, values.whatsapp_country)
+    ) {
       ctx.addIssue({
         code: "custom",
-        path: ["whatsapp"],
-        message: `Deben ser ${country.numberLength} números para ${country.label}.`,
+        path: ["whatsapp_number"],
+        message: "Ingresá un WhatsApp válido para el país seleccionado.",
       });
     }
 

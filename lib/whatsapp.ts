@@ -55,11 +55,6 @@ export function sanitizePhoneDigits(value: string, countryCode: string): string 
   return value.replace(/\D/g, "").slice(0, country.numberLength);
 }
 
-export function isValidPhoneNumber(digits: string, countryCode: string): boolean {
-  const country = getPhoneCountry(countryCode);
-  return digits.length === country.numberLength;
-}
-
 export function buildWhatsappLink(rawNumber: string, countryCode: string, message: string): string {
   const isKnownCountry = PHONE_COUNTRIES.some((c) => c.code === countryCode);
   if (isKnownCountry) {

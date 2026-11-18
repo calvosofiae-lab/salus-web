@@ -11,7 +11,12 @@ import {
   formatLongDate,
   isoDateInArgentina,
 } from "@/features/appointments/lib/date";
-import { attemptSend, resolveProfessionalContact, timeLabelOf } from "@/services/emailDelivery";
+import {
+  attemptSend,
+  resolveProfessionalContact,
+  sessionLabelOf,
+  timeLabelOf,
+} from "@/services/emailDelivery";
 
 export interface ReminderRunResult {
   date: string;
@@ -78,7 +83,7 @@ export async function sendAppointmentReminders(now: Date = new Date()): Promise<
         patientFirstName: appointment.patient_first_name,
         professionalFullName: resolved.professional.full_name,
         dateLabel: formatLongDate(appointment.appointment_date),
-        timeLabel,
+        timeLabel: sessionLabelOf(appointment.start_time, resolved.professional),
         professionalContact: resolved.contact,
       }),
     });

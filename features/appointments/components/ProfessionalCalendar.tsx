@@ -12,7 +12,11 @@ import { MonthCalendar } from "@/features/appointments/components/MonthCalendar"
 import { DayPanel } from "@/features/appointments/components/DayPanel";
 import { getMonthBounds, todayIso, toISODate } from "@/features/appointments/lib/date";
 import type { Appointment, AvailabilityBlock } from "@/features/appointments/types";
-import type { BreakMinutes } from "@/features/appointments/lib/sessionTime";
+import {
+  sessionMinutes,
+  type BreakMinutes,
+  type SlotDurationMinutes,
+} from "@/features/appointments/lib/sessionTime";
 
 // Expande cada bloque (rango start_date..end_date) en fechas ISO sueltas, para poder consultar
 // "¿este día está bloqueado?" con un simple Set.has() al pintar el almanaque.
@@ -33,12 +37,16 @@ function expandBlockedDates(blocks: AvailabilityBlock[]): Set<string> {
 
 export function ProfessionalCalendar({
   professionalId,
-  slotDurationMinutes: initialSlotDurationMinutes,
+  slotDurationMinutes,
   breakMinutes,
+  onSlotDurationChanged,
+  onBreakChanged,
 }: {
   professionalId: string;
-  slotDurationMinutes: 45 | 60;
+  slotDurationMinutes: SlotDurationMinutes;
   breakMinutes: BreakMinutes;
+  onSlotDurationChanged: (minutes: SlotDurationMinutes) => void;
+  onBreakChanged: (minutes: BreakMinutes) => void;
 }) {
   const today = useMemo(() => new Date(), []);
   const [visibleMonth, setVisibleMonth] = useState({
@@ -46,10 +54,6 @@ export function ProfessionalCalendar({
     month: today.getMonth(),
   });
   const [selectedDate, setSelectedDate] = useState(todayIso());
-  // Estado propio (no solo el prop inicial): SlotDurationSetting vive en este mismo árbol y
-  // necesita poder avisarle a DayPanel que la grilla de horarios cambió, para que recargue
-  // get_day_schedule en vez de seguir mostrando la duración anterior hasta un refresh manual.
-  const [slotDurationMinutes, setSlotDurationMinutes] = useState(initialSlotDurationMinutes);
 
   const monthBounds = useMemo(
     () => getMonthBounds(visibleMonth.year, visibleMonth.month),
@@ -132,6 +136,7 @@ export function ProfessionalCalendar({
           removeDayBlock={availabilityBlocks.removeBlock}
           isDayBlockSaving={availabilityBlocks.isSaving}
           slotDurationMinutes={slotDurationMinutes}
+          sessionMinutes={sessionMinutes(slotDurationMinutes, breakMinutes)}
         />
       </div>
 
@@ -139,10 +144,13 @@ export function ProfessionalCalendar({
         professionalId={professionalId}
         minutes={slotDurationMinutes}
         breakMinutes={breakMinutes}
+        // El cambio de duración le avisa a DayPanel (vía slotDurationMinutes) que la grilla
+        // cambió, para que recargue get_day_schedule sin esperar un refresh manual.
         onChanged={(minutes) => {
-          setSlotDurationMinutes(minutes);
+          onSlotDurationChanged(minutes);
           handleDataChanged();
         }}
+        onBreakChanged={onBreakChanged}
       />
 
       <WeeklyAvailabilityForm professionalId={professionalId} onChanged={handleDataChanged} />

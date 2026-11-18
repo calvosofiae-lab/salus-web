@@ -14,7 +14,13 @@ import type { Appointment } from "@/features/appointments/types";
 // Listado plano de "mis turnos" agrupado por fecha, análogo al que ya tiene el admin para ver
 // los turnos de un profesional (AdminProfessionalAppointments) pero acá con las mutaciones
 // habilitadas (cambio de estado, reprogramar) porque es el propio profesional viendo su agenda.
-export function MyAppointmentsList({ professionalId }: { professionalId: string }) {
+export function MyAppointmentsList({
+  professionalId,
+  sessionMinutes,
+}: {
+  professionalId: string;
+  sessionMinutes: number;
+}) {
   const { from, to, setFrom, setTo } = useDateRange();
   const { appointments, status, changeStatus, reschedule } = useMyAppointments(
     professionalId,
@@ -93,6 +99,7 @@ export function MyAppointmentsList({ professionalId }: { professionalId: string 
                     key={appt.id}
                     appointment={appt}
                     professionalId={professionalId}
+                    sessionMinutes={sessionMinutes}
                     onChangeStatus={async (newStatus) => {
                       const result = await changeStatus(appt.id, newStatus);
                       if (result.success) reloadConflicts();

@@ -112,7 +112,7 @@ export function buildPatientConfirmationEmail(data: {
       <p>¡Tu turno está confirmado!</p>
       <p>
         Tu encuentro con <strong>${escapeHtml(data.professionalFullName)}</strong> quedó reservado para el
-        <strong>${escapeHtml(data.dateLabel)}</strong> a las <strong>${escapeHtml(data.timeLabel)}</strong>.
+        <strong>${escapeHtml(data.dateLabel)}</strong> de <strong>${escapeHtml(data.timeLabel)} hs</strong>.
       </p>
       ${contactSentence(
         `Si necesitás comunicarte con ${escapeHtml(professionalFirstName)} antes de tu turno, podés hacerlo a través de su`,
@@ -144,7 +144,7 @@ export function buildProfessionalConfirmationEmail(data: {
       <p>¡Tenés una reserva nueva!</p>
       <p>
         Tu encuentro con <strong>${escapeHtml(data.patientFullName)}</strong> quedó reservado para el
-        <strong>${escapeHtml(data.dateLabel)}</strong> a las <strong>${escapeHtml(data.timeLabel)}</strong>.
+        <strong>${escapeHtml(data.dateLabel)}</strong> de <strong>${escapeHtml(data.timeLabel)} hs</strong>.
       </p>
       ${contactSentence(
         `Si necesitás comunicarte con ${escapeHtml(patientFirstName)} antes del turno, podés hacerlo a través de su`,
@@ -177,7 +177,7 @@ export function buildPatientCreatedByProfessionalEmail(data: {
       <p>Hola ${escapeHtml(data.patientFirstName)},</p>
       <p>
         <strong>${escapeHtml(data.professionalFullName)}</strong> te agendó un turno para el
-        <strong>${escapeHtml(data.dateLabel)}</strong> a las <strong>${escapeHtml(data.timeLabel)}</strong>.
+        <strong>${escapeHtml(data.dateLabel)}</strong> de <strong>${escapeHtml(data.timeLabel)} hs</strong>.
       </p>
       <p>Si no podés asistir, comunicate con el profesional para reprogramarlo.</p>
       ${contactBlock(data.professionalContact)}
@@ -207,7 +207,7 @@ export function buildPatientRescheduledEmail(data: {
       <p>
         Tu encuentro con <strong>${escapeHtml(data.professionalFullName)}</strong> pasó del
         ${escapeHtml(data.previousDateLabel)} a las ${escapeHtml(data.previousTimeLabel)} al
-        <strong>${escapeHtml(data.dateLabel)}</strong> a las <strong>${escapeHtml(data.timeLabel)}</strong>.
+        <strong>${escapeHtml(data.dateLabel)}</strong> de <strong>${escapeHtml(data.timeLabel)} hs</strong>.
       </p>
       ${contactSentence(
         `Si el nuevo horario no te queda cómodo, podés comunicarte con ${escapeHtml(professionalFirstName)} a través de su`,
@@ -257,7 +257,7 @@ export function buildPatientReminderEmail(data: {
       <p>Te recordamos que mañana tenés un encuentro programado con tu profesional.</p>
       <p>
         📅 Día: <strong>${escapeHtml(data.dateLabel)}</strong><br>
-        🕐 Horario: <strong>${escapeHtml(data.timeLabel)}</strong><br>
+        🕐 Horario: <strong>${escapeHtml(data.timeLabel)} hs</strong><br>
         🩺 Profesional: <strong>${escapeHtml(data.professionalFullName)}</strong>
       </p>
       <p>

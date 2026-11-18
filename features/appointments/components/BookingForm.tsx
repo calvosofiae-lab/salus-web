@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { formatSessionRange } from "@/features/appointments/lib/sessionTime";
 import { formatLongDate } from "@/features/appointments/lib/date";
 import { BookingStepHeading } from "@/features/appointments/components/BookingStep";
 import {
@@ -35,6 +36,7 @@ export function BookingForm({
   time,
   professionalName,
   modalityLabel,
+  sessionMinutes,
   values,
   onValuesChange,
   onSubmit,
@@ -45,6 +47,7 @@ export function BookingForm({
   time: string;
   professionalName: string;
   modalityLabel: string;
+  sessionMinutes: number;
   // Controlado desde el padre para que los datos sobrevivan si el usuario vuelve a cambiar
   // la fecha o el horario (el formulario se desmonta y remonta al ir y volver de esos pasos).
   values: PatientValues;
@@ -210,7 +213,7 @@ export function BookingForm({
           </li>
           <li className="flex items-center gap-2">
             <Clock className="size-4 shrink-0 text-brand-teal" aria-hidden="true" />
-            {time.slice(0, 5)} hs
+            {formatSessionRange(time, sessionMinutes)} hs
           </li>
           <li className="flex items-center gap-2">
             <UserRound className="size-4 shrink-0 text-brand-teal" aria-hidden="true" />

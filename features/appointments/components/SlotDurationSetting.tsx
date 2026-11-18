@@ -19,11 +19,13 @@ export function SlotDurationSetting({
   minutes,
   breakMinutes,
   onChanged,
+  onBreakChanged,
 }: {
   professionalId: string;
   minutes: SlotDurationMinutes;
   breakMinutes: BreakMinutes;
   onChanged?: (minutes: SlotDurationMinutes) => void;
+  onBreakChanged?: (minutes: BreakMinutes) => void;
 }) {
   const [current, setCurrent] = useState(minutes);
   const [currentBreak, setCurrentBreak] = useState(breakMinutes);
@@ -45,8 +47,8 @@ export function SlotDurationSetting({
     }
   }
 
-  // El descanso va dentro del turno: no cambia la grilla de horarios, así que no hace falta
-  // avisarle al calendario para que recargue.
+  // El descanso va dentro del turno: no cambia la grilla de horarios (no hace falta recargar
+  // get_day_schedule), solo dónde se muestra que termina cada sesión.
   async function handleSelectBreak(value: BreakMinutes) {
     if (value === currentBreak || isSaving) return;
     setIsSaving(true);
@@ -54,6 +56,7 @@ export function SlotDurationSetting({
     try {
       await updateBreakMinutes(professionalId, value);
       setCurrentBreak(value);
+      onBreakChanged?.(value);
     } catch (err) {
       setError(getErrorMessage(err, "No se pudo cambiar el descanso entre sesiones"));
     } finally {

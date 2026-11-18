@@ -13,6 +13,7 @@ import {
 import { htmlToPlainText, type EmailMessage, type ContactInfo } from "@/lib/email/templates";
 import { sendTransactionalEmail } from "@/lib/email/resendClient";
 import { buildWhatsappLink } from "@/lib/whatsapp";
+import { formatSessionRange, sessionMinutesOf } from "@/features/appointments/lib/sessionTime";
 
 // Piezas de envío compartidas entre las Server Actions de emailNotificationService.ts y el
 // cron de recordatorios (appointmentReminderService.ts). Viven acá y no en
@@ -74,6 +75,12 @@ export async function attemptSend(
 
 export function timeLabelOf(startTime: string): string {
   return startTime.slice(0, 5);
+}
+
+// Horario de la sesión para el cuerpo del mail ("09:00 a 09:50"), descontando el descanso del
+// profesional. No usar en eventKey: ahí va timeLabelOf, que no depende de la configuración.
+export function sessionLabelOf(startTime: string, professional: Professional): string {
+  return formatSessionRange(startTime, sessionMinutesOf(professional));
 }
 
 // El profesional no tiene columna de email propia: su email es el de su cuenta de auth,

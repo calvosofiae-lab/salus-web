@@ -6,11 +6,7 @@ import { Home } from "lucide-react";
 import { MODALITY_LABELS, PROFESSION_LABELS } from "@/features/professionals/constants";
 import { formatLicense } from "@/features/professionals/lib/license";
 import { formatPrice, parseFeeSchedule } from "@/features/professionals/lib/feeSchedule";
-import {
-  sessionMinutes,
-  toBreakMinutes,
-  toSlotDuration,
-} from "@/features/appointments/lib/sessionTime";
+import { sessionMinutesOf } from "@/features/appointments/lib/sessionTime";
 import type { Professional } from "@/features/professionals/types";
 import { SlotPicker, type SlotPickerHandle } from "@/features/appointments/components/SlotPicker";
 import { BookingForm, type PatientValues } from "@/features/appointments/components/BookingForm";
@@ -49,10 +45,7 @@ export function ProfessionalProfile({ professional }: { professional: Profession
         .join(", ")
     : "";
   const feeSchedule = parseFeeSchedule(professional.fee_schedule);
-  const duracionSesion = sessionMinutes(
-    toSlotDuration(professional.slot_duration_minutes),
-    toBreakMinutes(professional.break_minutes),
-  );
+  const duracionSesion = sessionMinutesOf(professional);
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8">
@@ -113,6 +106,7 @@ export function ProfessionalProfile({ professional }: { professional: Profession
           professionalName={professional.full_name}
           date={selected?.date ?? ""}
           startTime={selected?.time ?? ""}
+          sessionMinutes={duracionSesion}
         />
       ) : (
         <div className="flex flex-col gap-4">
@@ -143,6 +137,7 @@ export function ProfessionalProfile({ professional }: { professional: Profession
                   time={selected.time}
                   professionalName={professional.full_name}
                   modalityLabel={modalidad}
+                  sessionMinutes={duracionSesion}
                   values={patientValues}
                   onValuesChange={setPatientValues}
                   isLoading={isLoading}

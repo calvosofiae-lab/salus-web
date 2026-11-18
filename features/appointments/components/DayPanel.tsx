@@ -5,6 +5,7 @@ import { CalendarOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AppointmentListItem } from "@/features/appointments/components/AppointmentListItem";
+import { formatSessionRange } from "@/features/appointments/lib/sessionTime";
 import {
   CreateAppointmentForm,
   type CreateAppointmentFormHandle,
@@ -29,6 +30,7 @@ export function DayPanel({
   removeDayBlock,
   isDayBlockSaving,
   slotDurationMinutes,
+  sessionMinutes,
 }: {
   professionalId: string;
   date: string;
@@ -46,6 +48,7 @@ export function DayPanel({
   removeDayBlock: (id: string) => Promise<void>;
   isDayBlockSaving: boolean;
   slotDurationMinutes: 45 | 60;
+  sessionMinutes: number;
 }) {
   const {
     date: scheduleDate,
@@ -141,6 +144,7 @@ export function DayPanel({
                   key={appt.id}
                   appointment={appt}
                   professionalId={professionalId}
+                  sessionMinutes={sessionMinutes}
                   onChangeStatus={async (newStatus) => {
                     const result = await changeStatus(appt.id, newStatus);
                     if (result.success) reloadSchedule();
@@ -189,7 +193,7 @@ export function DayPanel({
               {freeSlots.map((slot) => (
                 <div key={slot.startTime} className="flex items-center justify-between px-3 py-2 text-sm">
                   <span className="font-medium text-green-700">
-                    {slot.startTime.slice(0, 5)} · Libre
+                    {formatSessionRange(slot.startTime, sessionMinutes)} · Libre
                   </span>
                   <div className="flex gap-2">
                     <Button
@@ -222,7 +226,7 @@ export function DayPanel({
               {blockedSlots.map((slot) => (
                 <div key={slot.startTime} className="flex items-center justify-between px-3 py-2 text-sm">
                   <span className="font-medium text-red-700">
-                    {slot.startTime.slice(0, 5)} · Bloqueado
+                    {formatSessionRange(slot.startTime, sessionMinutes)} · Bloqueado
                   </span>
                   <Button
                     type="button"

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CalendarDays, Check, Clock, Home, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatLongDate } from "@/features/appointments/lib/date";
+import { formatSessionRange } from "@/features/appointments/lib/sessionTime";
 
 const REDIRECT_SECONDS = 10;
 
@@ -12,10 +13,12 @@ export function BookingConfirmation({
   professionalName,
   date,
   startTime,
+  sessionMinutes,
 }: {
   professionalName: string;
   date: string;
   startTime: string;
+  sessionMinutes: number;
 }) {
   const router = useRouter();
   const [secondsLeft, setSecondsLeft] = useState(REDIRECT_SECONDS);
@@ -50,7 +53,7 @@ export function BookingConfirmation({
         </p>
         <p className="flex items-center justify-center gap-2">
           <Clock className="size-4 shrink-0 text-brand-teal" aria-hidden="true" />
-          {startTime.slice(0, 5)} hs
+          {formatSessionRange(startTime, sessionMinutes)} hs
         </p>
         <p className="flex items-center justify-center gap-2">
           <UserRound className="size-4 shrink-0 text-brand-teal" aria-hidden="true" />

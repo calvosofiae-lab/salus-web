@@ -17,6 +17,7 @@ import { SlotPicker } from "@/features/appointments/components/SlotPicker";
 import { getSelectableStatuses, STATUS_LABELS, STATUS_VARIANT } from "@/features/appointments/constants";
 import { formatLongDate, isPastDateTime } from "@/features/appointments/lib/date";
 import { buildWhatsappLink } from "@/lib/whatsapp";
+import { formatSessionRange } from "@/features/appointments/lib/sessionTime";
 import type { Appointment, AppointmentStatus } from "@/features/appointments/types";
 
 type ActionResult = { success: true } | { success: false; error: string };
@@ -24,6 +25,7 @@ type ActionResult = { success: true } | { success: false; error: string };
 export function AppointmentListItem({
   appointment,
   professionalId,
+  sessionMinutes,
   onChangeStatus,
   onReschedule,
   justRescheduledTo,
@@ -32,6 +34,8 @@ export function AppointmentListItem({
 }: {
   appointment: Appointment;
   professionalId: string;
+  /** Si se pasa, muestra el horario de la sesión ("09:00 a 09:50") en vez de solo el inicio. */
+  sessionMinutes?: number;
   onChangeStatus: (status: AppointmentStatus) => Promise<ActionResult>;
   onReschedule: (date: string, startTime: string) => Promise<ActionResult>;
   // Se guarda en el padre (no acá) porque al reprogramar el turno cambia de fecha y esta
@@ -141,7 +145,10 @@ export function AppointmentListItem({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-col gap-1">
           <span className="text-sm font-medium">
-            {appointment.start_time.slice(0, 5)} · {appointment.patient_first_name}{" "}
+            {sessionMinutes != null
+              ? formatSessionRange(appointment.start_time, sessionMinutes)
+              : appointment.start_time.slice(0, 5)}{" "}
+            · {appointment.patient_first_name}{" "}
             {appointment.patient_last_name}
           </span>
           <span className="text-xs text-muted-foreground">

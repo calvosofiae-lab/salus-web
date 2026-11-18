@@ -24,6 +24,7 @@ import { hasPatientSurveyInMonth } from "@/repositories/emailNotificationsReposi
 import {
   attemptSend,
   timeLabelOf,
+  sessionLabelOf,
   resolveProfessionalContact,
   WHATSAPP_CONTACT_MESSAGE,
 } from "@/services/emailDelivery";
@@ -83,7 +84,7 @@ export async function notifyAppointmentBookedByEmail(appointmentId: string): Pro
   }
 
   const dateLabel = formatLongDate(appointment.appointment_date);
-  const timeLabel = timeLabelOf(appointment.start_time);
+  const timeLabel = sessionLabelOf(appointment.start_time, professional);
   const patientFullName =
     `${appointment.patient_first_name} ${appointment.patient_last_name}`.trim();
   const professionalContact = await resolveProfessionalContact(admin, professional);
@@ -184,7 +185,7 @@ export async function notifyAppointmentsCreatedByProfessionalEmail(
         patientFirstName: appointment.patient_first_name,
         professionalFullName: professional.full_name,
         dateLabel: formatLongDate(appointment.appointment_date),
-        timeLabel: timeLabelOf(appointment.start_time),
+        timeLabel: sessionLabelOf(appointment.start_time, professional),
         professionalContact: await resolveProfessionalContact(admin, professional),
       }),
     });
@@ -220,7 +221,7 @@ export async function notifyAppointmentRescheduledEmail(
       previousDateLabel: formatLongDate(previousDate),
       previousTimeLabel: timeLabelOf(previousStartTime),
       dateLabel: formatLongDate(appointment.appointment_date),
-      timeLabel: timeLabelOf(appointment.start_time),
+      timeLabel: sessionLabelOf(appointment.start_time, professional),
       professionalContact: await resolveProfessionalContact(admin, professional),
     }),
   });

@@ -1,12 +1,21 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { CalendarCheck, CalendarDays, Clock, Loader2, MapPin, UserRound } from "lucide-react";
+import {
+  CalendarCheck,
+  CalendarDays,
+  Clock,
+  Loader2,
+  MapPin,
+  Tag,
+  UserRound,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { formatSessionRange } from "@/features/appointments/lib/sessionTime";
+import { formatPrice, type FeeScheduleItem } from "@/features/professionals/lib/feeSchedule";
 import { formatLongDate } from "@/features/appointments/lib/date";
 import { BookingStepHeading } from "@/features/appointments/components/BookingStep";
 import {
@@ -37,6 +46,7 @@ export function BookingForm({
   professionalName,
   modalityLabel,
   sessionMinutes,
+  fees = [],
   values,
   onValuesChange,
   onSubmit,
@@ -48,6 +58,8 @@ export function BookingForm({
   professionalName: string;
   modalityLabel: string;
   sessionMinutes: number;
+  /** Tarifario del profesional (otros tipos de sesión); el precio base ya está en el perfil. */
+  fees?: FeeScheduleItem[];
   // Controlado desde el padre para que los datos sobrevivan si el usuario vuelve a cambiar
   // la fecha o el horario (el formulario se desmonta y remonta al ir y volver de esos pasos).
   values: PatientValues;
@@ -226,6 +238,21 @@ export function BookingForm({
             </li>
           )}
         </ul>
+
+        {fees.length > 0 && (
+          <>
+            <div className="my-3 border-t" />
+            <p className="mb-1 font-semibold text-primary">Otras tarifas</p>
+            <ul className="flex flex-col gap-1.5 text-muted-foreground">
+              {fees.map((fee, index) => (
+                <li key={`${fee.label}-${index}`} className="flex items-center gap-2">
+                  <Tag className="size-4 shrink-0 text-brand-teal" aria-hidden="true" />
+                  {fee.label}: {formatPrice(fee.price)}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
 
         {(firstName || lastName || email || whatsappArea || whatsappNumber) && (
           <>

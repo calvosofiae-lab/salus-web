@@ -443,7 +443,8 @@ export function ProfessionalForm({
               <Label>Tarifario (opcional)</Label>
               <p className="text-xs text-muted-foreground">
                 Otros tipos de sesión con un precio distinto, por ejemplo terapia de pareja. Se
-                muestran en tu perfil debajo del precio de la sesión.
+                muestran al reservar un turno; en el perfil se ve &quot;Sesión desde&quot; con el
+                precio de la sesión.
               </p>
             </div>
             <datalist id="fee-label-suggestions">

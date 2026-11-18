@@ -70,14 +70,9 @@ export function ProfessionalProfile({ professional }: { professional: Profession
           <p className="text-sm text-muted-foreground">Sesiones de {duracionSesion} minutos</p>
           {professional.consultation_fee != null && (
             <p className="text-sm text-muted-foreground">
-              Precio de la sesión: {formatPrice(professional.consultation_fee)}
+              Sesión desde {formatPrice(professional.consultation_fee)}
             </p>
           )}
-          {feeSchedule.map((item, index) => (
-            <p key={`${item.label}-${index}`} className="text-sm text-muted-foreground">
-              {item.label}: {formatPrice(item.price)}
-            </p>
-          ))}
           <RatingSummary
             averageRating={professional.average_rating}
             reviewCount={professional.review_count}
@@ -138,6 +133,7 @@ export function ProfessionalProfile({ professional }: { professional: Profession
                   professionalName={professional.full_name}
                   modalityLabel={modalidad}
                   sessionMinutes={duracionSesion}
+                  fees={feeSchedule}
                   values={patientValues}
                   onValuesChange={setPatientValues}
                   isLoading={isLoading}

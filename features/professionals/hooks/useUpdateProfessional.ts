@@ -8,6 +8,7 @@ import {
   uploadProfessionalPhoto,
 } from "@/repositories/professionalsRepository";
 import { getErrorMessage } from "@/lib/errors";
+import { formRowsToFeeSchedule } from "@/features/professionals/lib/feeSchedule";
 import type { ProfessionalFormSubmitValues } from "@/features/professionals/components/ProfessionalForm";
 
 export function useUpdateProfessional(id: string) {
@@ -19,6 +20,7 @@ export function useUpdateProfessional(id: string) {
     photoFile,
     photoRemoved,
     consultation_fee,
+    fee_schedule,
     ...values
   }: ProfessionalFormSubmitValues) {
     setIsLoading(true);
@@ -35,6 +37,7 @@ export function useUpdateProfessional(id: string) {
         ...values,
         photo_url,
         consultation_fee: consultation_fee.trim() === "" ? null : Number(consultation_fee),
+        fee_schedule: formRowsToFeeSchedule(fee_schedule),
       });
       router.push("/admin/profesionales");
     } catch (err) {

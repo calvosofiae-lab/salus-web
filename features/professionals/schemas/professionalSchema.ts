@@ -25,6 +25,7 @@ const baseShape = {
   license_province: z.string(),
   gender: z.union([z.enum(genderValues), z.literal("")]),
   consultation_fee: z.string(),
+  fee_schedule: z.array(z.object({ label: z.string(), price: z.string() })),
   description: z.string(),
   photo_url: z.string(),
   // El WhatsApp se carga igual que en la reserva de turnos del paciente: cualquier país,
@@ -78,6 +79,27 @@ export function buildProfessionalFormSchema(mode: "create" | "edit") {
         });
       }
     }
+
+    values.fee_schedule.forEach((row, index) => {
+      const label = row.label.trim();
+      const price = row.price.trim();
+      if (label === "" && price === "") return; // fila vacía: se descarta al guardar
+      if (label === "") {
+        ctx.addIssue({
+          code: "custom",
+          path: ["fee_schedule", index, "label"],
+          message: "Indicá el tipo de sesión.",
+        });
+      }
+      const fee = Number(price);
+      if (price === "" || !Number.isFinite(fee) || fee < 0) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["fee_schedule", index, "price"],
+          message: "Ingresá un precio válido.",
+        });
+      }
+    });
 
     if (mode !== "create") return;
 

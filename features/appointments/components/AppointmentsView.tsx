@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ProfessionalCalendar } from "@/features/appointments/components/ProfessionalCalendar";
 import { MyAppointmentsList } from "@/features/appointments/components/MyAppointmentsList";
+import type { BreakMinutes } from "@/features/appointments/lib/sessionTime";
 
 type View = "calendario" | "listado";
 
@@ -13,9 +14,11 @@ type View = "calendario" | "listado";
 export function AppointmentsView({
   professionalId,
   slotDurationMinutes,
+  breakMinutes,
 }: {
   professionalId: string;
   slotDurationMinutes: 45 | 60;
+  breakMinutes: BreakMinutes;
 }) {
   const [view, setView] = useState<View>("calendario");
 
@@ -44,6 +47,7 @@ export function AppointmentsView({
         <ProfessionalCalendar
           professionalId={professionalId}
           slotDurationMinutes={slotDurationMinutes}
+          breakMinutes={breakMinutes}
         />
       ) : (
         <MyAppointmentsList professionalId={professionalId} />

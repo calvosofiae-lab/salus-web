@@ -5,6 +5,12 @@ import Link from "next/link";
 import { Home } from "lucide-react";
 import { MODALITY_LABELS, PROFESSION_LABELS } from "@/features/professionals/constants";
 import { formatLicense } from "@/features/professionals/lib/license";
+import { formatPrice, parseFeeSchedule } from "@/features/professionals/lib/feeSchedule";
+import {
+  sessionMinutes,
+  toBreakMinutes,
+  toSlotDuration,
+} from "@/features/appointments/lib/sessionTime";
 import type { Professional } from "@/features/professionals/types";
 import { SlotPicker, type SlotPickerHandle } from "@/features/appointments/components/SlotPicker";
 import { BookingForm, type PatientValues } from "@/features/appointments/components/BookingForm";
@@ -42,6 +48,11 @@ export function ProfessionalProfile({ professional }: { professional: Profession
         .filter(Boolean)
         .join(", ")
     : "";
+  const feeSchedule = parseFeeSchedule(professional.fee_schedule);
+  const duracionSesion = sessionMinutes(
+    toSlotDuration(professional.slot_duration_minutes),
+    toBreakMinutes(professional.break_minutes),
+  );
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8">
@@ -63,11 +74,17 @@ export function ProfessionalProfile({ professional }: { professional: Profession
           </p>
           {modalidad && <p className="text-sm text-muted-foreground">Atención {modalidad}</p>}
           {ubicacion && <p className="text-sm text-muted-foreground">📍 {ubicacion}</p>}
+          <p className="text-sm text-muted-foreground">Sesiones de {duracionSesion} minutos</p>
           {professional.consultation_fee != null && (
             <p className="text-sm text-muted-foreground">
-              Precio de la sesión: ${professional.consultation_fee.toLocaleString("es-AR")}
+              Precio de la sesión: {formatPrice(professional.consultation_fee)}
             </p>
           )}
+          {feeSchedule.map((item, index) => (
+            <p key={`${item.label}-${index}`} className="text-sm text-muted-foreground">
+              {item.label}: {formatPrice(item.price)}
+            </p>
+          ))}
           <RatingSummary
             averageRating={professional.average_rating}
             reviewCount={professional.review_count}

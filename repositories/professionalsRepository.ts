@@ -6,6 +6,7 @@ import type {
   ProfessionalFilters,
   ProfessionalInput,
 } from "@/features/professionals/types";
+import type { BreakMinutes } from "@/features/appointments/lib/sessionTime";
 import type { ProfessionalReportRow, WeeklyBookingsRow } from "@/features/admin/types";
 
 export async function getFeaturedProfessionals(): Promise<Professional[]> {
@@ -275,6 +276,15 @@ export async function updateSlotDuration(professionalId: string, minutes: 45 | 6
     p_minutes: minutes,
   });
   if (error) throw error;
+}
+
+// El descanso va dentro del turno (sesión = turno - descanso): no cambia la grilla de horarios
+// ni los end_time ya reservados, así que alcanza con un update directo (sin RPC).
+export async function updateBreakMinutes(
+  professionalId: string,
+  minutes: BreakMinutes,
+): Promise<void> {
+  await updateProfessional(professionalId, { break_minutes: minutes });
 }
 
 export async function getOwnProfessional(

@@ -82,6 +82,10 @@ export interface Database {
           /** Columna generada (`lower(unaccent(full_name))`); solo lectura. */
           full_name_normalized: string;
           slot_duration_minutes: number;
+          /** Minutos de descanso dentro del turno (0, 5, 10 o 15). Sesión = turno - descanso. */
+          break_minutes: number;
+          /** Tarifario adicional a consultation_fee (ej. terapia de pareja). */
+          fee_schedule: { label: string; price: number }[];
         };
         Insert: {
           id?: string;
@@ -113,6 +117,8 @@ export interface Database {
           consultation_fee?: number | null;
           created_at?: string;
           slot_duration_minutes?: number;
+          break_minutes?: number;
+          fee_schedule?: { label: string; price: number }[];
         };
         Update: {
           id?: string;
@@ -144,6 +150,8 @@ export interface Database {
           consultation_fee?: number | null;
           created_at?: string;
           slot_duration_minutes?: number;
+          break_minutes?: number;
+          fee_schedule?: { label: string; price: number }[];
         };
         Relationships: [];
       };

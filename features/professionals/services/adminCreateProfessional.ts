@@ -3,6 +3,7 @@
 import { getServerSession } from "@/features/auth/services/sessionService";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ProfessionalCreateInput } from "@/features/professionals/types";
+import { formRowsToFeeSchedule } from "@/features/professionals/lib/feeSchedule";
 
 export async function adminCreateProfessional(input: ProfessionalCreateInput) {
   const session = await getServerSession();
@@ -34,6 +35,7 @@ export async function adminCreateProfessional(input: ProfessionalCreateInput) {
       gender: input.gender || null,
       consultation_fee:
         input.consultation_fee.trim() === "" ? null : Number(input.consultation_fee),
+      fee_schedule: formRowsToFeeSchedule(input.fee_schedule),
       description: input.description || null,
       photo_url: input.photo_url || null,
       whatsapp: input.whatsapp || null,

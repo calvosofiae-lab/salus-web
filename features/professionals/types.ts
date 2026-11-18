@@ -1,4 +1,5 @@
 import type { Database } from "@/types/database";
+import type { FeeScheduleFormRow } from "@/features/professionals/lib/feeSchedule";
 
 export type Professional = Database["public"]["Tables"]["professionals"]["Row"];
 export type ProfessionalInput = Database["public"]["Tables"]["professionals"]["Insert"];
@@ -30,6 +31,7 @@ export interface ProfessionalFormValues {
   license_province: string;
   gender: string;
   consultation_fee: string;
+  fee_schedule: FeeScheduleFormRow[];
   description: string;
   photo_url: string;
   whatsapp: string;

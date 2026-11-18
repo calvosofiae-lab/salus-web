@@ -12,6 +12,7 @@ import { MonthCalendar } from "@/features/appointments/components/MonthCalendar"
 import { DayPanel } from "@/features/appointments/components/DayPanel";
 import { getMonthBounds, todayIso, toISODate } from "@/features/appointments/lib/date";
 import type { Appointment, AvailabilityBlock } from "@/features/appointments/types";
+import type { BreakMinutes } from "@/features/appointments/lib/sessionTime";
 
 // Expande cada bloque (rango start_date..end_date) en fechas ISO sueltas, para poder consultar
 // "¿este día está bloqueado?" con un simple Set.has() al pintar el almanaque.
@@ -33,9 +34,11 @@ function expandBlockedDates(blocks: AvailabilityBlock[]): Set<string> {
 export function ProfessionalCalendar({
   professionalId,
   slotDurationMinutes: initialSlotDurationMinutes,
+  breakMinutes,
 }: {
   professionalId: string;
   slotDurationMinutes: 45 | 60;
+  breakMinutes: BreakMinutes;
 }) {
   const today = useMemo(() => new Date(), []);
   const [visibleMonth, setVisibleMonth] = useState({
@@ -135,6 +138,7 @@ export function ProfessionalCalendar({
       <SlotDurationSetting
         professionalId={professionalId}
         minutes={slotDurationMinutes}
+        breakMinutes={breakMinutes}
         onChanged={(minutes) => {
           setSlotDurationMinutes(minutes);
           handleDataChanged();

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Plus, Save, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,7 @@ import {
   type ProfessionalFormSchema,
 } from "@/features/professionals/schemas/professionalSchema";
 import type { ProfessionalFormValues } from "@/features/professionals/types";
+import { FEE_LABEL_SUGGESTIONS } from "@/features/professionals/lib/feeSchedule";
 
 const EMPTY_VALUES: ProfessionalFormSchema = {
   full_name: "",
@@ -42,6 +43,7 @@ const EMPTY_VALUES: ProfessionalFormSchema = {
   license_province: "",
   gender: "",
   consultation_fee: "",
+  fee_schedule: [],
   description: "",
   photo_url: "",
   whatsapp_country: DEFAULT_PHONE_COUNTRY,
@@ -220,11 +222,13 @@ export function ProfessionalForm({
     getValues,
     reset,
     trigger,
+    control,
     formState: { errors },
   } = useForm<ProfessionalFormSchema>({
     resolver: zodResolver(buildProfessionalFormSchema(mode)),
     defaultValues: toFormValues(initialValues),
   });
+  const feeRows = useFieldArray({ control, name: "fee_schedule" });
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoRemoved, setPhotoRemoved] = useState(false);
@@ -432,6 +436,73 @@ export function ProfessionalForm({
                 {errors.consultation_fee.message}
               </p>
             )}
+          </div>
+
+          <div className="grid gap-2 md:col-span-2">
+            <div>
+              <Label>Tarifario (opcional)</Label>
+              <p className="text-xs text-muted-foreground">
+                Otros tipos de sesión con un precio distinto, por ejemplo terapia de pareja. Se
+                muestran en tu perfil debajo del precio de la sesión.
+              </p>
+            </div>
+            <datalist id="fee-label-suggestions">
+              {FEE_LABEL_SUGGESTIONS.map((label) => (
+                <option key={label} value={label} />
+              ))}
+            </datalist>
+            {feeRows.fields.map((field, index) => {
+              const rowErrors = errors.fee_schedule?.[index];
+              return (
+                <div key={field.id} className="flex flex-col gap-1">
+                  <div className="flex items-start gap-2">
+                    <Input
+                      aria-label={`Tipo de sesión ${index + 1}`}
+                      list="fee-label-suggestions"
+                      placeholder="Ej: Terapia de pareja"
+                      aria-invalid={!!rowErrors?.label}
+                      className="min-w-0 flex-1"
+                      {...register(`fee_schedule.${index}.label`)}
+                    />
+                    <Input
+                      aria-label={`Precio ${index + 1}`}
+                      type="number"
+                      inputMode="decimal"
+                      min="0"
+                      step="1"
+                      placeholder="Precio"
+                      aria-invalid={!!rowErrors?.price}
+                      className="w-28 shrink-0"
+                      {...register(`fee_schedule.${index}.price`)}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      aria-label={`Quitar tarifa ${index + 1}`}
+                      onClick={() => feeRows.remove(index)}
+                    >
+                      <Trash2 className="size-4" aria-hidden="true" />
+                    </Button>
+                  </div>
+                  {(rowErrors?.label || rowErrors?.price) && (
+                    <p role="alert" className="text-xs text-red-600">
+                      {rowErrors?.label?.message ?? rowErrors?.price?.message}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="self-start"
+              onClick={() => feeRows.append({ label: "", price: "" })}
+            >
+              <Plus className="size-4" aria-hidden="true" />
+              Agregar tarifa
+            </Button>
           </div>
 
           <div className="grid gap-1.5">

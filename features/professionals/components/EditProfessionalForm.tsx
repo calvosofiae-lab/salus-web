@@ -4,6 +4,7 @@ import { ProfessionalForm } from "@/features/professionals/components/Profession
 import { ResetProfessionalPasswordForm } from "@/features/professionals/components/ResetProfessionalPasswordForm";
 import { useUpdateProfessional } from "@/features/professionals/hooks/useUpdateProfessional";
 import type { Professional } from "@/features/professionals/types";
+import { feeScheduleToFormRows } from "@/features/professionals/lib/feeSchedule";
 
 export function EditProfessionalForm({ professional }: { professional: Professional }) {
   const { update, error, isLoading } = useUpdateProfessional(professional.id);
@@ -21,6 +22,7 @@ export function EditProfessionalForm({ professional }: { professional: Professio
           gender: professional.gender ?? "",
           consultation_fee:
             professional.consultation_fee != null ? String(professional.consultation_fee) : "",
+          fee_schedule: feeScheduleToFormRows(professional.fee_schedule),
           description: professional.description ?? "",
           photo_url: professional.photo_url ?? "",
           whatsapp: professional.whatsapp ?? "",

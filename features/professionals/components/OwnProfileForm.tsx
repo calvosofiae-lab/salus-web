@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { ProfessionalForm } from "@/features/professionals/components/ProfessionalForm";
 import { useUpdateOwnProfile } from "@/features/professionals/hooks/useUpdateOwnProfile";
 import type { Professional } from "@/features/professionals/types";
+import { feeScheduleToFormRows } from "@/features/professionals/lib/feeSchedule";
 
 export function OwnProfileForm({ professional }: { professional: Professional }) {
   const { update, error, success, isLoading } = useUpdateOwnProfile(professional.id);
@@ -35,6 +36,7 @@ export function OwnProfileForm({ professional }: { professional: Professional })
           gender: professional.gender ?? "",
           consultation_fee:
             professional.consultation_fee != null ? String(professional.consultation_fee) : "",
+          fee_schedule: feeScheduleToFormRows(professional.fee_schedule),
           description: professional.description ?? "",
           photo_url: professional.photo_url ?? "",
           whatsapp: professional.whatsapp ?? "",

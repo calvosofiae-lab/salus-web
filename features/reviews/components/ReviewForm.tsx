@@ -121,6 +121,7 @@ export function ReviewForm({ token }: { token: string }) {
         <textarea
           id="comment"
           rows={4}
+          maxLength={2000}
           placeholder="Contanos cómo fue tu experiencia..."
           className={textareaClassName}
           value={comment}

@@ -9,11 +9,13 @@ const supabaseOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL
 // 'unsafe-eval' solo en dev: el HMR de Next usa eval() para los bundles de webpack.
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  // challenges.cloudflare.com: captcha Turnstile de la reserva (components/turnstile-widget.tsx).
+  `script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https:",
   "font-src 'self' data:",
   `connect-src 'self' ${supabaseOrigin}`.trim(),
+  "frame-src https://challenges.cloudflare.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

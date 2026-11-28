@@ -1,0 +1,17 @@
+# Dependabot revisa una vez por semana si hay versiones nuevas de las dependencias de npm y
+# abre un pull request por cada actualización. Nada se publica solo: cada PR hay que revisarlo
+# y aprobarlo como cualquier otro cambio, porque lo que entra a `main` va directo a producción.
+# Las alertas de seguridad (Dependabot alerts) se activan aparte, en Settings del repo.
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      timezone: "America/Argentina/Buenos_Aires"
+    open-pull-requests-limit: 5
+    groups:
+      # Agrupa las actualizaciones menores para no llenar el repo de PRs sueltos.
+      minor-and-patch:
+        update-types: ["minor", "patch"]

@@ -10,6 +10,18 @@ export async function adminCreateProfessional(input: ProfessionalCreateInput) {
     throw new Error("No autorizado.");
   }
 
+  // Una Server Action es un endpoint POST: el formulario ya valida, pero acá se revisa de
+  // nuevo lo que no se puede corregir después (el usuario de acceso).
+  if (typeof input.email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email.trim())) {
+    throw new Error("Ingresá un email válido.");
+  }
+  if (typeof input.password !== "string" || input.password.length < 6) {
+    throw new Error("La contraseña debe tener al menos 6 caracteres.");
+  }
+  if (typeof input.full_name !== "string" || input.full_name.trim() === "") {
+    throw new Error("Ingresá el nombre y apellido.");
+  }
+
   const admin = createAdminClient();
 
   const { data: created, error: createUserError } = await admin.auth.admin.createUser({

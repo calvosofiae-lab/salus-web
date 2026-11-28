@@ -130,7 +130,7 @@ export function ProfessionalProfile({ professional }: { professional: Profession
                   onValuesChange={setPatientValues}
                   isLoading={isLoading}
                   error={error}
-                  onSubmit={async (values) => {
+                  onSubmit={async (values, captchaToken) => {
                     const id = await book({
                       professionalId: professional.id,
                       date: selected.date,
@@ -140,7 +140,7 @@ export function ProfessionalProfile({ professional }: { professional: Profession
                       email: values.email,
                       whatsapp: `${values.whatsappArea}${values.whatsappNumber}`,
                       whatsappCountry: values.whatsappCountry,
-                    });
+                    }, captchaToken);
                     if (!id) {
                       // El turno pudo haberse ocupado entre que se cargó la lista y que se
                       // confirmó -- refresca los horarios y obliga a elegir de nuevo.

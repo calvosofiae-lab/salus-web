@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { formatLongDate } from "@/features/appointments/lib/date";
 import { BookingStepHeading } from "@/features/appointments/components/BookingStep";
+import { isTurnstileEnabled, TurnstileWidget } from "@/components/turnstile-widget";
 import {
   getPhoneCallingCode,
   isValidSplitPhone,
@@ -49,13 +50,15 @@ export function BookingForm({
   // la fecha o el horario (el formulario se desmonta y remonta al ir y volver de esos pasos).
   values: PatientValues;
   onValuesChange: (values: PatientValues) => void;
-  onSubmit: (values: PatientValues) => Promise<void>;
+  onSubmit: (values: PatientValues, captchaToken: string | null) => Promise<void>;
   isLoading: boolean;
   error: string | null;
 }) {
   const { firstName, lastName, email, whatsappCountry, whatsappArea, whatsappNumber } = values;
   const [whatsappError, setWhatsappError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
+  // Token del captcha (Turnstile). Si no está configurado, queda en null y no se exige.
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   // Guarda contra doble-click: `isLoading` (estado de React) puede tardar un ciclo en
   // reflejarse en el botón, y en ese margen un doble click alcanza a disparar dos reservas.
   const isSubmittingRef = useRef(false);
@@ -64,7 +67,8 @@ export function BookingForm({
     firstName.trim().length > 0 &&
     lastName.trim().length > 0 &&
     EMAIL_PATTERN.test(email) &&
-    isValidSplitPhone(whatsappArea, whatsappNumber, whatsappCountry);
+    isValidSplitPhone(whatsappArea, whatsappNumber, whatsappCountry) &&
+    (!isTurnstileEnabled || captchaToken !== null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -79,7 +83,7 @@ export function BookingForm({
     }
     isSubmittingRef.current = true;
     try {
-      await onSubmit(values);
+      await onSubmit(values, captchaToken);
     } finally {
       isSubmittingRef.current = false;
     }
@@ -99,6 +103,7 @@ export function BookingForm({
             id="firstName"
             required
             autoComplete="given-name"
+            maxLength={80}
             placeholder="Juan"
             value={firstName}
             onChange={(e) => onValuesChange({ ...values, firstName: e.target.value })}
@@ -110,6 +115,7 @@ export function BookingForm({
             id="lastName"
             required
             autoComplete="family-name"
+            maxLength={80}
             placeholder="Pérez"
             value={lastName}
             onChange={(e) => onValuesChange({ ...values, lastName: e.target.value })}
@@ -122,6 +128,7 @@ export function BookingForm({
             type="email"
             required
             autoComplete="email"
+            maxLength={254}
             placeholder="Ej: juan.perez@gmail.com"
             value={email}
             aria-invalid={!!emailError}
@@ -239,6 +246,10 @@ export function BookingForm({
             )}
           </>
         )}
+      </div>
+
+      <div className="ml-8">
+        <TurnstileWidget onToken={setCaptchaToken} />
       </div>
 
       {error && (

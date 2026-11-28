@@ -74,23 +74,8 @@ export async function updateAppointmentStatus(
   if (error) throw error;
 }
 
-export async function bookAppointment(input: BookAppointmentInput): Promise<string> {
-  const supabase = createClient();
-
-  const { data, error } = await supabase.rpc("book_appointment", {
-    p_professional_id: input.professionalId,
-    p_date: input.date,
-    p_start_time: input.startTime,
-    p_first_name: input.firstName,
-    p_last_name: input.lastName,
-    p_whatsapp: input.whatsapp,
-    p_whatsapp_country: input.whatsappCountry,
-    p_patient_email: input.email,
-  });
-
-  if (error) throw error;
-  return data;
-}
+// La reserva pública ya no se hace desde el navegador: ver
+// features/appointments/services/bookAppointmentAction.ts.
 
 export async function createAppointmentAsProfessional(
   input: CreateAppointmentAsProfessionalInput,

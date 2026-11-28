@@ -10,21 +10,16 @@ import type { Appointment } from "@/features/appointments/types";
 import type { Professional } from "@/features/professionals/types";
 import { formatLongDate } from "@/features/appointments/lib/date";
 import {
-  buildPatientConfirmationEmail,
-  buildProfessionalConfirmationEmail,
   buildPatientCreatedByProfessionalEmail,
   buildPatientRescheduledEmail,
   buildPatientCancelledEmail,
   buildPatientSurveyEmail,
-  type ContactInfo,
 } from "@/lib/email/templates";
-import { buildWhatsappLink } from "@/lib/whatsapp";
 import { hasPatientSurveyInMonth } from "@/repositories/emailNotificationsRepository";
 import {
   attemptSend,
   timeLabelOf,
   resolveProfessionalContact,
-  WHATSAPP_CONTACT_MESSAGE,
 } from "@/services/emailDelivery";
 
 // Server Action: no hay `window` para armar el link absoluto de la encuesta (a diferencia del
@@ -42,86 +37,6 @@ function getSiteUrl(): string {
 // create_appointment_as_professional no deja crear más de 52 turnos de una (20260905010000).
 // El mismo tope acá evita que una llamada armada a mano pida notificar una lista enorme.
 const MAX_APPOINTMENTS_PER_CALL = 52;
-
-// Análogo a resolveProfessionalContact (emailDelivery.ts), para que el profesional pueda
-// escribirle al paciente desde el mail de nueva reserva.
-function resolvePatientContact(appointment: Appointment): ContactInfo {
-  return {
-    email: appointment.patient_email,
-    whatsappLink: appointment.patient_whatsapp
-      ? buildWhatsappLink(
-          appointment.patient_whatsapp,
-          appointment.patient_whatsapp_country,
-          WHATSAPP_CONTACT_MESSAGE,
-        )
-      : null,
-  };
-}
-
-// ---------------------------------------------------------------------------------------
-// Reserva pública (el paciente reserva desde el perfil del profesional)
-// ---------------------------------------------------------------------------------------
-
-// Se llama después de que book_appointment ya confirmó la reserva (ver
-// features/appointments/hooks/useBookAppointment.ts). El turno ya existe: acá solo se intenta
-// notificar, nunca se decide si la reserva es válida.
-//
-// A diferencia de las acciones de más abajo, esta no puede exigir sesión: el flujo de reserva
-// es público y anónimo por diseño (EPIC 5). Lo que la protege de servir como disparador de
-// mails a pedido es la idempotencia -- existe como mucho una notificación
-// appointment_confirmation por turno y destinatario, así que reenviar el mismo id no vuelve a
-// mandar nada.
-export async function notifyAppointmentBookedByEmail(appointmentId: string): Promise<void> {
-  const admin = createAdminClient();
-
-  const appointment = await getAppointmentByIdInternal(admin, appointmentId);
-  if (!appointment) {
-    console.error(`notifyAppointmentBookedByEmail: turno ${appointmentId} no encontrado.`);
-    return;
-  }
-
-  const professional = await getProfessionalByIdAdmin(admin, appointment.professional_id);
-  if (!professional) {
-    console.error(
-      `notifyAppointmentBookedByEmail: profesional ${appointment.professional_id} no encontrado.`,
-    );
-    return;
-  }
-
-  const dateLabel = formatLongDate(appointment.appointment_date);
-  const timeLabel = timeLabelOf(appointment.start_time);
-  const patientFullName =
-    `${appointment.patient_first_name} ${appointment.patient_last_name}`.trim();
-  const professionalContact = await resolveProfessionalContact(admin, professional);
-
-  await attemptSend(admin, {
-    appointmentId,
-    recipientType: "patient",
-    recipientEmail: appointment.patient_email,
-    notificationType: "appointment_confirmation",
-    message: buildPatientConfirmationEmail({
-      patientFirstName: appointment.patient_first_name,
-      professionalFullName: professional.full_name,
-      dateLabel,
-      timeLabel,
-      professionalContact,
-    }),
-  });
-
-  await attemptSend(admin, {
-    appointmentId,
-    recipientType: "professional",
-    recipientEmail: professionalContact.email,
-    notificationType: "appointment_confirmation",
-    message: buildProfessionalConfirmationEmail({
-      professionalFullName: professional.full_name,
-      patientFullName,
-      dateLabel,
-      timeLabel,
-      patientContact: resolvePatientContact(appointment),
-    }),
-  });
-}
 
 // ---------------------------------------------------------------------------------------
 // Acciones del profesional sobre un turno existente
